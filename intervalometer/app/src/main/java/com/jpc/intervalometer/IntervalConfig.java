@@ -24,14 +24,27 @@ import android.content.SharedPreferences;
  * above). The long exposure is the same idea taken further (0.2.7 UX): the
  * timed range is the camera's own stock list, and the single app-side value
  * at the Bulb position is always custom - 5-1800 s, no preset list.
+ *
+ * 0.2.11 - count rework: the old {10, 60, all} list becomes a 5-shot-step
+ * ladder 5..600 ending in unlimited ("all"). Same wrap-around stepping as
+ * the other fields; the engine treats <= 0 as unlimited. The old indices
+ * would silently re-point under the new list, so the slot persists under a
+ * fresh key ("countSlot") - one-time reset to the 60-shot default on the
+ * first 0.2.11 launch.
  */
 public class IntervalConfig {
     /** Config choices are discrete lists - no typing on a 4-key camera. */
     private static final int[] INTERVALS_S = {2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600};
-    private static final int[] COUNTS = {10, 60, -1}; // -1 = unlimited
+    // 0.2.11 rework: 5..600 in 5-shot steps, then unlimited (-1) - 121 slots.
+    private static final int[] COUNTS = new int[121];
+    static {
+        for (int i = 0; i < 120; i++)
+            COUNTS[i] = 5 * (i + 1);
+        COUNTS[120] = -1; // unlimited - the engine runs until stopped (shotCount <= 0)
+    }
     private static final int[] DELAYS_S = {0, 2, 5, 10};
     private static final int DEF_INTERVAL = 4; // 30 s - the Phase 1 gate value
-    private static final int DEF_COUNT = 1;    // 60 shots = 30 min @ 30 s
+    private static final int DEF_COUNT = 11;   // 60 shots = 30 min @ 30 s
     private static final int DEF_DELAY = 0;
     private static final int INTERVAL_CUSTOM_DEF = 45, INTERVAL_CUSTOM_MIN = 2, INTERVAL_CUSTOM_MAX = 3600;
     // the custom long exposure - the one app-side exposure value (camera Bulb position)
@@ -56,7 +69,11 @@ public class IntervalConfig {
 
     private void load() {
         intervalIdx = clampIdx(prefs.getInt("intervalIdx", DEF_INTERVAL), INTERVALS_S.length + 1);
-        countIdx = clampIdx(prefs.getInt("countIdx", DEF_COUNT), COUNTS.length);
+        // 0.2.11: the count list was reworked (5-shot steps + unlimited), which
+        // shifts indices - a fresh key instead of "countIdx" so a 0.2.10 store
+        // can't silently select a different count (the lists-grow-at-the-end
+        // rule covers appends, not deliberate reworks; one-time default reset).
+        countIdx = clampIdx(prefs.getInt("countSlot", DEF_COUNT), COUNTS.length);
         delayIdx = clampIdx(prefs.getInt("delayIdx", DEF_DELAY), DELAYS_S.length);
         customIntervalS = clampInt(prefs.getInt("customIntervalS", INTERVAL_CUSTOM_DEF),
                 INTERVAL_CUSTOM_MIN, INTERVAL_CUSTOM_MAX);
@@ -70,7 +87,7 @@ public class IntervalConfig {
     public void save() {
         SharedPreferences.Editor e = prefs.edit();
         e.putInt("intervalIdx", intervalIdx);
-        e.putInt("countIdx", countIdx);
+        e.putInt("countSlot", countIdx); // fresh key with the 0.2.11 count rework (see load)
         e.putInt("delayIdx", delayIdx);
         e.putInt("customIntervalS", customIntervalS);
         e.putInt("customBulbS", customBulbS);

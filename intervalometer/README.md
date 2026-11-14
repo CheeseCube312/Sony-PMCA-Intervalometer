@@ -5,9 +5,12 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.2.6 - Phase 2 trust work underway: config persistence, custom
-slots + failure abort shipped and gated on camera; next is endurance +
-card guard.**
+**Status: 0.2.11 - Phase 2 trust work shipped through 0.2.10: persistence,
+custom slots, failure abort, exposure control + true bulb (self-checking
+Bulb exit). 0.2.11 adds single shooting ("Shot now" on the config grid -
+one capture at the current exposure, staying in config) and reworks count
+into a 5-shot-step ladder 5..600 ending in unlimited. Next per roadmap.md:
+0.2.12 ISO, 0.2.13 aperture, 0.3.0 power saving.**
 0.1.0 was the `Blank/starting_package`
 smoke test retargeted to `com.jpc.intervalometer` / INTVL logging (preview +
 S2 still verified on camera). 0.1.1 retires the starter's M-JPEG decode

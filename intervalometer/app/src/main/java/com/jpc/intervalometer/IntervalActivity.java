@@ -24,11 +24,12 @@ import java.io.IOException;
  * no decode, no pixel access, no NDK.
  *
  * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
- * in reading order (interval -> count -> exposure -> delay), S2 starts the
- * run (mid-run S2 is ignored - the engine owns shooting; that also covers
- * the write-hold gap before the summary prints), S1 autofocus works as
- * always, trash stops a run and the summary prints; from the summary, trash
- * exits.
+ * in reading order (interval -> count -> exposure -> delay -> shot now),
+ * S2 starts the run - on the Shot now field it fires ONE capture instead
+ * (0.2.11) - (mid-run S2 is ignored - the engine owns shooting; that also
+ * covers the write-hold gap before the summary prints), S1 autofocus works
+ * as always, trash stops a run and the summary prints; from the summary,
+ * trash exits.
  *
  * Runs hold the camera awake: auto power-off is held off via the
  * DAConnectionManagerService.apo broadcast (the same one PMCADemo's
@@ -109,6 +110,19 @@ import java.io.IOException;
  * long-exposure value in seconds (5-1800 s, 5 s/30 s steps, persisted) and
  * the field reads "custom N s" there - the app-side bulb preset list is
  * gone.
+ *
+ * 0.2.11 - single shot + count rework. The config grid gains a Shot now
+ * field below the 2x2 grid: S2 there fires ONE capture at the current
+ * exposure (timed closes on its own; Bulb ends via cancelExposure at the
+ * custom seconds) and the config screen stays up. The per-frame cycle
+ * (resume preview -> takePicture -> scheduled release -> never-store
+ * watchdog) is extracted into fireCapture() so engine slots and singles
+ * share the exact proven path; singles carry no run bookkeeping (no
+ * engine, no reject-abort counter) and trash is gated while a capture is
+ * in flight so it can't release the camera mid-exposure. busy() now also
+ * covers an in-flight capture. Count becomes a 5-shot-step ladder 5..600
+ * ending in unlimited ("all"; fresh pref key - IntervalConfig), and the
+ * RUNNING HUD reads "shot n/all" on unlimited runs.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -123,12 +137,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
-    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay
-    // LEFT/RIGHT walk the 2x2 grid in reading order: Interval (top-left) ->
-    // Count (top-right) -> Exposure (bottom-left) -> Delay (bottom-right).
+    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 shot now
+    // LEFT/RIGHT walk the grid in reading order: Interval (top-left) ->
+    // Count (top-right) -> Exposure (bottom-left) -> Delay (bottom-right) ->
+    // Shot now (below the grid; S2 there fires one capture instead of a run).
     // Indexed by the current field; the entry is where the key lands.
-    private static final int[] NEXT_FIELD = {2, 3, 1, 0};
-    private static final int[] PREV_FIELD = {3, 2, 0, 1};
+    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 0};
+    private static final int[] PREV_FIELD = {4, 2, 0, 1, 3};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
@@ -250,46 +265,67 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         }
     };
 
+    /**
+     * One capture cycle - the proven per-frame path engine runs and single
+     * shots share (0.2.11): resume preview (takePicture needs a live one),
+     * takePicture (the S2-down half), then schedule the release -
+     * cancelTakePicture +2.5 s for timed shots, cancelExposure at the bulb
+     * duration for bulb - and the never-storing watchdog. On accept,
+     * stillT0 marks the capture in flight (canShoot/busy hold until the
+     * store lands or the watchdog gives up). Returns false when the HAL
+     * rejects the command (stack logged here); callers own the rejection
+     * bookkeeping - the run's consecutive-reject abort, a log line for
+     * singles.
+     */
+    private boolean fireCapture() {
+        if (camera == null)
+            return false;
+        boolean bulb = bulbShotMs > 0;
+        try {
+            resumePreview(); // safety net: takePicture needs a live preview (no-op if already running)
+            stillT0 = System.currentTimeMillis();
+            inFlightCapMs = bulb ? bulbShotMs + WATCH_MARGIN_MS : INFLIGHT_CAP_MS;
+            camera.getNormalCamera().takePicture(null, null, null);
+            if (bulb) {
+                // True bulb: the app owns the exposure end. cancelExposure at
+                // the configured duration replaces the fixed +2.5 s release
+                // (which would cut every bulb exposure short).
+                handler.postDelayed(bulbRelease, bulbShotMs);
+            } else {
+                handler.postDelayed(shutterRelease, SHUTTER_MS); // the S2 up half of the press
+            }
+            handler.postDelayed(inFlightCap, inFlightCapMs); // never-storing capture watchdog
+            return true;
+        } catch (Throwable t) {
+            stillT0 = 0;
+            handler.removeCallbacks(shutterRelease);
+            handler.removeCallbacks(bulbRelease);
+            handler.removeCallbacks(inFlightCap);
+            Logger.error("takePicture rejected: " + Log.getStackTraceString(t));
+            return false;
+        }
+    }
+
     /** The engine callback set, wired to this activity's camera + overlay. */
     private final IntervalEngine.Listener engineListener = new IntervalEngine.Listener() {
         @Override
         public void onShoot(int n) {
-            if (camera == null)
-                return;
-            boolean bulb = bulbShotMs > 0;
-            try {
-                resumePreview(); // safety net: takePicture needs a live preview (no-op if already running)
-                stillT0 = System.currentTimeMillis();
-                inFlightCapMs = bulb ? bulbShotMs + WATCH_MARGIN_MS : INFLIGHT_CAP_MS;
-                camera.getNormalCamera().takePicture(null, null, null);
+            if (fireCapture()) {
                 consecutiveFwRejects = 0; // command accepted - a never-store is NOT a rejection (watchdog's case)
-                if (bulb) {
-                    // True bulb: the app owns the exposure end. cancelExposure at
-                    // the configured duration replaces the fixed +2.5 s release
-                    // (which would cut every bulb exposure short).
-                    handler.postDelayed(bulbRelease, bulbShotMs);
-                } else {
-                    handler.postDelayed(shutterRelease, SHUTTER_MS); // the S2 up half of the press
-                }
-                handler.postDelayed(inFlightCap, inFlightCapMs); // never-storing capture watchdog
-            } catch (Throwable t) {
-                stillT0 = 0;
-                handler.removeCallbacks(shutterRelease);
-                handler.removeCallbacks(bulbRelease);
-                handler.removeCallbacks(inFlightCap);
-                consecutiveFwRejects++;
-                Logger.error("shot " + n + ": takePicture failed ("
-                        + consecutiveFwRejects + " straight): " + Log.getStackTraceString(t));
-                if (consecutiveFwRejects >= FW_REJECT_ABORT && engine != null && engine.isRunning()) {
-                    // Rejection is deterministic (v0.2.0/0.2.1: once the HAL
-                    // starts throwing, every following slot throws too) - keep
-                    // firing and the run only piles up worthless slots. Stop as
-                    // FAILED; the summary's stored-vs-fired count shows the
-                    // damage. A never-storing capture does NOT count here.
-                    Logger.error("aborting run: " + FW_REJECT_ABORT
-                            + " consecutive takePicture rejections");
-                    engine.stop(IntervalEngine.REASON_FAILED);
-                }
+                return;
+            }
+            consecutiveFwRejects++;
+            Logger.error("shot " + n + ": takePicture failed ("
+                    + consecutiveFwRejects + " straight)");
+            if (consecutiveFwRejects >= FW_REJECT_ABORT && engine != null && engine.isRunning()) {
+                // Rejection is deterministic (v0.2.0/0.2.1: once the HAL
+                // starts throwing, every following slot throws too) - keep
+                // firing and the run only piles up worthless slots. Stop as
+                // FAILED; the summary's stored-vs-fired count shows the
+                // damage. A never-storing capture does NOT count here.
+                Logger.error("aborting run: " + FW_REJECT_ABORT
+                        + " consecutive takePicture rejections");
+                engine.stop(IntervalEngine.REASON_FAILED);
             }
         }
 
@@ -305,7 +341,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             if (lastApoMs == 0 || SystemClock.elapsedRealtime() - lastApoMs > APO_REFRESH_MS)
                 apoOff();
             int planShots = config.shotCount();
-            String plan = planShots > 0 ? "/" + planShots : "";
+            String plan = planShots > 0 ? "/" + planShots : "/all"; // unlimited runs show the target word
             String status = "shot " + shotsFired + plan + " | next " + IntervalEngine.mmss(nextShotInMs)
                     + " | +" + IntervalEngine.mmss(elapsedMs)
                     + (bulbShotMs > 0 ? " | Bulb " + (bulbShotMs / 1000) + " s" : "");
@@ -631,7 +667,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // --- config screen ---
 
-    /** Paints the config grid; the hint line is contextual (CUSTOM slot, long exposure). */
+    /** Paints the config grid; the hint line is contextual (CUSTOM slot, long exposure, Shot now). */
     private void showConfig() {
         String hint = "UP/DOWN value  LEFT/RIGHT field";
         if (selField == 0 && config.intervalIsCustom())
@@ -640,14 +676,17 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             hint = config.bulbAtFloor()
                     ? "5 s floor - DOWN exits to timed"
                     : "long exposure - UP/DOWN edit seconds";
+        else if (selField == 4)
+            hint = "S2 fires ONE shot at this exposure";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
                 "Interval " + mark(0, config.intervalStr())
                         + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
                         + "  Delay " + mark(3, config.delayStr()),
+                mark(4, "Shot now"),
                 hint,
-                "S2 start | trash exit"});
+                selField == 4 ? "S2 = ONE SHOT | trash exit" : "S2 start | trash exit"});
     }
 
     private String mark(int field, String value) {
@@ -740,13 +779,15 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         return n + "/" + d + " s"; // fast range (1/4 s and faster) stays fractional
     }
 
-    /** True while a run (or its ending gap / summary) owns the screen. */
+    /** True while a run (or its ending gap / summary) or an in-flight capture owns the camera. */
     private boolean busy() {
-        return (engine != null && engine.isRunning()) || summaryShown || runEnding;
+        return (engine != null && engine.isRunning()) || summaryShown || runEnding || stillT0 != 0;
     }
 
     /** UP/DOWN on the config screen: cycle the selected field's value. */
     private void adjust(int dir) {
+        if (selField == 4)
+            return; // Shot now is an action, not a value - the hint line explains S2
         if (selField == 0)
             config.adjustInterval(dir);
         else if (selField == 1)
@@ -862,15 +903,18 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onShutterKeyDown() {
-        if ((engine != null && engine.isRunning()) || runEnding)
-            return true; // mid-run S2 is ignored - the engine owns shooting (also in the gap)
+        if ((engine != null && engine.isRunning()) || runEnding || stillT0 != 0)
+            return true; // mid-run S2 is ignored - the engine owns shooting (also in the gap / while a capture stores)
         if (summaryShown) {
             summaryShown = false;
             runEnding = false;
             showConfig();
             return true;
         }
-        startRun();
+        if (selField == 4)
+            shotNow(); // Shot now field: ONE capture at the current exposure, stay in config
+        else
+            startRun();
         return true;
     }
 
@@ -892,6 +936,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             runEnding = true; // this trash's key-up must not exit before the summary prints
             return true;
         }
+        if (stillT0 != 0)
+            return true; // capture in flight (single shot) - trash must not release the camera mid-exposure
         return super.onDeleteKeyDown();
     }
 
@@ -899,6 +945,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onDeleteKeyUp() {
         if (runEnding)
             return true; // the stop happened on key-down - the summary still has to print
+        if (stillT0 != 0)
+            return true; // capture in flight (single shot) - exit only once it stored (or the watchdog gave up)
         return super.onDeleteKeyUp(); // summary (legend: "trash exit") or config screen: exit
     }
 
@@ -941,6 +989,33 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         apoOff();
         engine.start();
+    }
+
+    /**
+     * Single shot (0.2.11): ONE capture at the current exposure selection,
+     * staying in config. Timed shots close on their own; at Bulb the app
+     * ends the exposure via cancelExposure at the custom seconds (frozen
+     * per shot, like startRun freezes per run). Exact same capture path as
+     * engine slots (fireCapture) - the store lands in the log, the
+     * watchdog caps a never-storing one. No run bookkeeping: no engine, no
+     * reject-abort counter; capture stats reset before the next run anyway.
+     */
+    private void shotNow() {
+        if (camera == null) {
+            Logger.error("shot now: camera not open");
+            return;
+        }
+        if (stillT0 != 0) { // re-checked: the previous single could still be storing
+            Logger.info("shot now skipped - capture in flight");
+            return;
+        }
+        bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0;
+        Logger.info("shot now: exposure " + exposureStr() + (bulbShotMs > 0
+                ? " - bulb, app ends exposure via cancelExposure"
+                : " - camera timed"));
+        if (!fireCapture())
+            Logger.error("shot now: capture rejected"); // the stack is in fireCapture's line
+        showConfig(); // config screen stays up - the hint reflects any state change (bulb exit/confirm)
     }
 
     /** CPU identity, once per session (decides the SIMD story for any future pixel work). */
