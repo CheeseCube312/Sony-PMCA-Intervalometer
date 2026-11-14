@@ -1,0 +1,15 @@
+# Upstream reference clones - git cannot embed nested repos, and these are
+# third-party material tracked in their own repos, not part of this project:
+#   recipe-lab-sony-pmca/  - Recipe Lab reference app (API knowledge source)
+#   Blank/                 - PMCA framework demos + starting package scratch area
+recipe-lab-sony-pmca/
+Blank/
+
+# Machine-local / generated (also covered by intervalometer/.gitignore)
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+obj/
+*.apk

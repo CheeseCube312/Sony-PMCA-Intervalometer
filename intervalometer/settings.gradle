@@ -1,0 +1,26 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    // PREFER_PROJECT: the legacy framework/stubs modules declare their own repositories
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'Intervalometer'
+
+include ':app'
+// Requires a sibling checkout of OpenMemories-Framework (framework + stubs)
+// next to this project folder. No AndroidX anywhere.
+include ':framework'
+project(':framework').projectDir = file('../Blank/OpenMemories-Framework/framework')
+include ':stubs'
+project(':stubs').projectDir = file('../Blank/OpenMemories-Framework/stubs')

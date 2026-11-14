@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+build/
+app/build/
+
+# IDE
+.idea/
+*.iml
+
+# Local configuration
+local.properties
+
+# Native build artifacts (ndk-build outputs under app/src/main)
+# NOTE: libs/ is deliberately NOT ignored - the prebuilt
+# libstarter.so ships with this template so you don't need the
+# NDK unless you change the C code (see README.md).
+obj/
+*.apk

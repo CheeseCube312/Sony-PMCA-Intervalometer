@@ -1,0 +1,18 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+
+    <!-- HAL live view: the firmware renders straight into this surface
+         (no decode, no pixel access - see IntervalActivity) -->
+    <SurfaceView
+            android:id="@+id/surface"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    <!-- transparent text overlay on top of the live view -->
+    <com.jpc.intervalometer.OverlayView
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+</FrameLayout>

@@ -1,0 +1,25 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+}
+
+dependencies {
+    provided project(':stubs')
+    provided 'com.google.android:android:4.1.1.4'
+}
+
+// Java 8 bytecode: readable by modern JDK toolchains and AGP/D8
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+

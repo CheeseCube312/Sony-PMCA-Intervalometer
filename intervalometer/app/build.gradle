@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.jpc.intervalometer'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.jpc.intervalometer'
+        // Sony camera firmware is Android 4.1.2 (per on-camera log, ScalarA);
+        // min/target stay at API 10 - works fine, no AndroidX
+        minSdkVersion 10
+        targetSdkVersion 10
+        versionCode 10
+        versionName '0.2.4'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    // Versioned APK filename so on-camera installs are distinguishable
+    // (e.g. Intervalometer-0.1.1.apk instead of app-debug.apk)
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "Intervalometer-${variant.versionName}.apk"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation project(':framework')
+    // Sony Scalar stubs are provided by the camera firmware at runtime
+    compileOnly project(':stubs')
+}
