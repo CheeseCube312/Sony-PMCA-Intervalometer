@@ -24,7 +24,8 @@ import java.io.IOException;
  * no decode, no pixel access, no NDK.
  *
  * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
- * in reading order (interval -> count -> exposure -> delay -> shot now),
+ * in reading order (interval -> count -> exposure -> delay -> ISO ->
+ * shot now),
  * S2 starts the run - on the Shot now field it fires ONE capture instead
  * (0.2.11) - (mid-run S2 is ignored - the engine owns shooting; that also
  * covers the write-hold gap before the summary prints), S1 autofocus works
@@ -123,6 +124,16 @@ import java.io.IOException;
  * covers an in-flight capture. Count becomes a 5-shot-step ladder 5..600
  * ending in unlimited ("all"; fresh pref key - IntervalConfig), and the
  * RUNNING HUD reads "shot n/all" on unlimited runs.
+ *
+ * 0.2.12 - ISO control. The grid gains an ISO field: UP/DOWN walk the
+ * camera's supported ISO list (the iso-sensitivity-values parameter, read
+ * at open - unlike shutter speed there is no step method). Every write
+ * goes through the forceColorLook string set -> setParameters -> read-back
+ * path and the field displays what the camera KEPT (dropped values throw
+ * nothing on this HAL, so the read-back is the only truth); rejections are
+ * logged, never fought. Nothing persists app-side: ISO is a body setting
+ * the camera keeps on its own, like it keeps the shutter-speed store. The
+ * AutoISOSensitivityListener is armed log-only to learn what AUTO picks.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -137,13 +148,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
-    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 shot now
+    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 shot now
     // LEFT/RIGHT walk the grid in reading order: Interval (top-left) ->
-    // Count (top-right) -> Exposure (bottom-left) -> Delay (bottom-right) ->
-    // Shot now (below the grid; S2 there fires one capture instead of a run).
+    // Count (top-right) -> Exposure (mid-left) -> Delay (mid-right) ->
+    // ISO (bottom-left) -> Shot now (bottom-right; S2 there fires one
+    // capture instead of a run).
     // Indexed by the current field; the entry is where the key lands.
-    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 0};
-    private static final int[] PREV_FIELD = {4, 2, 0, 1, 3};
+    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 0};
+    private static final int[] PREV_FIELD = {5, 2, 0, 1, 3, 4};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
@@ -177,6 +189,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private volatile long bulbShotMs;
     /** Watchdog cap for the shot in flight (timed: INFLIGHT_CAP_MS; bulb: bulb duration + margin). */
     private volatile long inFlightCapMs = INFLIGHT_CAP_MS;
+
+    // ISO state (0.2.12) - mirror of the camera's ISO setting. There is no
+    // step method (unlike shutter speed): the value is a Camera.Parameters
+    // string key and the supported list is read at open. The camera keeps
+    // its own ISO store across restarts, so nothing is persisted app-side
+    // (same policy as the exposure position - see IntervalConfig).
+    private static final String ISO_KEY = "iso-sensitivity";
+    private int[] isoValues = {}; // supported ISOs in HAL order; the first 0 is presumed AUTO (test round confirms)
+    private int isoKept = -1;     // last read-back - "what the camera kept"; -1 = not probed yet
+    private int isoIdx = -1;      // isoKept's position in isoValues (-1 = unknown or absent from the list)
 
     // run state
     private IntervalEngine engine;
@@ -527,6 +549,15 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         + " n=" + info.ShutterSpeedNumber + " d=" + info.ShutterSpeedDeanom + ")" : ""));
             }
         });
+        // 0.2.12 - AUTO ISO ground truth, log-only: while the camera sits on
+        // AUTO (kept value 0) this reports which sensitivity the body picked;
+        // the exposure-complete log already shows the per-shot truth (ISO ...).
+        camera.setAutoISOSensitivityListener(new CameraEx.AutoISOSensitivityListener() {
+            @Override
+            public void onChanged(int iso, CameraEx cam) {
+                Logger.info("ISO auto: camera picked " + (iso == 0 ? "0 (AUTO)" : String.valueOf(iso)));
+            }
+        });
         // Provoke one shutter-speed callback with a down/up pair so the Exposure
         // field mirrors the camera from the first paint (the listener may or may
         // not fire an initial state on arm - this guarantees a value). The pair
@@ -545,6 +576,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             Logger.info("exposure probe failed: " + t); // stepping may be disallowed in this exposure mode
         }
         logSupportedParameters(); // one-time diagnostic: every key this HAL accepts
+        probeIso(); // read-only: supported ISO list + the camera's current ISO (no write at open)
         Logger.info("camera open ok");
         surfaceHolder.addCallback(this);
         tryStartPreview(); // surface may already exist (resume with screen kept on)
@@ -667,7 +699,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // --- config screen ---
 
-    /** Paints the config grid; the hint line is contextual (CUSTOM slot, long exposure, Shot now). */
+    /** Paints the config grid; the hint line is contextual (CUSTOM slot, long exposure, ISO, Shot now). */
     private void showConfig() {
         String hint = "UP/DOWN value  LEFT/RIGHT field";
         if (selField == 0 && config.intervalIsCustom())
@@ -677,6 +709,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     ? "5 s floor - DOWN exits to timed"
                     : "long exposure - UP/DOWN edit seconds";
         else if (selField == 4)
+            hint = "ISO - UP/DOWN step camera list";
+        else if (selField == 5)
             hint = "S2 fires ONE shot at this exposure";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
@@ -684,9 +718,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
                         + "  Delay " + mark(3, config.delayStr()),
-                mark(4, "Shot now"),
+                "ISO " + mark(4, isoStr()) + "  " + mark(5, "Shot now"),
                 hint,
-                selField == 4 ? "S2 = ONE SHOT | trash exit" : "S2 start | trash exit"});
+                selField == 5 ? "S2 = ONE SHOT | trash exit" : "S2 start | trash exit"});
     }
 
     private String mark(int field, String value) {
@@ -786,8 +820,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /** UP/DOWN on the config screen: cycle the selected field's value. */
     private void adjust(int dir) {
-        if (selField == 4)
+        if (selField == 5)
             return; // Shot now is an action, not a value - the hint line explains S2
+        if (selField == 4) {
+            adjustIso(dir); // camera-side value; adjustIso repaints - the config store is untouched
+            return;
+        }
         if (selField == 0)
             config.adjustInterval(dir);
         else if (selField == 1)
@@ -832,6 +870,106 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         // The display refreshes on the ShutterSpeedChange callback (immediate
         // showConfig would repaint a stale value for timed steps); CUSTOM
         // edits repaint via adjust()'s showConfig.
+    }
+
+    // --- ISO control (0.2.12) ---
+
+    /**
+     * ISO field: UP/DOWN walk the camera's supported ISO list. Unlike
+     * shutter speed there is NO step method - ISO is a Camera.Parameters
+     * string key, written through the forceColorLook set/read-back path.
+     * A dropped value throws nothing on this HAL, so every write is
+     * verified by read-back and the field displays what the camera KEPT;
+     * rejections are logged, never fought (same philosophy as exposure
+     * stepping in a mode that disallows it). The list ends clamp - the
+     * camera's ISO list is linear, no wrap.
+     */
+    private void adjustIso(int dir) {
+        if (isoValues.length == 0) {
+            Logger.info("ISO step skipped - no supported list was read at open");
+            return;
+        }
+        int idx = isoIdx < 0 ? 0 : isoIdx;
+        int next = idx + dir;
+        if (next < 0 || next >= isoValues.length) {
+            Logger.info("ISO at list end - kept " + isoStr());
+            return;
+        }
+        setIso(isoValues[next]);
+    }
+
+    /** Writes one ISO value and adopts whatever the camera kept (read-back is the ground truth). */
+    private void setIso(int value) {
+        try {
+            android.hardware.Camera cam = camera.getNormalCamera();
+            android.hardware.Camera.Parameters p = cam.getParameters();
+            p.set(ISO_KEY, String.valueOf(value));
+            cam.setParameters(p);
+            adoptIso(cam.getParameters().get(ISO_KEY));
+            Logger.info("ISO: wrote " + (value == 0 ? "0 (AUTO)" : String.valueOf(value))
+                    + " - camera kept " + isoStr() + (isoKept == value ? "" : " - REJECTED"));
+        } catch (Throwable t) {
+            Logger.error("ISO write failed: " + t);
+        }
+        showConfig(); // the params write is synchronous - the read-back is current already
+    }
+
+    /** Re-syncs the ISO mirror from a read-back string; unparsable values keep the previous display. */
+    private void adoptIso(String kept) {
+        if (kept == null)
+            return;
+        try {
+            isoKept = Integer.parseInt(kept.trim());
+        } catch (NumberFormatException e) {
+            Logger.error("ISO read-back unparsable: \"" + kept + "\"");
+            return;
+        }
+        isoIdx = -1;
+        for (int i = 0; i < isoValues.length; i++)
+            if (isoValues[i] == isoKept) {
+                isoIdx = i;
+                break;
+            }
+    }
+
+    /**
+     * One-time per open, read-only: the supported ISO list (the HAL's
+     * iso-sensitivity-values parameter, NOT hardcoded) and the camera's
+     * current ISO. No write happens here - the exposure probe's fresh
+     * anchor must not be disturbed at open (0.2.12 test gate).
+     */
+    private void probeIso() {
+        try {
+            android.hardware.Camera cam = camera.getNormalCamera();
+            android.hardware.Camera.Parameters p = cam.getParameters();
+            String values = p.get("iso-sensitivity-values");
+            if (values != null && values.length() > 0) {
+                String[] parts = values.split(",");
+                int[] parsed = new int[parts.length];
+                int n = 0;
+                for (int i = 0; i < parts.length; i++) {
+                    try {
+                        parsed[n++] = Integer.parseInt(parts[i].trim());
+                    } catch (NumberFormatException e) {
+                        Logger.info("ISO list: skipped unparsable \"" + parts[i] + "\"");
+                    }
+                }
+                isoValues = new int[n];
+                System.arraycopy(parsed, 0, isoValues, 0, n);
+            }
+            adoptIso(p.get(ISO_KEY));
+            Logger.info("ISO: camera at " + isoStr() + ", " + isoValues.length + " supported"
+                    + (isoValues.length > 0
+                            ? " (" + isoValues[0] + ".." + isoValues[isoValues.length - 1] + ")"
+                            : ""));
+        } catch (Throwable t) {
+            Logger.error("ISO probe failed: " + Log.getStackTraceString(t));
+        }
+    }
+
+    /** The ISO field's display: "AUTO" for the kept 0, else the number; "?" until the probe. */
+    private String isoStr() {
+        return isoKept < 0 ? "?" : isoKept == 0 ? "AUTO" : String.valueOf(isoKept);
     }
 
     /** One-time per session: dump every Camera.Parameters key the HAL supports. */
@@ -911,7 +1049,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             showConfig();
             return true;
         }
-        if (selField == 4)
+        if (selField == 5)
             shotNow(); // Shot now field: ONE capture at the current exposure, stay in config
         else
             startRun();
@@ -981,7 +1119,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         runEnding = false;
         consecutiveFwRejects = 0;
         bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0; // frozen per run - config changes mid-run do not apply
-        Logger.info("exposure: " + exposureStr() + (bulbShotMs > 0
+        Logger.info("exposure: " + exposureStr() + ", ISO " + isoStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
                 : " - camera timed"));
         engine = new IntervalEngine(config.intervalSeconds() * 1000L,
