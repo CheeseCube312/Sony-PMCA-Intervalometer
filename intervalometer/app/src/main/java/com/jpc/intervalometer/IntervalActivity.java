@@ -133,6 +133,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
     private volatile boolean bulbPos;              // camera sits at Bulb - 0xFFFF sentinel, confirmed on camera
+    // probe restore (0.2.6): the arm pair nets -1 step on this firmware; anchor the
+    // pre-probe value from the first callback and step back to it, bounded, inside
+    // a short window after the probe so user steps are never second-guessed.
+    private CameraEx.ShutterSpeedInfo probeAnchor; // first callback after the probe pair
+    private long probeDeadline;                    // wall clock until auto-restore stays armed (0 = inert)
+    private int probeCorrections;                  // corrective steps issued for this probe
     /** Bulb duration for THIS run (ms, 0 = timed shots - camera closes on its own). */
     private volatile long bulbShotMs;
     /** Watchdog cap for the shot in flight (timed: INFLIGHT_CAP_MS; bulb: bulb duration + margin). */
@@ -425,6 +431,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         + " d=" + (info == null ? -1 : info.currentAvailableMin_d)
                         + " max n=" + (info == null ? -1 : info.currentAvailableMax_n)
                         + " d=" + (info == null ? -1 : info.currentAvailableMax_d) + ")");
+                probeRestore(info);
                 if (!busy())
                     showConfig(); // mirror live changes into the Exposure field
             }
@@ -460,14 +467,21 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         + " n=" + info.ShutterSpeedNumber + " d=" + info.ShutterSpeedDeanom + ")" : ""));
             }
         });
-        // Provoke one shutter-speed callback with a net-zero down/up pair so the
-        // Exposure field mirrors the camera from the first paint (the listener may
-        // or may not fire an initial state on arm - this guarantees a value).
+        // Provoke one shutter-speed callback with a down/up pair so the Exposure
+        // field mirrors the camera from the first paint (the listener may or may
+        // not fire an initial state on arm - this guarantees a value). The pair
+        // is NOT net-zero on this firmware: the first step after arm is swallowed,
+        // so every open drifts one step toward faster (30 s -> 25 s -> 20 s seen
+        // across launches). probeRestore() walks the value back to the armed one.
         try {
             camera.decrementShutterSpeed();
             camera.incrementShutterSpeed();
+            probeAnchor = null; // next callback in the window anchors the armed value
+            probeCorrections = 0;
+            probeDeadline = System.currentTimeMillis() + 3000;
             Logger.info("exposure probe: down/up step pair done");
         } catch (Throwable t) {
+            probeDeadline = 0; // pair rejected - no anchor, no correction, logic inert
             Logger.info("exposure probe failed: " + t); // stepping may be disallowed in this exposure mode
         }
         logSupportedParameters(); // one-time diagnostic: every key this HAL accepts
@@ -633,8 +647,53 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * guess, which is why the field first showed "65535 s". One step up from
      * the timed end stop (30 s on this body) lands on Bulb, one step down
      * returns to 30 s. n==0 && d==0 kept as a defensive fallback; raw n/d
-     * are still logged on every event.
+     * are still logged on every event. Note: SDK decrementShutterSpeed from
+     * Bulb is a silent no-op on this firmware - only increment exits Bulb
+     * (see adjustExposure).
      */
+    /**
+     * Undo the probe pair's -1 step drift. First callback in the probe window
+     * anchors the armed value; any later in-window callback that differs gets
+     * one bounded corrective step toward the anchor. Bulb positions are left
+     * alone - stepping into or out of bulb blindly is worse than a small drift.
+     */
+    private void probeRestore(CameraEx.ShutterSpeedInfo info) {
+        long now = System.currentTimeMillis();
+        if (info == null || now > probeDeadline)
+            return; // no window or it closed - user steps are never touched
+        if (probeAnchor == null) {
+            probeAnchor = info;
+            Logger.info("probe anchor: " + fmtSpeed(info));
+        } else if (probeCorrections < 3 && !isBulb(info) && !sameSpeed(info, probeAnchor)) {
+            probeCorrections++;
+            probeDeadline = now + 2000; // correction callbacks land within ~1 s
+            try {
+                if (fasterThan(info, probeAnchor)) {
+                    camera.decrementShutterSpeed(); // too fast - step toward slower
+                    Logger.info("probe correction #" + probeCorrections + ": stepping slower toward " + fmtSpeed(probeAnchor));
+                } else {
+                    camera.incrementShutterSpeed(); // too slow - step toward faster
+                    Logger.info("probe correction #" + probeCorrections + ": stepping faster toward " + fmtSpeed(probeAnchor));
+                }
+            } catch (Throwable t) {
+                probeDeadline = 0; // mode forbids stepping - give up rather than loop
+                Logger.info("probe correction failed: " + t);
+            }
+        }
+    }
+
+    /** True when both infos carry the same shutter speed (cross-multiplied, no fractions). */
+    private static boolean sameSpeed(CameraEx.ShutterSpeedInfo a, CameraEx.ShutterSpeedInfo b) {
+        return (long) a.currentShutterSpeed_n * b.currentShutterSpeed_d
+                == (long) b.currentShutterSpeed_n * a.currentShutterSpeed_d;
+    }
+
+    /** True when a exposes shorter than b (smaller seconds = faster). */
+    private static boolean fasterThan(CameraEx.ShutterSpeedInfo a, CameraEx.ShutterSpeedInfo b) {
+        return (long) a.currentShutterSpeed_n * b.currentShutterSpeed_d
+                < (long) b.currentShutterSpeed_n * a.currentShutterSpeed_d;
+    }
+
     private static boolean isBulb(CameraEx.ShutterSpeedInfo info) {
         return info != null && (info.currentShutterSpeed_n == 0xFFFF
                 || (info.currentShutterSpeed_n == 0 && info.currentShutterSpeed_d == 0));
@@ -681,8 +740,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private void adjustExposure(int dir) {
         try {
             if (bulbPos) {
-                if (!config.adjustBulb(dir)) // false = shortest already
-                    camera.decrementShutterSpeed(); // leave Bulb - camera reports the timed value again
+                if (!config.adjustBulb(dir)) { // false = shortest already
+                    // firmware swallows decrement FROM Bulb (0.2.7 logs: no
+                    // exception, no callback); increment lands on the timed
+                    // end stop (30 s) - the probe pair's second step proves
+                    // that direction works on every launch
+                    bulbPos = false; // optimistic: a repeat press must not re-step out and bounce back into Bulb
+                    camera.incrementShutterSpeed(); // leave Bulb - camera reports the timed value again
+                }
             } else if (dir > 0) {
                 camera.incrementShutterSpeed();
             } else {
