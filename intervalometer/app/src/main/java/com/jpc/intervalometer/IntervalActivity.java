@@ -1,7 +1,6 @@
 package com.jpc.intervalometer;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -90,23 +89,13 @@ import java.io.IOException;
  * stay watchdog-only. While a slot is held - interval shorter than the write
  * time - the overlay warns "camera busy - shot N waits"; the shot fires when
  * the store lands, on-grid timing otherwise unchanged.
+ *
+ * 0.2.7 - config state extracted into IntervalConfig: the preset tables, the
+ * CUSTOM slots, stepping, persistence and display strings moved there - this
+ * activity keeps camera, exposure, run screen and key routing only. No
+ * behavior change: every choice steps and persists exactly as in 0.2.6.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
-    /** Config choices are discrete lists - no typing on a 4-key camera. */
-    private static final int[] INTERVALS_S = {2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600};
-    private static final int[] COUNTS = {10, 60, -1}; // -1 = unlimited
-    private static final int[] DELAYS_S = {0, 2, 5, 10};
-    private static final int[] BULBS_S = {5, 10, 15, 30, 60, 120, 300, 600}; // app-side bulb duration
-    private static final int DEF_INTERVAL = 4; // 30 s - the Phase 1 gate value
-    private static final int DEF_COUNT = 1;    // 60 shots = 30 min @ 30 s
-    private static final int DEF_DELAY = 0;
-    private static final int DEF_BULB = 4;     // 60 s bulb exposure
-    // CUSTOM slots: stepping past the last preset lands on a per-session value
-    // edited in place and persisted with the config. Lists are append-only, so
-    // persisted indices from older versions always keep pointing at the same
-    // value (clamped on load regardless).
-    private static final int INTERVAL_CUSTOM_DEF = 45, INTERVAL_CUSTOM_MIN = 2, INTERVAL_CUSTOM_MAX = 3600;
-    private static final int BULB_CUSTOM_DEF = 60, BULB_CUSTOM_MIN = 5, BULB_CUSTOM_MAX = 1800;
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
 
     private static final String ACTION_APO = "com.android.server.DAConnectionManagerService.apo";
@@ -117,12 +106,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private CameraEx camera;
     private String version = "?";
 
-    // config screen state (persisted in SharedPreferences across launches, 0.2.6)
+    // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
+    private IntervalConfig config;
     private int selField; // 0 interval, 1 exposure, 2 count, 3 delay
-    private int intervalIdx = DEF_INTERVAL, countIdx = DEF_COUNT, delayIdx = DEF_DELAY;
-    private int bulbIdx = DEF_BULB;
-    private int customIntervalS = INTERVAL_CUSTOM_DEF; // CUSTOM slot values - edited in place, persisted
-    private int customBulbS = BULB_CUSTOM_DEF;
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
@@ -271,7 +257,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 return; // stopped from inside onShoot (reject abort) - keep the summary visible
             if (lastApoMs == 0 || SystemClock.elapsedRealtime() - lastApoMs > APO_REFRESH_MS)
                 apoOff();
-            String plan = COUNTS[countIdx] > 0 ? "/" + COUNTS[countIdx] : "";
+            int planShots = config.shotCount();
+            String plan = planShots > 0 ? "/" + planShots : "";
             String status = "shot " + shotsFired + plan + " | next " + IntervalEngine.mmss(nextShotInMs)
                     + " | +" + IntervalEngine.mmss(elapsedMs)
                     + (bulbShotMs > 0 ? " | Bulb " + (bulbShotMs / 1000) + " s" : "");
@@ -353,7 +340,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         overlayView = (OverlayView) findViewById(R.id.preview);
         surfaceHolder = ((SurfaceView) findViewById(R.id.surface)).getHolder();
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        loadConfig();
+        config = new IntervalConfig(getPreferences(MODE_PRIVATE)); // loads + clamps + logs
         showConfig();
     }
 
@@ -581,10 +568,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private void showConfig() {
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
-                "Interval " + mark(0, intervalStr())
-                        + "  Count " + mark(2, countStr()),
+                "Interval " + mark(0, config.intervalStr())
+                        + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
-                        + "  Delay " + mark(3, DELAYS_S[delayIdx] + " s"),
+                        + "  Delay " + mark(3, config.delayStr()),
                 "UP/DOWN value  LEFT/RIGHT field",
                 "S2 start | trash exit"});
     }
@@ -593,86 +580,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         return selField == field ? "[" + value + "]" : value;
     }
 
-    private String countStr() {
-        return COUNTS[countIdx] > 0 ? String.valueOf(COUNTS[countIdx]) : "inf";
-    }
-
-    private String intervalStr() {
-        return intervalIdx < INTERVALS_S.length ? fmtDur(INTERVALS_S[intervalIdx])
-                : customIntervalS + " s (custom)";
-    }
-
-    private String bulbStr() {
-        return bulbIdx < BULBS_S.length ? fmtDur(BULBS_S[bulbIdx]) : customBulbS + " s (custom)";
-    }
-
-    /** Preset durations in friendly units: 60 s stays "60 s", 120 s becomes "2 min", 3600 s "1 h". */
-    private static String fmtDur(int s) {
-        if (s >= 3600)
-            return (s / 3600) + " h";
-        if (s >= 120)
-            return (s / 60) + " min";
-        return s + " s";
-    }
-
-    /** The interval/bulb duration THIS run uses: the preset list value, or the custom slot's value. */
-    private int intervalSeconds() {
-        return intervalIdx < INTERVALS_S.length ? INTERVALS_S[intervalIdx] : customIntervalS;
-    }
-
-    private int bulbSeconds() {
-        return bulbIdx < BULBS_S.length ? BULBS_S[bulbIdx] : customBulbS;
-    }
-
-    // --- config persistence (0.2.6) ---
-
-    /**
-     * SharedPreferences - the store Recipe Lab proves works on this firmware.
-     * Survives app restarts; goes with an uninstall (documented trade-off).
-     * Every index clamps, so a hand-edited or older file can never select a
-     * nonexistent slot. The exposure position is NOT ours to persist - the
-     * camera keeps its own shutter-speed store and the field mirrors it.
-     */
-    private void loadConfig() {
-        SharedPreferences p = getPreferences(MODE_PRIVATE);
-        intervalIdx = clampIdx(p.getInt("intervalIdx", DEF_INTERVAL), INTERVALS_S.length + 1);
-        countIdx = clampIdx(p.getInt("countIdx", DEF_COUNT), COUNTS.length);
-        delayIdx = clampIdx(p.getInt("delayIdx", DEF_DELAY), DELAYS_S.length);
-        bulbIdx = clampIdx(p.getInt("bulbIdx", DEF_BULB), BULBS_S.length + 1);
-        customIntervalS = clampInt(p.getInt("customIntervalS", INTERVAL_CUSTOM_DEF),
-                INTERVAL_CUSTOM_MIN, INTERVAL_CUSTOM_MAX);
-        customBulbS = clampInt(p.getInt("customBulbS", BULB_CUSTOM_DEF),
-                BULB_CUSTOM_MIN, BULB_CUSTOM_MAX);
-        Logger.info("config loaded: interval " + intervalStr() + ", count " + countStr()
-                + ", delay " + DELAYS_S[delayIdx] + " s, bulb choice " + bulbStr());
-    }
-
-    private void saveConfig() {
-        SharedPreferences.Editor e = getPreferences(MODE_PRIVATE).edit();
-        e.putInt("intervalIdx", intervalIdx);
-        e.putInt("countIdx", countIdx);
-        e.putInt("delayIdx", delayIdx);
-        e.putInt("bulbIdx", bulbIdx);
-        e.putInt("customIntervalS", customIntervalS);
-        e.putInt("customBulbS", customBulbS);
-        e.apply();
-    }
-
-    private static int clampIdx(int i, int n) {
-        return i >= 0 && i < n ? i : 0;
-    }
-
-    private static int clampInt(int v, int min, int max) {
-        return v < min ? min : Math.min(max, v);
-    }
-
     /**
      * The Exposure field's display: the camera's own shutter speed, or the app
      * bulb duration while the camera sits at the Bulb position.
      */
     private String exposureStr() {
         if (bulbPos)
-            return "Bulb " + bulbStr();
+            return "Bulb " + config.bulbStr();
         return fmtSpeed(shutterInfo);
     }
 
@@ -711,24 +625,15 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /** UP/DOWN on the config screen: cycle the selected field's value. */
     private void adjust(int dir) {
-        if (selField == 0) {
-            if (intervalIdx == INTERVALS_S.length) { // CUSTOM slot - UP/DOWN edit the value in place
-                int step = customIntervalS < 120 ? 5 : 30;
-                int v = customIntervalS + dir * step;
-                if (v < INTERVAL_CUSTOM_MIN)
-                    intervalIdx = INTERVALS_S.length - 1; // below the floor: back into the presets
-                else
-                    customIntervalS = Math.min(INTERVAL_CUSTOM_MAX, v);
-            } else {
-                intervalIdx = wrap(intervalIdx + dir, INTERVALS_S.length + 1); // +1 = the CUSTOM slot
-            }
-        } else if (selField == 1)
+        if (selField == 0)
+            config.adjustInterval(dir);
+        else if (selField == 1)
             adjustExposure(dir);
         else if (selField == 2)
-            countIdx = wrap(countIdx + dir, COUNTS.length);
+            config.adjustCount(dir);
         else
-            delayIdx = wrap(delayIdx + dir, DELAYS_S.length);
-        saveConfig();
+            config.adjustDelay(dir);
+        config.save();
         showConfig();
     }
 
@@ -742,21 +647,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private void adjustExposure(int dir) {
         try {
             if (bulbPos) {
-                if (dir > 0) {
-                    if (bulbIdx < BULBS_S.length)
-                        bulbIdx++; // walks the presets, then steps into the CUSTOM slot
-                    else if (customBulbS < BULB_CUSTOM_MAX)
-                        customBulbS = Math.min(BULB_CUSTOM_MAX, customBulbS + bulbStep());
-                } else if (bulbIdx == BULBS_S.length) { // CUSTOM slot
-                    if (customBulbS - bulbStep() >= BULB_CUSTOM_MIN)
-                        customBulbS -= bulbStep();
-                    else
-                        bulbIdx = BULBS_S.length - 1; // below the 5 s floor: back into the presets
-                } else if (bulbIdx > 0) {
-                    bulbIdx--;
-                } else {
+                if (!config.adjustBulb(dir)) // false = shortest already
                     camera.decrementShutterSpeed(); // leave Bulb - camera reports the timed value again
-                }
             } else if (dir > 0) {
                 camera.incrementShutterSpeed();
             } else {
@@ -768,11 +660,6 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         // The display refreshes on the ShutterSpeedChange callback (immediate
         // showConfig would repaint a stale value for timed steps); CUSTOM
         // edits repaint via adjust()'s showConfig.
-    }
-
-    /** CUSTOM bulb slot edit step: 5 s in the short range, 30 s at 60 s and up. */
-    private int bulbStep() {
-        return customBulbS < 60 ? 5 : 30;
     }
 
     /** One-time per session: dump every Camera.Parameters key the HAL supports. */
@@ -911,12 +798,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         stillT0 = 0;
         summaryShown = false;
         consecutiveFwRejects = 0;
-        bulbShotMs = bulbPos ? bulbSeconds() * 1000L : 0; // frozen per run - config changes mid-run do not apply
+        bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0; // frozen per run - config changes mid-run do not apply
         Logger.info("exposure: " + exposureStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
                 : " - camera timed"));
-        engine = new IntervalEngine(intervalSeconds() * 1000L,
-                DELAYS_S[delayIdx] * 1000L, COUNTS[countIdx], engineListener);
+        engine = new IntervalEngine(config.intervalSeconds() * 1000L,
+                config.delaySeconds() * 1000L, config.shotCount(), engineListener);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         apoOff();
         engine.start();
