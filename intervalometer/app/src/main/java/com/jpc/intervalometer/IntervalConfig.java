@@ -166,6 +166,16 @@ public class IntervalConfig {
         return COUNTS[countIdx];
     }
 
+    /** True while the interval selection sits on the CUSTOM slot (UP/DOWN edit the value). */
+    public boolean intervalIsCustom() {
+        return intervalIdx == INTERVALS_S.length;
+    }
+
+    /** True at the shortest bulb preset - DOWN would step out of Bulb (the caller steps the camera). */
+    public boolean bulbAtFloor() {
+        return bulbIdx == 0;
+    }
+
     // --- display strings (config screen + logs) ---
 
     public String intervalStr() {
@@ -178,7 +188,7 @@ public class IntervalConfig {
     }
 
     public String countStr() {
-        return COUNTS[countIdx] > 0 ? String.valueOf(COUNTS[countIdx]) : "inf";
+        return COUNTS[countIdx] > 0 ? String.valueOf(COUNTS[countIdx]) : "all";
     }
 
     public String delayStr() {

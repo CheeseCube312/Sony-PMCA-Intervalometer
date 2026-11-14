@@ -23,10 +23,12 @@ import java.io.IOException;
  * .setPreviewDisplay -> startPreview). The app never touches preview bytes -
  * no decode, no pixel access, no NDK.
  *
- * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT switch field,
- * S2 starts the run (mid-run S2 is ignored - the engine owns shooting), S1
- * autofocus works as always, trash stops a run (summary stays up; a second
- * trash exits).
+ * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
+ * in reading order (interval -> count -> exposure -> delay), S2 starts the
+ * run (mid-run S2 is ignored - the engine owns shooting; that also covers
+ * the write-hold gap before the summary prints), S1 autofocus works as
+ * always, trash stops a run and the summary prints; from the summary, trash
+ * exits.
  *
  * Runs hold the camera awake: auto power-off is held off via the
  * DAConnectionManagerService.apo broadcast (the same one PMCADemo's
@@ -94,6 +96,14 @@ import java.io.IOException;
  * CUSTOM slots, stepping, persistence and display strings moved there - this
  * activity keeps camera, exposure, run screen and key routing only. No
  * behavior change: every choice steps and persists exactly as in 0.2.6.
+ *
+ * 0.2.7 UX - the run-end gap is owned: between the engine finishing and the
+ * summary printing (4 s, longer while a write is still in flight) the keys
+ * hold (no S2 restart, no hidden config edits, no trash-release exit) and
+ * the screen says "FINISHING - waiting for the last write" instead of the
+ * stale RUNNING HUD. Trash now exits from the summary, as its legend claims.
+ * LEFT/RIGHT walk the config grid in reading order, CUSTOM slots and the
+ * bulb floor get a hint line, unlimited count reads "all" instead of "inf".
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -109,6 +119,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
     private int selField; // 0 interval, 1 exposure, 2 count, 3 delay
+    // LEFT/RIGHT walk the 2x2 grid in reading order: Interval (top-left) ->
+    // Count (top-right) -> Exposure (bottom-left) -> Delay (bottom-right).
+    // Indexed by the current field; the entry is where the key lands.
+    private static final int[] NEXT_FIELD = {2, 3, 1, 0};
+    private static final int[] PREV_FIELD = {3, 2, 0, 1};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
@@ -121,6 +136,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // run state
     private IntervalEngine engine;
     private volatile boolean summaryShown;
+    /** Run over, summary not printed yet - the write-hold gap owns the keys (0.2.7). */
+    private volatile boolean runEnding;
     /** takePicture timestamp, consumed by the storeImage log + capture stats. */
     private volatile long stillT0;
     private int stored;               // storeImage callbacks while running
@@ -274,8 +291,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
         @Override
         public void onFinished(int reason, int shotsFired, long elapsedMs, int lateShots) {
+            runEnding = true; // the engine is done - the gap until the summary owns the keys
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             apoRestore();
+            overlayView.setLines(new String[]{ // replace the stale RUNNING HUD right away
+                    "Intervalometer v" + version + " - FINISHING",
+                    "waiting for the last write"});
             // The last shot's JPEG lands ~3 s after the run ends - hold the summary
             // until it does, or "stored N of N" undercounts by one (0.2.2 printed
             // "9 of 10" and the tenth store arrived seconds later).
@@ -291,6 +312,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         return;
                     }
                     summaryShown = true;
+                    runEnding = false;
                     Logger.info("stored " + stored + " of " + shotsFired + " fired"
                             + (capN > 0 ? ", capture avg " + (capSum / capN) + " ms, max " + capMax + " ms"
                             : ""));
@@ -460,6 +482,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             handler.removeCallbacks(summaryTask);
             summaryTask = null;
         }
+        runEnding = false; // no summary will print after a pause - never leave the keys gated
         surfaceHolder.removeCallback(this);
         stopPreview();
         if (camera != null) {
@@ -565,14 +588,20 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // --- config screen ---
 
+    /** Paints the config grid; the hint line is contextual (CUSTOM slot, bulb floor). */
     private void showConfig() {
+        String hint = "UP/DOWN value  LEFT/RIGHT field";
+        if (selField == 0 && config.intervalIsCustom())
+            hint = "CUSTOM slot - UP/DOWN edit value";
+        else if (selField == 1 && bulbPos && config.bulbAtFloor())
+            hint = "shortest - DOWN leaves Bulb";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
                 "Interval " + mark(0, config.intervalStr())
                         + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
                         + "  Delay " + mark(3, config.delayStr()),
-                "UP/DOWN value  LEFT/RIGHT field",
+                hint,
                 "S2 start | trash exit"});
     }
 
@@ -614,13 +643,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         return info.currentShutterSpeed_n + "/" + info.currentShutterSpeed_d + " s";
     }
 
-    /** True while a run (or its summary) owns the screen. */
+    /** True while a run (or its ending gap / summary) owns the screen. */
     private boolean busy() {
-        return (engine != null && engine.isRunning()) || summaryShown;
-    }
-
-    private static int wrap(int i, int n) {
-        return (i + n) % n;
+        return (engine != null && engine.isRunning()) || summaryShown || runEnding;
     }
 
     /** UP/DOWN on the config screen: cycle the selected field's value. */
@@ -715,7 +740,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onLeftKeyDown() {
         if (busy())
             return true;
-        selField = wrap(selField - 1, 4);
+        selField = PREV_FIELD[selField]; // LEFT: previous in reading order
         showConfig();
         return true;
     }
@@ -724,17 +749,18 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onRightKeyDown() {
         if (busy())
             return true;
-        selField = wrap(selField + 1, 4);
+        selField = NEXT_FIELD[selField]; // RIGHT: next in reading order
         showConfig();
         return true;
     }
 
     @Override
     protected boolean onShutterKeyDown() {
-        if (engine != null && engine.isRunning())
-            return true; // mid-run S2 is ignored - the engine owns shooting
+        if ((engine != null && engine.isRunning()) || runEnding)
+            return true; // mid-run S2 is ignored - the engine owns shooting (also in the gap)
         if (summaryShown) {
             summaryShown = false;
+            runEnding = false;
             showConfig();
             return true;
         }
@@ -757,6 +783,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onDeleteKeyDown() {
         if (engine != null && engine.isRunning()) {
             engine.stop(IntervalEngine.REASON_ABORTED); // trash stops the run, stays in app
+            runEnding = true; // this trash's key-up must not exit before the summary prints
             return true;
         }
         return super.onDeleteKeyDown();
@@ -764,9 +791,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onDeleteKeyUp() {
-        if (summaryShown)
-            return true; // the stop already happened on key-down; keep the summary up
-        return super.onDeleteKeyUp(); // config screen (or after summary): exit
+        if (runEnding)
+            return true; // the stop happened on key-down - the summary still has to print
+        return super.onDeleteKeyUp(); // summary (legend: "trash exit") or config screen: exit
     }
 
     @Override
@@ -797,6 +824,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         capN = 0;
         stillT0 = 0;
         summaryShown = false;
+        runEnding = false;
         consecutiveFwRejects = 0;
         bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0; // frozen per run - config changes mid-run do not apply
         Logger.info("exposure: " + exposureStr() + (bulbShotMs > 0
