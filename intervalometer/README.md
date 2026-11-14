@@ -152,7 +152,7 @@ depends on the camera's exposure mode), true bulb via step-past-30 s ended by
 the app with `cancelExposure()`; before 0.2.5 the user set P/A/S/M before
 launching. The SDK also has `setIntervalRecMode` + `startIntervalRec`/
 `stopIntervalRec` (the firmware's native interval recording - what the paid
-Time-lapse app wraps; future spike, not used by this app). **`Camera.Parameters` is NOT hollow** - the
+Time-lapse app wraps; spiked separately 11-14 (see Engine facts), still not used by this app). **`Camera.Parameters` is NOT hollow** - the
 starter README overgeneralized: only the LIST getters throw NPE; string-key
 `get`/`set`/`flatten` work, and Recipe Lab drives the whole look pipeline
 through them on this platform (its "monochrome" values in `color-mode` /
