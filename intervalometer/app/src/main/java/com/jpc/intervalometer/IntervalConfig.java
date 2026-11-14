@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
  * The config screen's state: preset tables, CUSTOM slots, stepping rules,
  * persistence and display strings. Extracted from IntervalActivity (0.2.7)
  * so the activity keeps camera, exposure and screen work only - this is the
- * one place that knows what a config choice is. No behavior change vs 0.2.6.
+ * one place that knows what a config choice is.
  *
  * Persistence (0.2.6): SharedPreferences - the store Recipe Lab proves works
  * on this firmware. Survives app restarts; goes with an uninstall
@@ -15,24 +15,26 @@ import android.content.SharedPreferences;
  * grow at the end, so persisted indices from older versions keep pointing
  * at the same value. The exposure POSITION is not ours to persist - the
  * camera keeps its own shutter-speed store and the activity's field mirrors
- * it; only the app-side bulb duration lives here.
+ * it. Only the custom long-exposure seconds live here (0.2.7 UX: the old
+ * bulb-preset index key is stale and no longer read).
  *
  * CUSTOM slots: stepping past the last preset lands on a per-session value
  * edited in place and persisted with the config. It is a value, not a named
  * preset - the slot's position in the list stays fixed (append-only rule
- * above).
+ * above). The long exposure is the same idea taken further (0.2.7 UX): the
+ * timed range is the camera's own stock list, and the single app-side value
+ * at the Bulb position is always custom - 5-1800 s, no preset list.
  */
 public class IntervalConfig {
     /** Config choices are discrete lists - no typing on a 4-key camera. */
     private static final int[] INTERVALS_S = {2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600};
     private static final int[] COUNTS = {10, 60, -1}; // -1 = unlimited
     private static final int[] DELAYS_S = {0, 2, 5, 10};
-    private static final int[] BULBS_S = {5, 10, 15, 30, 60, 120, 300, 600}; // app-side bulb duration
     private static final int DEF_INTERVAL = 4; // 30 s - the Phase 1 gate value
     private static final int DEF_COUNT = 1;    // 60 shots = 30 min @ 30 s
     private static final int DEF_DELAY = 0;
-    private static final int DEF_BULB = 4;     // 60 s bulb exposure
     private static final int INTERVAL_CUSTOM_DEF = 45, INTERVAL_CUSTOM_MIN = 2, INTERVAL_CUSTOM_MAX = 3600;
+    // the custom long exposure - the one app-side exposure value (camera Bulb position)
     private static final int BULB_CUSTOM_DEF = 60, BULB_CUSTOM_MIN = 5, BULB_CUSTOM_MAX = 1800;
 
     private final SharedPreferences prefs;
@@ -41,7 +43,6 @@ public class IntervalConfig {
     private int intervalIdx = DEF_INTERVAL;
     private int countIdx = DEF_COUNT;
     private int delayIdx = DEF_DELAY;
-    private int bulbIdx = DEF_BULB;
     private int customIntervalS = INTERVAL_CUSTOM_DEF;
     private int customBulbS = BULB_CUSTOM_DEF;
 
@@ -57,13 +58,12 @@ public class IntervalConfig {
         intervalIdx = clampIdx(prefs.getInt("intervalIdx", DEF_INTERVAL), INTERVALS_S.length + 1);
         countIdx = clampIdx(prefs.getInt("countIdx", DEF_COUNT), COUNTS.length);
         delayIdx = clampIdx(prefs.getInt("delayIdx", DEF_DELAY), DELAYS_S.length);
-        bulbIdx = clampIdx(prefs.getInt("bulbIdx", DEF_BULB), BULBS_S.length + 1);
         customIntervalS = clampInt(prefs.getInt("customIntervalS", INTERVAL_CUSTOM_DEF),
                 INTERVAL_CUSTOM_MIN, INTERVAL_CUSTOM_MAX);
         customBulbS = clampInt(prefs.getInt("customBulbS", BULB_CUSTOM_DEF),
                 BULB_CUSTOM_MIN, BULB_CUSTOM_MAX);
         Logger.info("config loaded: interval " + intervalStr() + ", count " + countStr()
-                + ", delay " + delayStr() + ", bulb choice " + bulbStr());
+                + ", delay " + delayStr() + ", long exposure " + bulbStr());
     }
 
     /** Persists every choice; called after each config-screen edit. */
@@ -72,7 +72,6 @@ public class IntervalConfig {
         e.putInt("intervalIdx", intervalIdx);
         e.putInt("countIdx", countIdx);
         e.putInt("delayIdx", delayIdx);
-        e.putInt("bulbIdx", bulbIdx);
         e.putInt("customIntervalS", customIntervalS);
         e.putInt("customBulbS", customBulbS);
         e.apply();
@@ -99,29 +98,23 @@ public class IntervalConfig {
     }
 
     /**
-     * Bulb duration (the Exposure field while the camera sits at Bulb): UP
-     * walks the presets then the CUSTOM slot, DOWN reverses; below the 5 s
-     * floor steps back into the presets.
+     * Custom long-exposure seconds (the Exposure field while the camera sits
+     * at Bulb; 0.2.7 UX - the timed range is the camera's stock list, this is
+     * the one app-side value): UP/DOWN edit in place, 5 s steps below the
+     * 60 s mark and 30 s at and above, clamped to 5-1800 s.
      *
-     * @return false only when already at the shortest value and the camera
-     *         should leave the Bulb position - the caller steps the camera's
-     *         real shutter speed down; everything else is handled here.
+     * @return false only when already at the 5 s floor and the camera should
+     *         leave the Bulb position - the caller steps the camera's real
+     *         shutter speed down into the timed list; everything else is
+     *         handled here.
      */
     public boolean adjustBulb(int dir) {
         if (dir > 0) {
-            if (bulbIdx < BULBS_S.length)
-                bulbIdx++; // walks the presets, then steps into the CUSTOM slot
-            else if (customBulbS < BULB_CUSTOM_MAX)
-                customBulbS = Math.min(BULB_CUSTOM_MAX, customBulbS + bulbStep());
-        } else if (bulbIdx == BULBS_S.length) { // CUSTOM slot
-            if (customBulbS - bulbStep() >= BULB_CUSTOM_MIN)
-                customBulbS -= bulbStep();
-            else
-                bulbIdx = BULBS_S.length - 1; // below the 5 s floor: back into the presets
-        } else if (bulbIdx > 0) {
-            bulbIdx--;
+            customBulbS = Math.min(BULB_CUSTOM_MAX, customBulbS + bulbStep());
+        } else if (customBulbS - bulbStep() >= BULB_CUSTOM_MIN) {
+            customBulbS -= bulbStep();
         } else {
-            return false; // shortest already - leave Bulb
+            return false; // at the 5 s floor - leave Bulb
         }
         return true;
     }
@@ -139,7 +132,7 @@ public class IntervalConfig {
         return customIntervalS < 120 ? 5 : 30;
     }
 
-    /** CUSTOM bulb slot edit step: 5 s in the short range, 30 s at 60 s and up. */
+    /** Long-exposure edit step: 5 s in the short range, 30 s at 60 s and up. */
     private int bulbStep() {
         return customBulbS < 60 ? 5 : 30;
     }
@@ -151,9 +144,9 @@ public class IntervalConfig {
         return intervalIdx < INTERVALS_S.length ? INTERVALS_S[intervalIdx] : customIntervalS;
     }
 
-    /** The bulb duration THIS run uses: preset or custom slot. */
+    /** The long-exposure duration (s) THIS run uses: the camera exposes in Bulb until cancelExposure ends it. */
     public int bulbSeconds() {
-        return bulbIdx < BULBS_S.length ? BULBS_S[bulbIdx] : customBulbS;
+        return customBulbS;
     }
 
     /** Start delay in seconds (0 = fire immediately). */
@@ -171,9 +164,9 @@ public class IntervalConfig {
         return intervalIdx == INTERVALS_S.length;
     }
 
-    /** True at the shortest bulb preset - DOWN would step out of Bulb (the caller steps the camera). */
+    /** True at the 5 s floor - DOWN would step out of Bulb (the caller steps the camera). */
     public boolean bulbAtFloor() {
-        return bulbIdx == 0;
+        return customBulbS <= BULB_CUSTOM_MIN;
     }
 
     // --- display strings (config screen + logs) ---
@@ -184,7 +177,7 @@ public class IntervalConfig {
     }
 
     public String bulbStr() {
-        return bulbIdx < BULBS_S.length ? fmtDur(BULBS_S[bulbIdx]) : customBulbS + " s (custom)";
+        return customBulbS + " s";
     }
 
     public String countStr() {

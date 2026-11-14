@@ -104,6 +104,11 @@ import java.io.IOException;
  * stale RUNNING HUD. Trash now exits from the summary, as its legend claims.
  * LEFT/RIGHT walk the config grid in reading order, CUSTOM slots and the
  * bulb floor get a hint line, unlimited count reads "all" instead of "inf".
+ * Exposure rework: the timed range is purely the camera's own stock list,
+ * stepped live one position per press; Bulb holds a single custom
+ * long-exposure value in seconds (5-1800 s, 5 s/30 s steps, persisted) and
+ * the field reads "custom N s" there - the app-side bulb preset list is
+ * gone.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -588,13 +593,15 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // --- config screen ---
 
-    /** Paints the config grid; the hint line is contextual (CUSTOM slot, bulb floor). */
+    /** Paints the config grid; the hint line is contextual (CUSTOM slot, long exposure). */
     private void showConfig() {
         String hint = "UP/DOWN value  LEFT/RIGHT field";
         if (selField == 0 && config.intervalIsCustom())
             hint = "CUSTOM slot - UP/DOWN edit value";
-        else if (selField == 1 && bulbPos && config.bulbAtFloor())
-            hint = "shortest - DOWN leaves Bulb";
+        else if (selField == 1 && bulbPos)
+            hint = config.bulbAtFloor()
+                    ? "5 s floor - DOWN exits to timed"
+                    : "long exposure - UP/DOWN edit seconds";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
                 "Interval " + mark(0, config.intervalStr())
@@ -610,12 +617,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     }
 
     /**
-     * The Exposure field's display: the camera's own shutter speed, or the app
-     * bulb duration while the camera sits at the Bulb position.
+     * The Exposure field's display: the camera's own stock shutter speed in
+     * the timed range, or the custom long-exposure seconds while the camera
+     * sits at the Bulb position (0.2.7 UX - no more bulb preset list).
      */
     private String exposureStr() {
         if (bulbPos)
-            return "Bulb " + config.bulbStr();
+            return "custom " + config.bulbStr();
         return fmtSpeed(shutterInfo);
     }
 
@@ -664,10 +672,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /**
      * Exposure field: UP/DOWN step the camera's real shutter speed (software
-     * state - the dials are just another input for the same value). At the
-     * Bulb position the timed list has ended and the camera has no duration,
-     * so UP/DOWN adjust the app-side bulb duration instead; DOWN below the
-     * shortest steps back out of Bulb into the timed list.
+     * state - the dials are just another input for the same value), so the
+     * timed range is whatever stock list the body offers, one step per press.
+     * At the Bulb position (past the timed end stop) the camera has no
+     * duration, so UP/DOWN edit the custom long-exposure seconds instead;
+     * DOWN at the 5 s floor steps back out of Bulb into the timed list.
      */
     private void adjustExposure(int dir) {
         try {
