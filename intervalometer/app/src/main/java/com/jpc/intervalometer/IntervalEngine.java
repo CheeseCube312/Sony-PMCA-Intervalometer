@@ -45,6 +45,7 @@ public class IntervalEngine {
 
     public static final int REASON_DONE = 1;    // shot count reached
     public static final int REASON_ABORTED = 2; // trash key / activity paused
+    public static final int REASON_FAILED = 3;  // camera rejected the shot command 3 times straight
 
     private final Handler handler = new Handler();
     private final Listener listener;
@@ -53,7 +54,7 @@ public class IntervalEngine {
     private final int shotCount; // <= 0 = unlimited (runs until stopped)
     private long t0;
     private int fired, lateShots;
-    private boolean running, holdLogged; // holdLogged: one line per camera-busy hold, not one per tick
+    private boolean running, holdLogged, holding; // holdLogged: one line per camera-busy hold; holding: slot waiting on the camera (overlay warning)
 
     public IntervalEngine(long intervalMs, long startDelayMs, int shotCount, Listener listener) {
         this.intervalMs = intervalMs;
@@ -66,6 +67,11 @@ public class IntervalEngine {
         return running;
     }
 
+    /** True while a slot is held waiting for the camera to go idle (previous capture still in flight). */
+    public boolean isHolding() {
+        return holding;
+    }
+
     /** Arms the grid: shot 1 fires startDelay ms from now (0 = immediately). */
     public void start() {
         if (running)
@@ -74,6 +80,7 @@ public class IntervalEngine {
         fired = 0;
         lateShots = 0;
         holdLogged = false;
+        holding = false;
         t0 = SystemClock.elapsedRealtime();
         Logger.info("run start: interval " + (intervalMs / 1000) + " s, count "
                 + (shotCount > 0 ? String.valueOf(shotCount) : "unlimited")
@@ -86,6 +93,7 @@ public class IntervalEngine {
         if (!running)
             return;
         running = false;
+        holding = false;
         handler.removeCallbacks(tick);
         long elapsed = SystemClock.elapsedRealtime() - t0;
         Logger.info("run finished: " + reasonName(reason) + ", " + fired + " shots, elapsed "
@@ -108,6 +116,7 @@ public class IntervalEngine {
                     // Previous capture still in flight - firing now would
                     // silently lose both shots. Hold the slot; it fires when
                     // the camera goes idle, logged as late on the fire line.
+                    holding = true;
                     if (!holdLogged) {
                         holdLogged = true;
                         Logger.info("shot " + (fired + 1) + " held - camera busy, previous capture in flight");
@@ -115,6 +124,7 @@ public class IntervalEngine {
                     break;
                 }
                 holdLogged = false;
+                holding = false;
                 fired++;
                 long late = now - deadline;
                 if (late > 0)
@@ -138,7 +148,8 @@ public class IntervalEngine {
     };
 
     static String reasonName(int reason) {
-        return reason == REASON_DONE ? "done" : reason == REASON_ABORTED ? "aborted" : "?" + reason;
+        return reason == REASON_DONE ? "done" : reason == REASON_ABORTED ? "aborted"
+                : reason == REASON_FAILED ? "failed" : "?" + reason;
     }
 
     static String mmss(long ms) {

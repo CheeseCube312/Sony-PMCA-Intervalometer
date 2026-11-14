@@ -5,8 +5,9 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.2.5-mvp (tagged) - Phase 1 MVP done, exposure control + true bulb
-gated on camera; next is Phase 2 trust work (persistence, endurance).**
+**Status: 0.2.6 - Phase 2 trust work underway: config persistence, custom
+slots + failure abort shipped and gated on camera; next is endurance +
+card guard.**
 0.1.0 was the `Blank/starting_package`
 smoke test retargeted to `com.jpc.intervalometer` / INTVL logging (preview +
 S2 still verified on camera). 0.1.1 retires the starter's M-JPEG decode
@@ -79,6 +80,34 @@ every shot. Still unverified: whether stepping is accepted in P/A. A one-time
 `getSupportedParameters()` dump per session catalogs every parameter key
 this HAL accepts.
 
+**0.2.6 starts Phase 2 trust work:** the config screen state now persists
+(`getPreferences(MODE_PRIVATE)` - Recipe-Lab-proven on this firmware;
+survives app restarts and camera power cycles, dies on uninstall; the
+exposure position is deliberately NOT persisted - the camera owns its
+shutter-speed store). Interval presets extend to 2 s - 1 h (...300, 600,
+1800, 3600) and bulb to 30 min (...300, 600), plus a trailing **Custom**
+slot in each wrap cycle: edited in place with UP/DOWN (5 s steps interval,
+30 s steps bulb; clamped to 2-3600 s and 5-1800 s, falling back into the
+presets at the floor), the value itself persisted per slot - it is a
+position, not a named preset. Lists stay append-only and indices clamp on
+load, so 0.2.5-era persisted choices remain valid (custom-slot UI polish
+is a later step). Runs also get a **3-strike abort**: 3 consecutive
+`takePicture` throws (the v0.2.0/0.2.1 failure mode - once the HAL starts
+rejecting, every following slot rejects too) stop the run with reason
+`failed` and the summary's stored-vs-fired count shows the damage; a
+never-storing capture still only counts via the 90 s watchdog, and any
+success resets the counter. The running overlay now warns `camera busy -
+shot N waits (write in flight)` while the engine holds a slot behind a
+live capture (the 0.2.4 hold made visible; countdown unaffected - the
+slot fires when the store lands). Gated on camera (2026-11-14 log):
+defaults on the first 0.2.6 launch, config persisted across an app
+restart AND a power cycle (interval 5 s (custom) / count 10 / delay 5 s /
+bulb 60 reloaded exactly), custom bounds hold at their floors, long
+presets present, and a 10-shot run at the custom 5 s interval fired
+on-grid (late 13 ms) 10/10 stored. Not yet exercised on camera: the
+hold-warning line itself (needs an interval shorter than the write time)
+and the 3-strike abort.
+
 ## Phase roadmap
 
 | Phase | Scope | Gate (on-camera, A7 II) |
@@ -109,7 +138,9 @@ retired. The pristine pixel-path engine stays in `Blank/starting_package`
 `Logger` writes `/sdcard/INTVL/LOG.TXT` (rotation attempt to LOG.OLD.TXT;
 this firmware rejects renames, sessions append). Pull the SD card to read it.
 Camera open/preview lifecycle, S2 stills (timing + card path) and any errors
-land there.
+land there. The camera's wall clock resets to 1970-01-01 on a power cycle,
+so absolute LOG.TXT timestamps are only comparable within one powered
+session - the run-relative times (`fired @ +mm:ss`, planned) are unaffected.
 
 ## Engine facts (do not fight them)
 
@@ -146,4 +177,15 @@ Measured on A7 II (ILCE-7M2, 2026-11-13 session log):
 - Screen wake: `SCREEN_BRIGHTNESS_WAKE_LOCK` in BaseActivity.
 - No touchscreen - keys only (UP/DOWN/LEFT/RIGHT/ENTER, S1/S2, trash, rear/
   front dials, FN/AEL/C1 via PMCADemo-style hooks when needed).
+- The mono Creative Style survives power cycles in the settings store
+  ("look before: color-mode=mono" reappeared after the 11-14 battery swap) -
+  the startPreview re-injection stays load-bearing, the store never
+  self-repairs.
+- Native interval recording spike (separate v0.3.0 experiment APK, 11-14
+  session log): needs scene-mode=M (the probe sets it),
+  `startIntervalRec` snaps the selected period into firmware units
+  (10 s sent -> camera confirmed 10000 ms), count is ignored - it runs
+  until S2 - and the supported-intervals getter returns null. Firmware
+  owns shutter + storage: zero app work per frame, but also no per-shot
+  logging or control. Candidate for a future battery-friendly track.
 
