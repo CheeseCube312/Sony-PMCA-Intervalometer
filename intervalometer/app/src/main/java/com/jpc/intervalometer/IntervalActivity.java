@@ -133,6 +133,25 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
     private volatile boolean bulbPos;              // camera sits at Bulb - 0xFFFF sentinel, confirmed on camera
+    // 0.2.10 - the floor-exit from Bulb is issued blind (see adjustExposure): if no
+    // confirming timed callback lands within BULB_EXIT_CONFIRM_MS, the exit is
+    // assumed swallowed and bulbPos re-arms so the field never ghosts "timed".
+    private static final long BULB_EXIT_CONFIRM_MS = 1500;
+    private volatile long bulbExitPendingAt; // ms since boot when the exit increment fired (0 = none)
+    /** Fires when no timed callback confirmed the floor exit in time - re-arms Bulb. */
+    private final Runnable bulbExitConfirm = new Runnable() {
+        @Override
+        public void run() {
+            if (bulbExitPendingAt == 0)
+                return; // the callback confirmed the exit in time - no-op
+            bulbExitPendingAt = 0;
+            bulbPos = true; // exit increment was swallowed - the camera is still at Bulb
+            Logger.info("bulb exit unconfirmed after " + BULB_EXIT_CONFIRM_MS
+                    + " ms - re-arming Bulb");
+            if (!busy())
+                showConfig(); // repaint the Exposure field back to custom seconds
+        }
+    };
     // probe restore (0.2.6): the arm pair nets -1 step on this firmware; anchor the
     // pre-probe value from the first callback and step back to it, bounded, inside
     // a short window after the probe so user steps are never second-guessed.
@@ -424,6 +443,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             public void onShutterSpeedChange(CameraEx.ShutterSpeedInfo info, CameraEx cam) {
                 shutterInfo = info;
                 bulbPos = isBulb(info);
+                if (bulbExitPendingAt != 0 && !isBulb(info)) {
+                    bulbExitPendingAt = 0; // timed callback arrived - floor exit confirmed
+                    handler.removeCallbacks(bulbExitConfirm);
+                    Logger.info("bulb exit confirmed: " + fmtSpeed(info));
+                }
                 Logger.info("shutter speed: " + fmtSpeed(info)
                         + " (n=" + (info == null ? -1 : info.currentShutterSpeed_n)
                         + " d=" + (info == null ? -1 : info.currentShutterSpeed_d)
@@ -642,16 +666,6 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     }
 
     /**
-     * Bulb position encoding, CONFIRMED on camera (first 0.2.5 session): the
-     * camera reports n=65535 (0xFFFF sentinel), d=1 - not the n==0/d==0
-     * guess, which is why the field first showed "65535 s". One step up from
-     * the timed end stop (30 s on this body) lands on Bulb, one step down
-     * returns to 30 s. n==0 && d==0 kept as a defensive fallback; raw n/d
-     * are still logged on every event. Note: SDK decrementShutterSpeed from
-     * Bulb is a silent no-op on this firmware - only increment exits Bulb
-     * (see adjustExposure).
-     */
-    /**
      * Undo the probe pair's -1 step drift. First callback in the probe window
      * anchors the armed value; any later in-window callback that differs gets
      * one bounded corrective step toward the anchor. Bulb positions are left
@@ -694,6 +708,15 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 < (long) b.currentShutterSpeed_n * a.currentShutterSpeed_d;
     }
 
+    /**
+     * Bulb position encoding, CONFIRMED on camera (first 0.2.5 session): the
+     * camera reports n=65535 (0xFFFF sentinel), d=1 - not the n==0/d==0
+     * guess, which is why the field first showed "65535 s". n==0 && d==0 kept
+     * as a defensive fallback; raw n/d are still logged on every event. One
+     * step up from the timed end stop (30 s on this body) lands on Bulb, and
+     * SDK decrementShutterSpeed from Bulb is a silent no-op on this firmware
+     * - only increment exits Bulb (see adjustExposure, self-checked since 0.2.10).
+     */
     private static boolean isBulb(CameraEx.ShutterSpeedInfo info) {
         return info != null && (info.currentShutterSpeed_n == 0xFFFF
                 || (info.currentShutterSpeed_n == 0 && info.currentShutterSpeed_d == 0));
@@ -754,6 +777,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     // that direction works on every launch
                     bulbPos = false; // optimistic: a repeat press must not re-step out and bounce back into Bulb
                     camera.incrementShutterSpeed(); // leave Bulb - camera reports the timed value again
+                    bulbExitPendingAt = SystemClock.elapsedRealtime(); // self-check (0.2.10): listener confirms or the timeout re-arms
+                    handler.postDelayed(bulbExitConfirm, BULB_EXIT_CONFIRM_MS);
                 }
             } else if (dir > 0) {
                 camera.incrementShutterSpeed();
