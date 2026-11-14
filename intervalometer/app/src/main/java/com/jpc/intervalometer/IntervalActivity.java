@@ -199,6 +199,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private int[] isoValues = {}; // supported ISOs in HAL order; the first 0 is presumed AUTO (test round confirms)
     private int isoKept = -1;     // last read-back - "what the camera kept"; -1 = not probed yet
     private int isoIdx = -1;      // isoKept's position in isoValues (-1 = unknown or absent from the list)
+    // HAL delivers the AutoISOSensitivityListener echo of each ISO write 100-330 ms
+    // late (0.2.12 log: one event per write, correct value, delayed) - so during a
+    // fast walk the echo lands AFTER the next write's log line and reads like a
+    // regression. Events inside this window after our own write are that echo.
+    private static final long ISO_ECHO_WINDOW_MS = 600;
+    private long lastIsoWriteMs;  // uptimeMillis() of the last setIso write
 
     // run state
     private IntervalEngine engine;
@@ -552,9 +558,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         // 0.2.12 - AUTO ISO ground truth, log-only: while the camera sits on
         // AUTO (kept value 0) this reports which sensitivity the body picked;
         // the exposure-complete log already shows the per-shot truth (ISO ...).
+        // Our own writes echo here late (see ISO_ECHO_WINDOW_MS) - those are
+        // skipped; the wrote/kept line is already the ground truth for them.
         camera.setAutoISOSensitivityListener(new CameraEx.AutoISOSensitivityListener() {
             @Override
             public void onChanged(int iso, CameraEx cam) {
+                if (SystemClock.uptimeMillis() - lastIsoWriteMs < ISO_ECHO_WINDOW_MS)
+                    return; // late echo of our own write, not a body decision
                 Logger.info("ISO auto: camera picked " + (iso == 0 ? "0 (AUTO)" : String.valueOf(iso)));
             }
         });
@@ -905,6 +915,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             android.hardware.Camera.Parameters p = cam.getParameters();
             p.set(ISO_KEY, String.valueOf(value));
             cam.setParameters(p);
+            lastIsoWriteMs = SystemClock.uptimeMillis();
             adoptIso(cam.getParameters().get(ISO_KEY));
             Logger.info("ISO: wrote " + (value == 0 ? "0 (AUTO)" : String.valueOf(value))
                     + " - camera kept " + isoStr() + (isoKept == value ? "" : " - REJECTED"));
