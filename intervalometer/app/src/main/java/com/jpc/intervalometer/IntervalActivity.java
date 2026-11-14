@@ -699,15 +699,22 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 || (info.currentShutterSpeed_n == 0 && info.currentShutterSpeed_d == 0));
     }
 
-    /** Human shutter speed: "30 s" / "1/125 s" / "Bulb"; "?" until the first change event. */
+    /** Human shutter speed: "30 s" / "1.6 s" / "0.6 s" / "1/125 s" / "Bulb"; "?" until the first event. */
     private static String fmtSpeed(CameraEx.ShutterSpeedInfo info) {
         if (info == null)
             return "?";
         if (isBulb(info))
             return "Bulb";
-        if (info.currentShutterSpeed_d == 1)
-            return info.currentShutterSpeed_n + " s";
-        return info.currentShutterSpeed_n + "/" + info.currentShutterSpeed_d + " s";
+        long n = info.currentShutterSpeed_n, d = info.currentShutterSpeed_d;
+        if (d == 1)
+            return n + " s";
+        if (d > 0 && n * 10 >= 3 * d) { // 0.3 s and slower: decimal seconds ("10/16" -> "0.6 s"), like the body's dial
+            long tenths = Math.round(n * 10.0 / d); // one decimal matches the list (0.4/0.6/0.8/1.3/1.6/2.5/3.2)
+            if (tenths % 10 == 0)
+                return tenths / 10 + " s";
+            return tenths / 10 + "." + tenths % 10 + " s";
+        }
+        return n + "/" + d + " s"; // fast range (1/4 s and faster) stays fractional
     }
 
     /** True while a run (or its ending gap / summary) owns the screen. */
