@@ -1494,3 +1494,1188 @@ Thu Jan 01 00:04:04 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max
 Thu Jan 01 00:04:08 GMT 1970 [INFO] preview stopped
 Thu Jan 01 00:04:08 GMT 1970 [INFO] camera released
 Thu Jan 01 00:04:08 GMT 1970 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:12:20 GMT 1970 [INFO] --- INTVL v0.2.6 session start 1970-01-01 00:12:20 ---
+Thu Jan 01 00:12:21 GMT 1970 [INFO] log rotation failed - appending to previous sessions
+Thu Jan 01 00:12:21 GMT 1970 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Thu Jan 01 00:12:21 GMT 1970 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Thu Jan 01 00:12:21 GMT 1970 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Thu Jan 01 00:12:21 GMT 1970 [INFO] cpu: Hardware	: ARM-CXD90014
+Thu Jan 01 00:12:21 GMT 1970 [INFO] config loaded: interval 5 s (custom), count 10, delay 5 s, bulb choice 60 s
+Thu Jan 01 00:12:21 GMT 1970 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:12:21 GMT 1970 [INFO] CameraEx.open...
+Thu Jan 01 00:12:21 GMT 1970 [INFO] exposure probe: down/up step pair done
+Thu Jan 01 00:12:21 GMT 1970 [INFO] supported parameters: 6041 chars
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Thu Jan 01 00:12:22 GMT 1970 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Thu Jan 01 00:12:22 GMT 1970 [INFO] camera open ok
+Thu Jan 01 00:12:22 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:12:22 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:12:22 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:12:22 GMT 1970 [INFO] startPreview ok - plain HAL live view
+Thu Jan 01 00:12:22 GMT 1970 [INFO] look before: color-mode=mono saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:12:22 GMT 1970 [INFO] look after: color-mode=standard saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:12:22 GMT 1970 [INFO] surface changed 640x438 fmt 4
+Thu Jan 01 00:13:20 GMT 1970 [INFO] preview stopped
+Thu Jan 01 00:13:20 GMT 1970 [INFO] camera released
+Thu Jan 01 00:13:20 GMT 1970 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:27:02 GMT 1970 [INFO] --- INTVL v0.2.6 session start 1970-01-01 00:27:02 ---
+Thu Jan 01 00:27:02 GMT 1970 [INFO] log rotation failed - appending to previous sessions
+Thu Jan 01 00:27:02 GMT 1970 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Thu Jan 01 00:27:02 GMT 1970 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Thu Jan 01 00:27:02 GMT 1970 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Thu Jan 01 00:27:02 GMT 1970 [INFO] cpu: Hardware	: ARM-CXD90014
+Thu Jan 01 00:27:02 GMT 1970 [INFO] config loaded: interval 5 s (custom), count 10, delay 5 s, bulb choice 60 s
+Thu Jan 01 00:27:02 GMT 1970 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:27:02 GMT 1970 [INFO] CameraEx.open...
+Thu Jan 01 00:27:03 GMT 1970 [INFO] exposure probe: down/up step pair done
+Thu Jan 01 00:27:03 GMT 1970 [INFO] supported parameters: 6041 chars
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Thu Jan 01 00:27:03 GMT 1970 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Thu Jan 01 00:27:03 GMT 1970 [INFO] camera open ok
+Thu Jan 01 00:27:03 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:03 GMT 1970 [INFO] shutter speed: 10/16 s (n=10 d=16 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:03 GMT 1970 [INFO] startPreview ok - plain HAL live view
+Thu Jan 01 00:27:03 GMT 1970 [INFO] look before: color-mode=mono saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:27:04 GMT 1970 [INFO] look after: color-mode=standard saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:27:04 GMT 1970 [INFO] surface changed 640x438 fmt 4
+Thu Jan 01 00:27:16 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:17 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:17 GMT 1970 [INFO] shutter speed: 13/10 s (n=13 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:17 GMT 1970 [INFO] shutter speed: 16/10 s (n=16 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:18 GMT 1970 [INFO] shutter speed: 2 s (n=2 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:18 GMT 1970 [INFO] shutter speed: 25/10 s (n=25 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:18 GMT 1970 [INFO] shutter speed: 16/5 s (n=16 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:19 GMT 1970 [INFO] shutter speed: 4 s (n=4 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:19 GMT 1970 [INFO] shutter speed: 5 s (n=5 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:19 GMT 1970 [INFO] shutter speed: 6 s (n=6 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:19 GMT 1970 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:20 GMT 1970 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:20 GMT 1970 [INFO] shutter speed: 13 s (n=13 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:20 GMT 1970 [INFO] shutter speed: 15 s (n=15 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:21 GMT 1970 [INFO] shutter speed: 20 s (n=20 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:21 GMT 1970 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:22 GMT 1970 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:27:28 GMT 1970 [INFO] exposure: 30 s - camera timed
+Thu Jan 01 00:27:28 GMT 1970 [INFO] run start: interval 5 s, count 10, delay 5 s
+Thu Jan 01 00:27:33 GMT 1970 [INFO] shot 1 fired @ +00:05 (planned +00:05, late 12 ms)
+Thu Jan 01 00:27:33 GMT 1970 [INFO] capture status: START mode 0
+Thu Jan 01 00:27:33 GMT 1970 [INFO] shutter event: OK @ +150 ms
+Thu Jan 01 00:27:36 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:27:38 GMT 1970 [INFO] shot 2 held - camera busy, previous capture in flight
+Thu Jan 01 00:28:05 GMT 1970 [INFO] exposure complete: result 0 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:28:08 GMT 1970 [INFO] still: storeImage done - seq 0, 34493 ms, DCIM/100MSDCF//DSC07346 (FileNo 7346) - file untouched
+Thu Jan 01 00:28:08 GMT 1970 [INFO] capture status: END mode 0 reason NORMAL
+Thu Jan 01 00:28:08 GMT 1970 [INFO] shot 2 fired @ +00:39 (planned +00:10, late 29630 ms)
+Thu Jan 01 00:28:08 GMT 1970 [INFO] shot 3 held - camera busy, previous capture in flight
+Thu Jan 01 00:28:08 GMT 1970 [INFO] capture status: START mode 1
+Thu Jan 01 00:28:08 GMT 1970 [INFO] shutter event: OK @ +731 ms
+Thu Jan 01 00:28:10 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:28:40 GMT 1970 [INFO] exposure complete: result 1 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:28:43 GMT 1970 [INFO] still: storeImage done - seq 1, 35054 ms, DCIM/100MSDCF//DSC07347 (FileNo 7347) - file untouched
+Thu Jan 01 00:28:43 GMT 1970 [INFO] capture status: END mode 1 reason NORMAL
+Thu Jan 01 00:28:43 GMT 1970 [INFO] shot 3 fired @ +01:14 (planned +00:15, late 59847 ms)
+Thu Jan 01 00:28:43 GMT 1970 [INFO] shot 4 held - camera busy, previous capture in flight
+Thu Jan 01 00:28:44 GMT 1970 [INFO] capture status: START mode 2
+Thu Jan 01 00:28:44 GMT 1970 [INFO] shutter event: OK @ +738 ms
+Thu Jan 01 00:28:45 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:29:16 GMT 1970 [INFO] exposure complete: result 2 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:29:18 GMT 1970 [INFO] still: storeImage done - seq 2, 35083 ms, DCIM/100MSDCF//DSC07348 (FileNo 7348) - file untouched
+Thu Jan 01 00:29:18 GMT 1970 [INFO] capture status: END mode 2 reason NORMAL
+Thu Jan 01 00:29:18 GMT 1970 [INFO] shot 4 fired @ +01:50 (planned +00:20, late 90096 ms)
+Thu Jan 01 00:29:18 GMT 1970 [INFO] shot 5 held - camera busy, previous capture in flight
+Thu Jan 01 00:29:19 GMT 1970 [INFO] capture status: START mode 3
+Thu Jan 01 00:29:19 GMT 1970 [INFO] shutter event: OK @ +720 ms
+Thu Jan 01 00:29:21 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:29:51 GMT 1970 [INFO] exposure complete: result 3 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:29:53 GMT 1970 [INFO] still: storeImage done - seq 3, 35062 ms, DCIM/100MSDCF//DSC07349 (FileNo 7349) - file untouched
+Thu Jan 01 00:29:53 GMT 1970 [INFO] capture status: END mode 3 reason NORMAL
+Thu Jan 01 00:29:53 GMT 1970 [INFO] shot 5 fired @ +02:25 (planned +00:25, late 120262 ms)
+Thu Jan 01 00:29:53 GMT 1970 [INFO] shot 6 held - camera busy, previous capture in flight
+Thu Jan 01 00:29:54 GMT 1970 [INFO] capture status: START mode 4
+Thu Jan 01 00:29:54 GMT 1970 [INFO] shutter event: OK @ +732 ms
+Thu Jan 01 00:29:56 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:30:26 GMT 1970 [INFO] exposure complete: result 4 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:30:28 GMT 1970 [INFO] still: storeImage done - seq 4, 35065 ms, DCIM/100MSDCF//DSC07350 (FileNo 7350) - file untouched
+Thu Jan 01 00:30:28 GMT 1970 [INFO] capture status: END mode 4 reason NORMAL
+Thu Jan 01 00:30:28 GMT 1970 [INFO] shot 6 fired @ +03:00 (planned +00:30, late 150474 ms)
+Thu Jan 01 00:30:29 GMT 1970 [INFO] shot 7 held - camera busy, previous capture in flight
+Thu Jan 01 00:30:29 GMT 1970 [INFO] capture status: START mode 5
+Thu Jan 01 00:30:29 GMT 1970 [INFO] shutter event: OK @ +739 ms
+Thu Jan 01 00:30:31 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:31:01 GMT 1970 [INFO] exposure complete: result 5 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:31:04 GMT 1970 [INFO] still: storeImage done - seq 5, 35065 ms, DCIM/100MSDCF//DSC07351 (FileNo 7351) - file untouched
+Thu Jan 01 00:31:04 GMT 1970 [INFO] capture status: END mode 5 reason NORMAL
+Thu Jan 01 00:31:04 GMT 1970 [INFO] shot 7 fired @ +03:35 (planned +00:35, late 180692 ms)
+Thu Jan 01 00:31:04 GMT 1970 [INFO] shot 8 held - camera busy, previous capture in flight
+Thu Jan 01 00:31:04 GMT 1970 [INFO] capture status: START mode 6
+Thu Jan 01 00:31:04 GMT 1970 [INFO] shutter event: OK @ +702 ms
+Thu Jan 01 00:31:06 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:31:36 GMT 1970 [INFO] exposure complete: result 6 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:31:39 GMT 1970 [INFO] still: storeImage done - seq 6, 35027 ms, DCIM/100MSDCF//DSC07352 (FileNo 7352) - file untouched
+Thu Jan 01 00:31:39 GMT 1970 [INFO] capture status: END mode 6 reason NORMAL
+Thu Jan 01 00:31:39 GMT 1970 [INFO] shot 8 fired @ +04:10 (planned +00:40, late 210855 ms)
+Thu Jan 01 00:31:39 GMT 1970 [INFO] shot 9 held - camera busy, previous capture in flight
+Thu Jan 01 00:31:40 GMT 1970 [INFO] capture status: START mode 7
+Thu Jan 01 00:31:40 GMT 1970 [INFO] shutter event: OK @ +715 ms
+Thu Jan 01 00:31:41 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:32:12 GMT 1970 [INFO] exposure complete: result 7 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:32:14 GMT 1970 [INFO] still: storeImage done - seq 7, 35037 ms, DCIM/100MSDCF//DSC07353 (FileNo 7353) - file untouched
+Thu Jan 01 00:32:14 GMT 1970 [INFO] capture status: END mode 7 reason NORMAL
+Thu Jan 01 00:32:14 GMT 1970 [INFO] shot 9 fired @ +04:46 (planned +00:45, late 241055 ms)
+Thu Jan 01 00:32:14 GMT 1970 [INFO] shot 10 held - camera busy, previous capture in flight
+Thu Jan 01 00:32:15 GMT 1970 [INFO] capture status: START mode 8
+Thu Jan 01 00:32:15 GMT 1970 [INFO] shutter event: OK @ +715 ms
+Thu Jan 01 00:32:17 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:32:47 GMT 1970 [INFO] exposure complete: result 8 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:32:49 GMT 1970 [INFO] still: storeImage done - seq 8, 35002 ms, DCIM/100MSDCF//DSC07354 (FileNo 7354) - file untouched
+Thu Jan 01 00:32:49 GMT 1970 [INFO] capture status: END mode 8 reason NORMAL
+Thu Jan 01 00:32:49 GMT 1970 [INFO] shot 10 fired @ +05:21 (planned +00:50, late 271217 ms)
+Thu Jan 01 00:32:49 GMT 1970 [INFO] run finished: done, 10 shots, elapsed 05:21, late 10
+Thu Jan 01 00:32:49 GMT 1970 [INFO] apo restored
+Thu Jan 01 00:32:50 GMT 1970 [INFO] capture status: START mode 9
+Thu Jan 01 00:32:50 GMT 1970 [INFO] shutter event: OK @ +679 ms
+Thu Jan 01 00:32:52 GMT 1970 [INFO] capture released (cancelTakePicture)
+Thu Jan 01 00:33:22 GMT 1970 [INFO] exposure complete: result 9 (F100 ISO 800 n=30 d=1)
+Thu Jan 01 00:33:24 GMT 1970 [INFO] still: storeImage done - seq 9, 35015 ms, DCIM/100MSDCF//DSC07355 (FileNo 7355) - file untouched
+Thu Jan 01 00:33:24 GMT 1970 [INFO] capture status: END mode 9 reason NORMAL
+Thu Jan 01 00:33:25 GMT 1970 [INFO] stored 10 of 10 fired, capture avg 34990 ms, max 35083 ms
+Thu Jan 01 00:45:22 GMT 1970 [INFO] preview stopped
+Thu Jan 01 00:45:22 GMT 1970 [INFO] camera released
+Thu Jan 01 00:45:22 GMT 1970 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:17:07 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:17:07 ---
+Sat Nov 14 18:17:08 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:17:08 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:17:08 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:17:08 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:17:08 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:17:08 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 60 s
+Sat Nov 14 18:17:08 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:17:08 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:17:09 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:17:09 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:17:09 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:17:09 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:17:09 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:17:10 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:17:10 GMT 2026 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:17:10 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:17:10 GMT 2026 [INFO] look before: color-mode=mono saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:17:10 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:17:10 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:22:26 GMT 2026 [INFO] preview stopped
+Sat Nov 14 18:22:26 GMT 2026 [INFO] camera released
+Sat Nov 14 18:22:26 GMT 2026 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:27:11 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:27:11 ---
+Sat Nov 14 18:27:12 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:27:12 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:27:12 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:27:12 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:27:12 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:27:12 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 60 s
+Sat Nov 14 18:27:12 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:27:12 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:27:13 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:27:13 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:27:13 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:27:14 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:27:14 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:27:14 GMT 2026 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:27:14 GMT 2026 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:27:14 GMT 2026 [INFO] shutter speed: 20 s (n=20 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:27:14 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:27:14 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:27:14 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:27:14 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:27:24 GMT 2026 [INFO] shutter speed: 15 s (n=15 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:27:27 GMT 2026 [INFO] shutter speed: 20 s (n=20 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:30:45 GMT 2026 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:30:46 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:30:46 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:31:14 GMT 2026 [INFO] preview stopped
+Sat Nov 14 18:31:14 GMT 2026 [INFO] camera released
+Sat Nov 14 18:31:14 GMT 2026 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:34:21 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:34:21 ---
+Sat Nov 14 18:34:21 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:34:21 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:34:21 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:34:21 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:34:21 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:34:21 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 18:34:22 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:34:22 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:34:23 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:34:23 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:34:23 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:34:23 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:34:23 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:34:23 GMT 2026 [INFO] probe anchor: Bulb
+Sat Nov 14 18:34:23 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:34:23 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:34:23 GMT 2026 [INFO] probe correction #1: stepping slower toward Bulb
+Sat Nov 14 18:34:23 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:34:23 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:34:24 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:34:24 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:34:24 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:37:49 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:37:49 ---
+Sat Nov 14 18:37:49 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:37:49 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:37:49 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:37:50 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:37:50 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:37:50 GMT 2026 [INFO] config loaded: interval 15 s, count 10, delay 5 s, long exposure 10 s
+Sat Nov 14 18:37:50 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:37:50 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:37:50 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:37:50 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:37:50 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:37:51 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:37:51 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:37:51 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:37:51 GMT 2026 [INFO] probe anchor: Bulb
+Sat Nov 14 18:37:51 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:37:51 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:37:51 GMT 2026 [INFO] probe correction #1: stepping slower toward Bulb
+Sat Nov 14 18:37:51 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:37:51 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:37:51 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:37:51 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:37:51 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:43:38 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:43:38 ---
+Sat Nov 14 18:43:38 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:43:38 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:43:38 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:43:39 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:43:39 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:43:39 GMT 2026 [INFO] config loaded: interval 30 s, count 10, delay 5 s, long exposure 10 s
+Sat Nov 14 18:43:39 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:43:39 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:43:39 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:43:39 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:43:39 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:43:40 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:43:40 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:43:40 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:43:40 GMT 2026 [INFO] probe anchor: Bulb
+Sat Nov 14 18:43:40 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:43:40 GMT 2026 [INFO] probe correction #1: stepping slower toward Bulb
+Sat Nov 14 18:43:40 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:43:40 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:43:40 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:43:40 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:43:40 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:44:42 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:44:42 ---
+Sat Nov 14 18:44:43 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:44:43 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:44:43 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:44:43 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:44:43 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:44:43 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 18:44:43 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:44:43 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:44:44 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:44:44 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:44:44 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:44:44 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:44:44 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:44:44 GMT 2026 [INFO] probe anchor: Bulb
+Sat Nov 14 18:44:44 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:44:44 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:44:44 GMT 2026 [INFO] probe correction #1: stepping slower toward Bulb
+Sat Nov 14 18:44:44 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:44:44 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:44:44 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:44:44 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:44:45 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:47:39 GMT 2026 [INFO] --- INTVL v0.2.6 session start 2026-11-14 18:47:39 ---
+Sat Nov 14 18:47:39 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:47:39 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:47:39 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:47:39 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:47:39 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:47:39 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 18:47:39 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:47:39 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:47:40 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:47:40 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:47:40 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:47:40 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:47:40 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:47:40 GMT 2026 [INFO] probe anchor: Bulb
+Sat Nov 14 18:47:40 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:47:40 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:47:40 GMT 2026 [INFO] probe correction #1: stepping slower toward Bulb
+Sat Nov 14 18:47:41 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:47:41 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:47:41 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:47:41 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:47:41 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:52:31 GMT 2026 [INFO] --- INTVL v0.2.7 session start 2026-11-14 18:52:31 ---
+Sat Nov 14 18:52:32 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:52:32 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:52:32 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:52:32 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:52:32 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:52:32 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 18:52:32 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:52:32 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:52:32 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:52:33 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:52:33 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:52:33 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:52:33 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:52:33 GMT 2026 [INFO] probe anchor: Bulb
+Sat Nov 14 18:52:33 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:52:33 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:52:33 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:52:33 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:52:33 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:52:33 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:53:10 GMT 2026 [INFO] --- INTVL v0.2.7 session start 2026-11-14 18:53:10 ---
+Sat Nov 14 18:53:10 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:53:10 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:53:10 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:53:10 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:53:10 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:53:10 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 18:53:10 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:53:10 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:53:11 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:53:11 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:53:11 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:53:11 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:53:12 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:53:12 GMT 2026 [INFO] probe anchor: 30 s
+Sat Nov 14 18:53:12 GMT 2026 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:53:12 GMT 2026 [INFO] probe correction #1: stepping slower toward 30 s
+Sat Nov 14 18:53:12 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:53:12 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:53:12 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:53:12 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:53:12 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:53:23 GMT 2026 [INFO] --- INTVL v0.2.7 session start 2026-11-14 18:53:23 ---
+Sat Nov 14 18:53:23 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 18:53:23 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 18:53:23 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 18:53:23 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 18:53:23 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 18:53:23 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 18:53:23 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 18:53:23 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 18:53:24 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 18:53:24 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 18:53:24 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 18:53:24 GMT 2026 [INFO] camera open ok
+Sat Nov 14 18:53:24 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:53:24 GMT 2026 [INFO] probe anchor: 30 s
+Sat Nov 14 18:53:24 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:53:24 GMT 2026 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:53:24 GMT 2026 [INFO] probe correction #1: stepping slower toward 30 s
+Sat Nov 14 18:53:24 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 18:53:24 GMT 2026 [INFO] look before: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:53:25 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=1 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 18:53:25 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 18:53:25 GMT 2026 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:55:43 GMT 2026 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 18:55:50 GMT 2026 [INFO] preview stopped
+Sat Nov 14 18:55:50 GMT 2026 [INFO] camera released
+Sat Nov 14 18:55:50 GMT 2026 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:01:20 GMT 1970 [INFO] --- INTVL v0.2.8 session start 1970-01-01 00:01:20 ---
+Thu Jan 01 00:01:21 GMT 1970 [INFO] log rotation failed - appending to previous sessions
+Thu Jan 01 00:01:21 GMT 1970 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Thu Jan 01 00:01:21 GMT 1970 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Thu Jan 01 00:01:21 GMT 1970 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Thu Jan 01 00:01:21 GMT 1970 [INFO] cpu: Hardware	: ARM-CXD90014
+Thu Jan 01 00:01:21 GMT 1970 [INFO] config loaded: interval 5 s (custom), count 10, delay 5 s, long exposure 60 s
+Thu Jan 01 00:01:21 GMT 1970 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:01:21 GMT 1970 [INFO] CameraEx.open...
+Thu Jan 01 00:01:22 GMT 1970 [INFO] exposure probe: down/up step pair done
+Thu Jan 01 00:01:22 GMT 1970 [INFO] supported parameters: 6041 chars
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Thu Jan 01 00:01:22 GMT 1970 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Thu Jan 01 00:01:22 GMT 1970 [INFO] camera open ok
+Thu Jan 01 00:01:22 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:22 GMT 1970 [INFO] probe anchor: 1 s
+Thu Jan 01 00:01:22 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:22 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:22 GMT 1970 [INFO] probe correction #1: stepping slower toward 1 s
+Thu Jan 01 00:01:22 GMT 1970 [INFO] startPreview ok - plain HAL live view
+Thu Jan 01 00:01:22 GMT 1970 [INFO] look before: color-mode=mono saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:01:23 GMT 1970 [INFO] look after: color-mode=standard saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:01:23 GMT 1970 [INFO] surface changed 640x438 fmt 4
+Thu Jan 01 00:01:23 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:44 GMT 1970 [INFO] shutter speed: 13/10 s (n=13 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:45 GMT 1970 [INFO] shutter speed: 16/10 s (n=16 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:45 GMT 1970 [INFO] shutter speed: 2 s (n=2 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:45 GMT 1970 [INFO] shutter speed: 25/10 s (n=25 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:46 GMT 1970 [INFO] shutter speed: 16/5 s (n=16 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:46 GMT 1970 [INFO] shutter speed: 4 s (n=4 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:46 GMT 1970 [INFO] shutter speed: 5 s (n=5 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:47 GMT 1970 [INFO] shutter speed: 6 s (n=6 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:47 GMT 1970 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:47 GMT 1970 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:47 GMT 1970 [INFO] shutter speed: 13 s (n=13 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:48 GMT 1970 [INFO] shutter speed: 15 s (n=15 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:48 GMT 1970 [INFO] shutter speed: 20 s (n=20 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:48 GMT 1970 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:48 GMT 1970 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:49 GMT 1970 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:53 GMT 1970 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:54 GMT 1970 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:54 GMT 1970 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:55 GMT 1970 [INFO] shutter speed: Bulb (n=65535 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:56 GMT 1970 [INFO] shutter speed: 30 s (n=30 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:57 GMT 1970 [INFO] shutter speed: 25 s (n=25 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:57 GMT 1970 [INFO] shutter speed: 20 s (n=20 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:58 GMT 1970 [INFO] shutter speed: 13 s (n=13 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:58 GMT 1970 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:58 GMT 1970 [INFO] shutter speed: 5 s (n=5 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:59 GMT 1970 [INFO] shutter speed: 16/5 s (n=16 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:59 GMT 1970 [INFO] shutter speed: 2 s (n=2 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:59 GMT 1970 [INFO] shutter speed: 13/10 s (n=13 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:01:59 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:00 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:00 GMT 1970 [INFO] shutter speed: 10/16 s (n=10 d=16 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:00 GMT 1970 [INFO] shutter speed: 10/25 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:01 GMT 1970 [INFO] shutter speed: 1/3 s (n=1 d=3 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:01 GMT 1970 [INFO] shutter speed: 1/4 s (n=1 d=4 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:01 GMT 1970 [INFO] shutter speed: 1/5 s (n=1 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:02 GMT 1970 [INFO] shutter speed: 1/6 s (n=1 d=6 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:02 GMT 1970 [INFO] shutter speed: 1/8 s (n=1 d=8 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:02 GMT 1970 [INFO] shutter speed: 1/10 s (n=1 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:02 GMT 1970 [INFO] shutter speed: 1/13 s (n=1 d=13 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:02 GMT 1970 [INFO] shutter speed: 1/15 s (n=1 d=15 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:03 GMT 1970 [INFO] shutter speed: 1/20 s (n=1 d=20 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:04 GMT 1970 [INFO] shutter speed: 1/30 s (n=1 d=30 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:04 GMT 1970 [INFO] shutter speed: 1/50 s (n=1 d=50 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:04 GMT 1970 [INFO] shutter speed: 1/80 s (n=1 d=80 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:04 GMT 1970 [INFO] shutter speed: 1/160 s (n=1 d=160 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:05 GMT 1970 [INFO] shutter speed: 1/250 s (n=1 d=250 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:05 GMT 1970 [INFO] shutter speed: 1/400 s (n=1 d=400 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:05 GMT 1970 [INFO] shutter speed: 1/640 s (n=1 d=640 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:05 GMT 1970 [INFO] shutter speed: 1/1000 s (n=1 d=1000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:06 GMT 1970 [INFO] shutter speed: 1/1250 s (n=1 d=1250 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:07 GMT 1970 [INFO] shutter speed: 1/1600 s (n=1 d=1600 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:07 GMT 1970 [INFO] shutter speed: 1/2000 s (n=1 d=2000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:07 GMT 1970 [INFO] shutter speed: 1/2500 s (n=1 d=2500 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:07 GMT 1970 [INFO] shutter speed: 1/3200 s (n=1 d=3200 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:08 GMT 1970 [INFO] shutter speed: 1/5000 s (n=1 d=5000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:08 GMT 1970 [INFO] shutter speed: 1/6400 s (n=1 d=6400 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:08 GMT 1970 [INFO] shutter speed: 1/8000 s (n=1 d=8000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:10 GMT 1970 [INFO] shutter speed: 1/6400 s (n=1 d=6400 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:10 GMT 1970 [INFO] shutter speed: 1/5000 s (n=1 d=5000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:11 GMT 1970 [INFO] shutter speed: 1/4000 s (n=1 d=4000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:12 GMT 1970 [INFO] shutter speed: 1/2500 s (n=1 d=2500 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:12 GMT 1970 [INFO] shutter speed: 1/1600 s (n=1 d=1600 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:12 GMT 1970 [INFO] shutter speed: 1/1000 s (n=1 d=1000 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:12 GMT 1970 [INFO] shutter speed: 1/640 s (n=1 d=640 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:13 GMT 1970 [INFO] shutter speed: 1/320 s (n=1 d=320 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:13 GMT 1970 [INFO] shutter speed: 1/200 s (n=1 d=200 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:13 GMT 1970 [INFO] shutter speed: 1/125 s (n=1 d=125 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:13 GMT 1970 [INFO] shutter speed: 1/80 s (n=1 d=80 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:14 GMT 1970 [INFO] shutter speed: 1/50 s (n=1 d=50 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:14 GMT 1970 [INFO] shutter speed: 1/25 s (n=1 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:14 GMT 1970 [INFO] shutter speed: 1/15 s (n=1 d=15 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:14 GMT 1970 [INFO] shutter speed: 1/10 s (n=1 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:14 GMT 1970 [INFO] shutter speed: 1/6 s (n=1 d=6 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:15 GMT 1970 [INFO] shutter speed: 1/5 s (n=1 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:15 GMT 1970 [INFO] shutter speed: 1/4 s (n=1 d=4 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:15 GMT 1970 [INFO] shutter speed: 1/3 s (n=1 d=3 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:16 GMT 1970 [INFO] shutter speed: 10/25 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:16 GMT 1970 [INFO] shutter speed: 1/2 s (n=1 d=2 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:16 GMT 1970 [INFO] shutter speed: 10/16 s (n=10 d=16 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:17 GMT 1970 [INFO] shutter speed: 1/2 s (n=1 d=2 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:17 GMT 1970 [INFO] shutter speed: 10/25 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:19 GMT 1970 [INFO] shutter speed: 1/3 s (n=1 d=3 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:20 GMT 1970 [INFO] shutter speed: 1/4 s (n=1 d=4 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:20 GMT 1970 [INFO] shutter speed: 1/5 s (n=1 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:20 GMT 1970 [INFO] shutter speed: 1/6 s (n=1 d=6 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:21 GMT 1970 [INFO] shutter speed: 1/8 s (n=1 d=8 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:21 GMT 1970 [INFO] shutter speed: 1/6 s (n=1 d=6 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:21 GMT 1970 [INFO] shutter speed: 1/5 s (n=1 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:22 GMT 1970 [INFO] shutter speed: 1/4 s (n=1 d=4 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:23 GMT 1970 [INFO] shutter speed: 1/3 s (n=1 d=3 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:23 GMT 1970 [INFO] shutter speed: 10/25 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:52 GMT 1970 [INFO] shutter speed: 1/2 s (n=1 d=2 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:53 GMT 1970 [INFO] shutter speed: 10/25 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:54 GMT 1970 [INFO] shutter speed: 1/3 s (n=1 d=3 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:54 GMT 1970 [INFO] shutter speed: 10/25 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:55 GMT 1970 [INFO] shutter speed: 1/2 s (n=1 d=2 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:55 GMT 1970 [INFO] shutter speed: 10/16 s (n=10 d=16 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:56 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:02:56 GMT 1970 [INFO] shutter speed: 10/16 s (n=10 d=16 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:02 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:03 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:04 GMT 1970 [INFO] shutter speed: 4/5 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:09 GMT 1970 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:10 GMT 1970 [INFO] shutter speed: 13/10 s (n=13 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:17 GMT 1970 [INFO] shutter speed: 16/10 s (n=16 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:22 GMT 1970 [INFO] shutter speed: 2 s (n=2 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:23 GMT 1970 [INFO] shutter speed: 25/10 s (n=25 d=10 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:31 GMT 1970 [INFO] shutter speed: 16/5 s (n=16 d=5 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:38 GMT 1970 [INFO] shutter speed: 4 s (n=4 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:39 GMT 1970 [INFO] shutter speed: 5 s (n=5 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:40 GMT 1970 [INFO] shutter speed: 6 s (n=6 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:40 GMT 1970 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:03:40 GMT 1970 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:07:33 GMT 1970 [INFO] preview stopped
+Thu Jan 01 00:07:33 GMT 1970 [INFO] camera released
+Thu Jan 01 00:07:33 GMT 1970 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:13:06 GMT 1970 [INFO] --- INTVL v0.2.8 session start 1970-01-01 00:13:06 ---
+Thu Jan 01 00:13:06 GMT 1970 [INFO] log rotation failed - appending to previous sessions
+Thu Jan 01 00:13:06 GMT 1970 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Thu Jan 01 00:13:06 GMT 1970 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Thu Jan 01 00:13:06 GMT 1970 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Thu Jan 01 00:13:06 GMT 1970 [INFO] cpu: Hardware	: ARM-CXD90014
+Thu Jan 01 00:13:06 GMT 1970 [INFO] config loaded: interval 15 s (custom), count 10, delay 5 s, long exposure 5 s
+Thu Jan 01 00:13:06 GMT 1970 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Thu Jan 01 00:13:06 GMT 1970 [INFO] CameraEx.open...
+Thu Jan 01 00:13:07 GMT 1970 [INFO] exposure probe: down/up step pair done
+Thu Jan 01 00:13:07 GMT 1970 [INFO] supported parameters: 6041 chars
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Thu Jan 01 00:13:07 GMT 1970 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Thu Jan 01 00:13:08 GMT 1970 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Thu Jan 01 00:13:08 GMT 1970 [INFO] camera open ok
+Thu Jan 01 00:13:08 GMT 1970 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:13:08 GMT 1970 [INFO] probe anchor: 10 s
+Thu Jan 01 00:13:08 GMT 1970 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:13:08 GMT 1970 [INFO] probe correction #1: stepping slower toward 10 s
+Thu Jan 01 00:13:08 GMT 1970 [INFO] startPreview ok - plain HAL live view
+Thu Jan 01 00:13:08 GMT 1970 [INFO] look before: color-mode=mono saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:13:08 GMT 1970 [INFO] look after: color-mode=standard saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Thu Jan 01 00:13:08 GMT 1970 [INFO] surface changed 640x438 fmt 4
+Thu Jan 01 00:13:08 GMT 1970 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Thu Jan 01 00:15:15 GMT 1970 [INFO] preview stopped
+Thu Jan 01 00:15:15 GMT 1970 [INFO] camera released
+Thu Jan 01 00:15:15 GMT 1970 [INFO] Pause com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 19:34:16 GMT 2026 [INFO] --- INTVL v0.2.10 session start 2026-11-14 19:34:16 ---
+Sat Nov 14 19:34:16 GMT 2026 [INFO] log rotation failed - appending to previous sessions
+Sat Nov 14 19:34:16 GMT 2026 [INFO] device: ScalarA / Android 4.1.2 / abi armeabi-v7a / armeabi
+Sat Nov 14 19:34:16 GMT 2026 [INFO] cpu: Processor	: ARMv7 Processor rev 1 (v7l)
+Sat Nov 14 19:34:16 GMT 2026 [INFO] cpu: Features	: swp half thumb fastmult vfp edsp vfpv3 vfpv3d16 tls vfpv4
+Sat Nov 14 19:34:17 GMT 2026 [INFO] cpu: Hardware	: ARM-CXD90014
+Sat Nov 14 19:34:17 GMT 2026 [INFO] config loaded: interval 5 s, count 10, delay 5 s, long exposure 5 s
+Sat Nov 14 19:34:17 GMT 2026 [INFO] Resume com.jpc.intervalometer.IntervalActivity
+Sat Nov 14 19:34:17 GMT 2026 [INFO] CameraEx.open...
+Sat Nov 14 19:34:17 GMT 2026 [INFO] exposure probe: down/up step pair done
+Sat Nov 14 19:34:17 GMT 2026 [INFO] supported parameters: 6041 chars
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[0..180]: rgb-matrix-supported=true;max-lens-correction-shading-color-middle=16;pe-soft-high-key-effect-values=blue,pink,green;max-color-depth-cyan=7;color-mode-values=standard,vivid,neutral
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[180..360]: ,portrait,landscape,mono,clear,deep,light,sunset,night,red-leaves,sepia;exposure-bracket-mode-values=single,continue;pe-part-color-effect-values=red,green,blue,yellow;min-pe-toy-ca
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[360..540]: mera-tuning=-16;min-pe-watercolor-effect-level=1;picture-control-exposure-shift-supported=true;max-lens-correction-chroma-blue=16;lens-correction-values=shading-w,shading-wm,shadin
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[540..720]: g-cr,shading-cb,shading-cm,chroma-r,chroma-b,distotion,distotion-m;digital-zoom-type-values=smart,super-resolution,precision;jpeg-quality-values=95,50,25;max-sharpness=3;color-dept
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[720..900]: h-type-values=red,green,blue,cyan,magenta,yellow;min-pe-hdr-art-effect-level=1;num-of-bracket-picture-values=3,5;max-lens-correction-distotion-middle=16;max-color-depth-yellow=7;fo
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[900..1080]: rce-exposure-control-mode-supported=true;max-focus-shift=16;max-color-temperture-white-balance=9900;max-color-depth-blue=7;min-color-depth-yellow=-7;sharpness-gain-mode-supported=t
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[1080..1260]: rue;preview-analize-supported=true;dro-mode-values=off,auto,on;mulit-shoot-nr-iso-values=0,100,200,400,800,1600,3200,6400,12800,25600,51200;hdr-mode-values=off,auto,on;flash-mode-v
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[1260..1440]: alues=auto,on,off;direct-shutter-supported=true;min-lens-correction-shading-color-middle=-16;color-space-values=standard,expanded;pe-toy-camera-effect-values=normal,cool,warm,green
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[1440..1620]: ,magenta;soft-skin-effect-values=off,low,middle,high;scene-mode-values=program-auto,aperture-priority,shutter-speed,manual-exposure,auto,portrait,landscape,night,night-portrait,sun
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[1620..1800]: set,sports,hand-held-twilight,anti-motion-blur,macro;ovf_preview-values=true;auto-shutter-low-limit-supported=true;min-exposure-compensation=-15;min-lens-correction-chroma-blue=-16
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[1800..1980]: ;min-pe-soft-mono-effect-level=0;max-pe-toy-camera-tuning=16;min-pe-illust-color-effect-level=1;min-color-temperture-white-balance=2500;min-saturation=-16;pe-miniature-focus-area-v
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[1980..2160]: alues=auto,left,vcenter,right,upper,hcenter,lower;max-white-balance-shift-lb=32;max-saturation=16;max-lens-correction-shading-color-blue=16;focus-drive-supported=false;flash-type-v
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[2160..2340]: alues=front-sync,slow-sync,slow-rear-sync,wireless;image-size-values=small,midium,large;red-eye-reduction-mode-values=on,off;exif-info-supported=true;max-contrast=3;drive-mode-valu
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[2340..2520]: es=single,burst,bracket;anti-blur-values=off,onetime;picture-format-values=jpeg;max-zoom-speed=8;max-lens-correction-distotion=16;storage-fmt-values=jpeg,raw,rawjpeg;max-color-dept
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[2520..2700]: h-green=7;long-exposure-nr-supported=true;exposure-compensation-step=0.33333;metering-mode-values=multi,center-weighted,center-spot;max-pe-soft-focus-effect-level=3;max-pe-illust-c
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[2700..2880]: olor-effect-level=3;white-balance-shift-mode-supported=true;focus-shift-supported=true;whitebalance-values=auto,daylight,shade,cloudy-daylight,fluorescent-coolwhite,fluorescent-day
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[2880..3060]: white,fluorescent-daylight,warm-fluorescent,incandescent,flash,custom,color-temp,underwater-auto;num-of-detected-faces=8;max-white-balance-shift-cc=32;max-pe-watercolor-effect-leve
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[3060..3240]: l=3;min-lens-correction-distotion-middle=-16;prv-mag-values=100,200;min-lens-correction-shading-whole=-16;bracket-step-period-values=low,high;min-sharpness=-3;focus-hold-supported=
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[3240..3420]: true;min-lens-correction-shading-whole-middle=-16;hdr-exposure-difference-level-step=1.0;min-lens-correction-shading-color-red=-16;focus-area-flexible-spot-size-values=small,midium
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[3420..3600]: ,large;zoom-supported=false;min-focus-shift=-16;max-pe-hdr-art-effect-level=3;num-of-color-select-channel=2;af-mode-values=af-s,af-c;image-aspect-values=3:2,16:9;flash-compensation
+Sat Nov 14 19:34:17 GMT 2026 [INFO] params[3600..3780]: -step=0.33333;raw-rec-mode-values=compress,uncompress;max-lens-correction-shading-whole-middle=16;bracket-order-values=start-zero,start-minus;max-color-depth-red=7;iso-sensitivity-
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[3780..3960]: values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600;min-contrast=-3;min-pe-soft-focus-effect-l
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[3960..4140]: evel=1;exposure-bracket-period-values=3,5,7,10,20,30;min-color-depth-cyan=-7;max-lens-correction-shading-color-red=16;max-light-balance-for-white-balance=7;toggle-focus-supported=t
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[4140..4320]: rue;max-num-of-burst-picture=5;min-color-compensation-for-white-balance=-7;face-detection-mode-values=off,auto;focal-length-notify-supported=true;min-light-balance-for-white-balanc
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[4320..4500]: e=-7;min-flash-compensation=-9;focus-mode-values=manual,auto,dmf;min-lens-correction-chroma-red=-16;max-lens-correction-shading-whole=16;max-lens-correction-chroma-red=16;color-sel
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[4500..4680]: ect-mode-values=off,extract;pe-posterization-effect-values=posterization-color,posterization-mono;jpeg-thumbnail-size-values=160x120,0x0;picture-effect-values=off,toy-camera,pop-co
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[4680..4860]: lor,posterization,retro-photo,soft-high-key,part-color,rough-mono,soft-focus,hdr-art,richtone-mono,miniature,illust,watercolor;min-sharpness-gain=-7;min-color-depth-magenta=-7;max-
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[4860..5040]: sharpness-gain=7;bracket-mode-values=exposure,white-balance,dro;num-of-custom-white-balance=3;picture-size-values=6000x4000,6000x3376,3936x2624,3936x2216,3008x2000,3008x1688;max-pe
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[5040..5220]: -rough-mono-effect-level=0;auto-wb-lock-supported=true;motion-shot-values=false;min-color-depth-red=-7;burst-drive-speed-values=low,high;max-flash-compensation=9;smooth-zoom-suppor
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[5220..5400]: ted=false;max-exposure-difference-level=6;max-dro-level=5;max-color-compensation-for-white-balance=7;min-white-balance-shift-lb=-32;lens-info-supported=true;anti-hand-blur-info-val
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[5400..5580]: ues=from-lens,manual;min-color-depth-green=-7;focus-area-type-values=multi,center,flex-spot,local,spot,wide;ae-lock-values=locked,unlocked;max-focus-drive-speed=0;max-exposure-comp
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[5580..5760]: ensation=15;min-white-balance-shift-cc=-32;min-lens-correction-shading-color-blue=-16;min-exposure-difference-level=1;effect-values=none,sepia,mono;extended-gamma-table-supported=t
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[5760..5940]: rue;quick-af-values=af_wiae,af_woaf;min-lens-correction-distotion=-16;max-color-depth-magenta=7;shooting-preview-values=off,iris_ss_iso_aeunlock;self-timer-values=10,2,0;apsc-mode-
+Sat Nov 14 19:34:18 GMT 2026 [INFO] params[5940..6041]: supported=true;min-color-depth-blue=-7;expanded-iso-sensitivities-values=50,64,80;remocon-values=true
+Sat Nov 14 19:34:18 GMT 2026 [INFO] camera open ok
+Sat Nov 14 19:34:18 GMT 2026 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:18 GMT 2026 [INFO] probe anchor: 10 s
+Sat Nov 14 19:34:18 GMT 2026 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:18 GMT 2026 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:18 GMT 2026 [INFO] probe correction #1: stepping slower toward 10 s
+Sat Nov 14 19:34:18 GMT 2026 [INFO] startPreview ok - plain HAL live view
+Sat Nov 14 19:34:18 GMT 2026 [INFO] look before: color-mode=mono saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 19:34:18 GMT 2026 [INFO] look after: color-mode=standard saturation=0 contrast=0 sharpness=0 picture-effect=off rgb-matrix-mode=false
+Sat Nov 14 19:34:18 GMT 2026 [INFO] surface changed 640x438 fmt 4
+Sat Nov 14 19:34:18 GMT 2026 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:24 GMT 2026 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:25 GMT 2026 [INFO] shutter speed: 6 s (n=6 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:26 GMT 2026 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:26 GMT 2026 [INFO] shutter speed: 10 s (n=10 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:26 GMT 2026 [INFO] shutter speed: 13 s (n=13 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:27 GMT 2026 [INFO] shutter speed: 15 s (n=15 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:27 GMT 2026 [INFO] shutter speed: 20 s (n=20 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:28 GMT 2026 [INFO] shutter speed: 15 s (n=15 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:28 GMT 2026 [INFO] shutter speed: 13 s (n=13 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:29 GMT 2026 [INFO] shutter speed: 8 s (n=8 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:29 GMT 2026 [INFO] shutter speed: 6 s (n=6 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:29 GMT 2026 [INFO] shutter speed: 5 s (n=5 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:29 GMT 2026 [INFO] shutter speed: 4 s (n=4 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:30 GMT 2026 [INFO] shutter speed: 3.2 s (n=16 d=5 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:30 GMT 2026 [INFO] shutter speed: 2.5 s (n=25 d=10 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:30 GMT 2026 [INFO] shutter speed: 2 s (n=2 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:30 GMT 2026 [INFO] shutter speed: 1.6 s (n=16 d=10 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:31 GMT 2026 [INFO] shutter speed: 1.3 s (n=13 d=10 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:31 GMT 2026 [INFO] shutter speed: 1 s (n=1 d=1 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:32 GMT 2026 [INFO] shutter speed: 0.8 s (n=4 d=5 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:32 GMT 2026 [INFO] shutter speed: 0.6 s (n=10 d=16 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:32 GMT 2026 [INFO] shutter speed: 0.5 s (n=1 d=2 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:33 GMT 2026 [INFO] shutter speed: 0.4 s (n=10 d=25 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:33 GMT 2026 [INFO] shutter speed: 0.3 s (n=1 d=3 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:34 GMT 2026 [INFO] shutter speed: 1/4 s (n=1 d=4 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:34 GMT 2026 [INFO] shutter speed: 1/5 s (n=1 d=5 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:34 GMT 2026 [INFO] shutter speed: 1/6 s (n=1 d=6 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:34 GMT 2026 [INFO] shutter speed: 1/8 s (n=1 d=8 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:35 GMT 2026 [INFO] shutter speed: 1/10 s (n=1 d=10 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:35 GMT 2026 [INFO] shutter speed: 1/15 s (n=1 d=15 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:35 GMT 2026 [INFO] shutter speed: 1/20 s (n=1 d=20 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:36 GMT 2026 [INFO] shutter speed: 1/25 s (n=1 d=25 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:36 GMT 2026 [INFO] shutter speed: 1/30 s (n=1 d=30 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:36 GMT 2026 [INFO] shutter speed: 1/40 s (n=1 d=40 min n=30 d=1 max n=1 d=8000)
+Sat Nov 14 19:34:43 GMT 2026 [INFO] exposure: 1/40 s - camera timed
+Sat Nov 14 19:34:43 GMT 2026 [INFO] run start: interval 2 s, count 10, delay 2 s
+Sat Nov 14 19:34:45 GMT 2026 [INFO] shot 1 fired @ +00:02 (planned +00:02, late 11 ms)
+Sat Nov 14 19:34:45 GMT 2026 [INFO] capture status: START mode 0
+Sat Nov 14 19:34:45 GMT 2026 [INFO] shutter event: OK @ +110 ms
+Sat Nov 14 19:34:45 GMT 2026 [INFO] exposure complete: result 0 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:34:47 GMT 2026 [INFO] shot 2 held - camera busy, previous capture in flight
+Sat Nov 14 19:34:48 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:34:48 GMT 2026 [INFO] still: storeImage done - seq 0, 2647 ms, DCIM/100MSDCF//DSC07356 (FileNo 7356) - file untouched
+Sat Nov 14 19:34:48 GMT 2026 [INFO] capture status: END mode 0 reason NORMAL
+Sat Nov 14 19:34:48 GMT 2026 [INFO] shot 2 fired @ +00:04 (planned +00:04, late 819 ms)
+Sat Nov 14 19:34:48 GMT 2026 [INFO] capture status: START mode 1
+Sat Nov 14 19:34:48 GMT 2026 [INFO] shutter event: OK @ +372 ms
+Sat Nov 14 19:34:48 GMT 2026 [INFO] exposure complete: result 1 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:34:49 GMT 2026 [INFO] shot 3 held - camera busy, previous capture in flight
+Sat Nov 14 19:34:50 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:34:51 GMT 2026 [INFO] still: storeImage done - seq 1, 2738 ms, DCIM/100MSDCF//DSC07357 (FileNo 7357) - file untouched
+Sat Nov 14 19:34:51 GMT 2026 [INFO] capture status: END mode 1 reason NORMAL
+Sat Nov 14 19:34:51 GMT 2026 [INFO] shot 3 fired @ +00:07 (planned +00:06, late 1633 ms)
+Sat Nov 14 19:34:51 GMT 2026 [INFO] shot 4 held - camera busy, previous capture in flight
+Sat Nov 14 19:34:51 GMT 2026 [INFO] capture status: START mode 2
+Sat Nov 14 19:34:51 GMT 2026 [INFO] shutter event: OK @ +455 ms
+Sat Nov 14 19:34:51 GMT 2026 [INFO] exposure complete: result 2 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:34:53 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:34:53 GMT 2026 [INFO] still: storeImage done - seq 2, 2774 ms, DCIM/100MSDCF//DSC07358 (FileNo 7358) - file untouched
+Sat Nov 14 19:34:53 GMT 2026 [INFO] capture status: END mode 2 reason NORMAL
+Sat Nov 14 19:34:54 GMT 2026 [INFO] shot 4 fired @ +00:10 (planned +00:08, late 2613 ms)
+Sat Nov 14 19:34:54 GMT 2026 [INFO] shot 5 held - camera busy, previous capture in flight
+Sat Nov 14 19:34:54 GMT 2026 [INFO] capture status: START mode 3
+Sat Nov 14 19:34:54 GMT 2026 [INFO] shutter event: OK @ +410 ms
+Sat Nov 14 19:34:54 GMT 2026 [INFO] exposure complete: result 3 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:34:56 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:34:56 GMT 2026 [INFO] still: storeImage done - seq 3, 2775 ms, DCIM/100MSDCF//DSC07359 (FileNo 7359) - file untouched
+Sat Nov 14 19:34:56 GMT 2026 [INFO] capture status: END mode 3 reason NORMAL
+Sat Nov 14 19:34:56 GMT 2026 [INFO] shot 5 fired @ +00:13 (planned +00:10, late 3512 ms)
+Sat Nov 14 19:34:56 GMT 2026 [INFO] shot 6 held - camera busy, previous capture in flight
+Sat Nov 14 19:34:57 GMT 2026 [INFO] capture status: START mode 4
+Sat Nov 14 19:34:57 GMT 2026 [INFO] shutter event: OK @ +472 ms
+Sat Nov 14 19:34:57 GMT 2026 [INFO] exposure complete: result 4 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:34:59 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:34:59 GMT 2026 [INFO] still: storeImage done - seq 4, 2786 ms, DCIM/100MSDCF//DSC07360 (FileNo 7360) - file untouched
+Sat Nov 14 19:34:59 GMT 2026 [INFO] capture status: END mode 4 reason NORMAL
+Sat Nov 14 19:34:59 GMT 2026 [INFO] shot 6 fired @ +00:16 (planned +00:12, late 4459 ms)
+Sat Nov 14 19:34:59 GMT 2026 [INFO] shot 7 held - camera busy, previous capture in flight
+Sat Nov 14 19:35:00 GMT 2026 [INFO] capture status: START mode 5
+Sat Nov 14 19:35:00 GMT 2026 [INFO] shutter event: OK @ +406 ms
+Sat Nov 14 19:35:00 GMT 2026 [INFO] exposure complete: result 5 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:35:02 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:35:02 GMT 2026 [INFO] still: storeImage done - seq 5, 2786 ms, DCIM/100MSDCF//DSC07361 (FileNo 7361) - file untouched
+Sat Nov 14 19:35:02 GMT 2026 [INFO] capture status: END mode 5 reason NORMAL
+Sat Nov 14 19:35:02 GMT 2026 [INFO] shot 7 fired @ +00:19 (planned +00:14, late 5423 ms)
+Sat Nov 14 19:35:02 GMT 2026 [INFO] shot 8 held - camera busy, previous capture in flight
+Sat Nov 14 19:35:03 GMT 2026 [INFO] capture status: START mode 6
+Sat Nov 14 19:35:03 GMT 2026 [INFO] shutter event: OK @ +391 ms
+Sat Nov 14 19:35:03 GMT 2026 [INFO] exposure complete: result 6 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:35:05 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:35:05 GMT 2026 [INFO] still: storeImage done - seq 6, 2769 ms, DCIM/100MSDCF//DSC07362 (FileNo 7362) - file untouched
+Sat Nov 14 19:35:05 GMT 2026 [INFO] capture status: END mode 6 reason NORMAL
+Sat Nov 14 19:35:05 GMT 2026 [INFO] shot 8 fired @ +00:22 (planned +00:16, late 6341 ms)
+Sat Nov 14 19:35:05 GMT 2026 [INFO] shot 9 held - camera busy, previous capture in flight
+Sat Nov 14 19:35:06 GMT 2026 [INFO] capture status: START mode 7
+Sat Nov 14 19:35:06 GMT 2026 [INFO] shutter event: OK @ +406 ms
+Sat Nov 14 19:35:06 GMT 2026 [INFO] exposure complete: result 7 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:35:08 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:35:08 GMT 2026 [INFO] still: storeImage done - seq 7, 2835 ms, DCIM/100MSDCF//DSC07363 (FileNo 7363) - file untouched
+Sat Nov 14 19:35:08 GMT 2026 [INFO] capture status: END mode 7 reason NORMAL
+Sat Nov 14 19:35:08 GMT 2026 [INFO] shot 9 fired @ +00:25 (planned +00:18, late 7304 ms)
+Sat Nov 14 19:35:08 GMT 2026 [INFO] shot 10 held - camera busy, previous capture in flight
+Sat Nov 14 19:35:09 GMT 2026 [INFO] capture status: START mode 8
+Sat Nov 14 19:35:09 GMT 2026 [INFO] shutter event: OK @ +397 ms
+Sat Nov 14 19:35:09 GMT 2026 [INFO] exposure complete: result 8 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:35:11 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:35:11 GMT 2026 [INFO] still: storeImage done - seq 8, 2822 ms, DCIM/100MSDCF//DSC07364 (FileNo 7364) - file untouched
+Sat Nov 14 19:35:11 GMT 2026 [INFO] capture status: END mode 8 reason NORMAL
+Sat Nov 14 19:35:11 GMT 2026 [INFO] shot 10 fired @ +00:28 (planned +00:20, late 8303 ms)
+Sat Nov 14 19:35:11 GMT 2026 [INFO] run finished: done, 10 shots, elapsed 00:28, late 10
+Sat Nov 14 19:35:11 GMT 2026 [INFO] apo restored
+Sat Nov 14 19:35:12 GMT 2026 [INFO] capture status: START mode 9
+Sat Nov 14 19:35:12 GMT 2026 [INFO] shutter event: OK @ +372 ms
+Sat Nov 14 19:35:12 GMT 2026 [INFO] exposure complete: result 9 (F100 ISO 800 n=1 d=40)
+Sat Nov 14 19:35:14 GMT 2026 [INFO] capture released (cancelTakePicture)
+Sat Nov 14 19:35:14 GMT 2026 [INFO] still: storeImage done - seq 9, 2802 ms, DCIM/100MSDCF//DSC07365 (FileNo 7365) - file untouched
+Sat Nov 14 19:35:14 GMT 2026 [INFO] capture status: END mode 9 reason NORMAL
+Sat Nov 14 19:35:15 GMT 2026 [INFO] stored 10 of 10 fired, capture avg 2773 ms, max 2835 ms
+Sat Nov 14 19:35:19 GMT 2026 [INFO] preview stopped
+Sat Nov 14 19:35:19 GMT 2026 [INFO] camera released
+Sat Nov 14 19:35:19 GMT 2026 [INFO] Pause com.jpc.intervalometer.IntervalActivity
