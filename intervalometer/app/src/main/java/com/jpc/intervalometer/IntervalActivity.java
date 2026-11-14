@@ -58,15 +58,34 @@ import java.io.IOException;
  * camera is busy (interval = minimum spacing), the summary waits out an
  * in-flight last capture, and a 90 s cap marks a never-storing capture as
  * lost instead of wedging the run.
+ *
+ * 0.2.5 - exposure control + true bulb. The Sony SDK (verified against the
+ * compiled stubs) has real shutter-speed control: incrementShutterSpeed() /
+ * decrementShutterSpeed() step the camera's software value (the dials are
+ * just input devices for the same state - there is no fixed dial position to
+ * fight), and ShutterSpeedChangeListener is the only way to READ it (no
+ * getter). The config screen gains an Exposure field that mirrors the
+ * camera's current value and steps it live; stepping past the timed end stop
+ * reaches Bulb. Bulb has no duration on the camera, so UP/DOWN at the Bulb
+ * position adjusts the app-side bulb duration instead (the exposure length
+ * the engine enforces). In bulb runs each shot schedules cancelExposure()
+ * (the SDK's exposure-end primitive - cancelTakePicture is the timed-shot
+ * release and is ignored mid-exposure, the v0.2.4 side finding) at the bulb
+ * duration, and the in-flight watchdog + summary deadline scale with it.
+ * ShutterListener / CaptureStatusListener / ExposureCompleteListener are
+ * armed as log-only ground truth for now (shutter-open anchor, real
+ * in-flight state) - nothing behavioral depends on them yet.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     /** Config choices are discrete lists - no typing on a 4-key camera. */
     private static final int[] INTERVALS_S = {2, 5, 10, 15, 30, 60};
     private static final int[] COUNTS = {10, 60, -1}; // -1 = unlimited
     private static final int[] DELAYS_S = {0, 2, 5, 10};
+    private static final int[] BULBS_S = {5, 10, 15, 30, 60, 120, 300}; // app-side bulb duration
     private static final int DEF_INTERVAL = 4; // 30 s - the Phase 1 gate value
     private static final int DEF_COUNT = 1;    // 60 shots = 30 min @ 30 s
     private static final int DEF_DELAY = 0;
+    private static final int DEF_BULB = 4;     // 60 s bulb exposure
 
     private static final String ACTION_APO = "com.android.server.DAConnectionManagerService.apo";
     private static final long APO_REFRESH_MS = 60000; // firmware re-asserts APO (Recipe Lab)
@@ -77,8 +96,17 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private String version = "?";
 
     // config screen state (Phase 2 persists this)
-    private int selField; // 0 interval, 1 count, 2 delay
+    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay
     private int intervalIdx = DEF_INTERVAL, countIdx = DEF_COUNT, delayIdx = DEF_DELAY;
+    private int bulbIdx = DEF_BULB;
+
+    // exposure state (0.2.5) - mirror of the camera's software shutter speed
+    private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
+    private volatile boolean bulbPos;              // camera sits at Bulb - 0xFFFF sentinel, confirmed on camera
+    /** Bulb duration for THIS run (ms, 0 = timed shots - camera closes on its own). */
+    private volatile long bulbShotMs;
+    /** Watchdog cap for the shot in flight (timed: INFLIGHT_CAP_MS; bulb: bulb duration + margin). */
+    private volatile long inFlightCapMs = INFLIGHT_CAP_MS;
 
     // run state
     private IntervalEngine engine;
@@ -98,7 +126,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      */
     private static final long SHUTTER_MS = 2500; // DevTools.SHUTTER_MS - what a capture needs on this body
     private static final long SUMMARY_DELAY_MS = 4000; // last store lands ~3 s after run end; wait for it
-    private static final long INFLIGHT_CAP_MS = 90000; // give up on a capture that never stores (a bulb run would hang here)
+    private static final long INFLIGHT_CAP_MS = 90000; // timed shots: give up on a capture that never stores
+    private static final long WATCH_MARGIN_MS = 30000; // bulb shots: store + slack after the exposure ends
     private final Handler handler = new Handler();
     private Runnable summaryTask; // set per finished run, cancelled on pause
     private long summaryDeadline; // elapsedRealtime until which the summary waits out the last capture
@@ -118,6 +147,35 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     };
 
     /**
+     * Bulb release (0.2.5): ends the exposure at the configured bulb duration.
+     * cancelExposure() is the SDK's exposure-end primitive; cancelTakePicture
+     * follows as the proven S2-up half (the firmware ignores it mid-exposure,
+     * so it is a harmless no-op here) and resumePreview() restarts the view.
+     * Scheduled from takePicture return - the ShutterListener log measures the
+     * true open offset for the next iteration.
+     */
+    private final Runnable bulbRelease = new Runnable() {
+        @Override
+        public void run() {
+            if (camera == null)
+                return;
+            try {
+                camera.cancelExposure();
+                Logger.info("bulb exposure ended (cancelExposure) @ " + bulbShotMs + " ms");
+            } catch (Throwable t) {
+                Logger.error("cancelExposure: " + t); // shutter may hang open - loud, the watchdog caps the run
+            }
+            try {
+                camera.cancelTakePicture();
+                Logger.info("bulb released (cancelTakePicture)");
+            } catch (Throwable t) {
+                Logger.error("bulb cancelTakePicture: " + t);
+            }
+            resumePreview();
+        }
+    };
+
+    /**
      * One-in-flight watchdog. If a capture never stores (firmware ate it, or a
      * bulb exposure nobody ends), clear the in-flight flag after INFLIGHT_CAP_MS
      * so the engine can fire the next slot and the summary can print; the shot
@@ -128,7 +186,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         public void run() {
             if (stillT0 != 0) {
                 stillT0 = 0;
-                Logger.info("capture still in flight after " + (INFLIGHT_CAP_MS / 1000)
+                Logger.info("capture still in flight after " + (inFlightCapMs / 1000)
                         + " s - giving up on it (not stored)");
             }
         }
@@ -140,15 +198,25 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         public void onShoot(int n) {
             if (camera == null)
                 return;
+            boolean bulb = bulbShotMs > 0;
             try {
                 resumePreview(); // safety net: takePicture needs a live preview (no-op if already running)
                 stillT0 = System.currentTimeMillis();
+                inFlightCapMs = bulb ? bulbShotMs + WATCH_MARGIN_MS : INFLIGHT_CAP_MS;
                 camera.getNormalCamera().takePicture(null, null, null);
-                handler.postDelayed(shutterRelease, SHUTTER_MS); // the S2 up half of the press
-                handler.postDelayed(inFlightCap, INFLIGHT_CAP_MS); // never-storing capture watchdog
+                if (bulb) {
+                    // True bulb: the app owns the exposure end. cancelExposure at
+                    // the configured duration replaces the fixed +2.5 s release
+                    // (which would cut every bulb exposure short).
+                    handler.postDelayed(bulbRelease, bulbShotMs);
+                } else {
+                    handler.postDelayed(shutterRelease, SHUTTER_MS); // the S2 up half of the press
+                }
+                handler.postDelayed(inFlightCap, inFlightCapMs); // never-storing capture watchdog
             } catch (Throwable t) {
                 stillT0 = 0;
                 handler.removeCallbacks(shutterRelease);
+                handler.removeCallbacks(bulbRelease);
                 handler.removeCallbacks(inFlightCap);
                 Logger.error("shot " + n + ": takePicture failed: " + Log.getStackTraceString(t));
             }
@@ -167,7 +235,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             overlayView.setLines(new String[]{
                     "Intervalometer v" + version + " - RUNNING",
                     "shot " + shotsFired + plan + " | next " + IntervalEngine.mmss(nextShotInMs)
-                            + " | +" + IntervalEngine.mmss(elapsedMs)});
+                            + " | +" + IntervalEngine.mmss(elapsedMs)
+                            + (bulbShotMs > 0 ? " | Bulb " + (bulbShotMs / 1000) + " s" : "")});
         }
 
         @Override
@@ -201,7 +270,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                             "S2 config | trash exit"});
                 }
             };
-            summaryDeadline = SystemClock.elapsedRealtime() + INFLIGHT_CAP_MS;
+            // Bulb: the last exposure can outlive the run by its whole duration -
+            // scale the wait instead of the fixed 90 s (0.2.4 kept the fixed cap
+            // and would have printed the summary mid-exposure).
+            summaryDeadline = SystemClock.elapsedRealtime()
+                    + (bulbShotMs > 0 ? bulbShotMs + WATCH_MARGIN_MS : INFLIGHT_CAP_MS);
             handler.postDelayed(summaryTask, SUMMARY_DELAY_MS);
         }
     };
@@ -274,6 +347,69 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 // no preview restart here - shutterRelease owns the release + restart
             }
         });
+
+        // 0.2.5 - exposure mirror + event ground truth. ShutterSpeedChangeListener
+        // is the only way to READ the shutter speed (no getter); its change events
+        // drive the Exposure field. Log-only listeners below stay behavioral no-ops
+        // until the camera proves their semantics (shutter-open anchor, in-flight).
+        camera.setShutterSpeedChangeListener(new CameraEx.ShutterSpeedChangeListener() {
+            @Override
+            public void onShutterSpeedChange(CameraEx.ShutterSpeedInfo info, CameraEx cam) {
+                shutterInfo = info;
+                bulbPos = isBulb(info);
+                Logger.info("shutter speed: " + fmtSpeed(info)
+                        + " (n=" + (info == null ? -1 : info.currentShutterSpeed_n)
+                        + " d=" + (info == null ? -1 : info.currentShutterSpeed_d)
+                        + " min n=" + (info == null ? -1 : info.currentAvailableMin_n)
+                        + " d=" + (info == null ? -1 : info.currentAvailableMin_d)
+                        + " max n=" + (info == null ? -1 : info.currentAvailableMax_n)
+                        + " d=" + (info == null ? -1 : info.currentAvailableMax_d) + ")");
+                if (!busy())
+                    showConfig(); // mirror live changes into the Exposure field
+            }
+        });
+        camera.setShutterListener(new CameraEx.ShutterListener() {
+            @Override
+            public void onShutter(int status, CameraEx cam) {
+                String s = status == CameraEx.ShutterListener.STATUS_OK ? "OK"
+                        : status == CameraEx.ShutterListener.STATUS_CANCELED ? "CANCELED"
+                        : status == CameraEx.ShutterListener.STATUS_ERROR ? "ERROR" : "?" + status;
+                Logger.info("shutter event: " + s + (stillT0 != 0
+                        ? " @ +" + (System.currentTimeMillis() - stillT0) + " ms" : ""));
+            }
+        });
+        camera.setCaptureStatusListener(new CameraEx.OnCaptureStatusListener() {
+            @Override
+            public void onStart(int mode, CameraEx cam) {
+                Logger.info("capture status: START mode " + mode);
+            }
+
+            @Override
+            public void onEnd(int mode, int reason, CameraEx cam) {
+                Logger.info("capture status: END mode " + mode + " reason "
+                        + (reason == CameraEx.OnCaptureStatusListener.REASON_CANCEL ? "CANCEL" : "NORMAL")
+                        + (stillT0 != 0 ? " @ +" + (System.currentTimeMillis() - stillT0) + " ms" : ""));
+            }
+        });
+        camera.setExposureCompleteListener(new CameraEx.ExposureCompleteListener() {
+            @Override
+            public void onDone(int result, CameraEx.ExposureInfo info, CameraEx cam) {
+                Logger.info("exposure complete: result " + result
+                        + (info != null ? " (F" + info.FNo + " ISO " + info.IsoSpeedRate
+                        + " n=" + info.ShutterSpeedNumber + " d=" + info.ShutterSpeedDeanom + ")" : ""));
+            }
+        });
+        // Provoke one shutter-speed callback with a net-zero down/up pair so the
+        // Exposure field mirrors the camera from the first paint (the listener may
+        // or may not fire an initial state on arm - this guarantees a value).
+        try {
+            camera.decrementShutterSpeed();
+            camera.incrementShutterSpeed();
+            Logger.info("exposure probe: down/up step pair done");
+        } catch (Throwable t) {
+            Logger.info("exposure probe failed: " + t); // stepping may be disallowed in this exposure mode
+        }
+        logSupportedParameters(); // one-time diagnostic: every key this HAL accepts
         Logger.info("camera open ok");
         surfaceHolder.addCallback(this);
         tryStartPreview(); // surface may already exist (resume with screen kept on)
@@ -284,6 +420,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         if (engine != null && engine.isRunning())
             engine.stop(IntervalEngine.REASON_ABORTED); // leaving = run over
         handler.removeCallbacks(shutterRelease);
+        handler.removeCallbacks(bulbRelease);
         handler.removeCallbacks(inFlightCap);
         if (summaryTask != null) {
             handler.removeCallbacks(summaryTask);
@@ -398,8 +535,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
                 "Interval " + mark(0, INTERVALS_S[intervalIdx] + " s")
-                        + "  Count " + mark(1, countStr())
-                        + "  Delay " + mark(2, DELAYS_S[delayIdx] + " s"),
+                        + "  Count " + mark(2, countStr()),
+                "Exposure " + mark(1, exposureStr())
+                        + "  Delay " + mark(3, DELAYS_S[delayIdx] + " s"),
                 "UP/DOWN value  LEFT/RIGHT field",
                 "S2 start | trash exit"});
     }
@@ -410,6 +548,40 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     private String countStr() {
         return COUNTS[countIdx] > 0 ? String.valueOf(COUNTS[countIdx]) : "inf";
+    }
+
+    /**
+     * The Exposure field's display: the camera's own shutter speed, or the app
+     * bulb duration while the camera sits at the Bulb position.
+     */
+    private String exposureStr() {
+        if (bulbPos)
+            return "Bulb " + BULBS_S[bulbIdx] + " s";
+        return fmtSpeed(shutterInfo);
+    }
+
+    /**
+     * Bulb position encoding, CONFIRMED on camera (first 0.2.5 session): the
+     * camera reports n=65535 (0xFFFF sentinel), d=1 - not the n==0/d==0
+     * guess, which is why the field first showed "65535 s". One step up from
+     * the timed end stop (30 s on this body) lands on Bulb, one step down
+     * returns to 30 s. n==0 && d==0 kept as a defensive fallback; raw n/d
+     * are still logged on every event.
+     */
+    private static boolean isBulb(CameraEx.ShutterSpeedInfo info) {
+        return info != null && (info.currentShutterSpeed_n == 0xFFFF
+                || (info.currentShutterSpeed_n == 0 && info.currentShutterSpeed_d == 0));
+    }
+
+    /** Human shutter speed: "30 s" / "1/125 s" / "Bulb"; "?" until the first change event. */
+    private static String fmtSpeed(CameraEx.ShutterSpeedInfo info) {
+        if (info == null)
+            return "?";
+        if (isBulb(info))
+            return "Bulb";
+        if (info.currentShutterSpeed_d == 1)
+            return info.currentShutterSpeed_n + " s";
+        return info.currentShutterSpeed_n + "/" + info.currentShutterSpeed_d + " s";
     }
 
     /** True while a run (or its summary) owns the screen. */
@@ -426,10 +598,55 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         if (selField == 0)
             intervalIdx = wrap(intervalIdx + dir, INTERVALS_S.length);
         else if (selField == 1)
+            adjustExposure(dir);
+        else if (selField == 2)
             countIdx = wrap(countIdx + dir, COUNTS.length);
         else
             delayIdx = wrap(delayIdx + dir, DELAYS_S.length);
         showConfig();
+    }
+
+    /**
+     * Exposure field: UP/DOWN step the camera's real shutter speed (software
+     * state - the dials are just another input for the same value). At the
+     * Bulb position the timed list has ended and the camera has no duration,
+     * so UP/DOWN adjust the app-side bulb duration instead; DOWN below the
+     * shortest steps back out of Bulb into the timed list.
+     */
+    private void adjustExposure(int dir) {
+        try {
+            if (bulbPos) {
+                if (dir > 0) {
+                    bulbIdx = wrap(bulbIdx + dir, BULBS_S.length);
+                } else if (bulbIdx > 0) {
+                    bulbIdx--;
+                } else {
+                    camera.decrementShutterSpeed(); // leave Bulb - camera reports the timed value again
+                }
+            } else if (dir > 0) {
+                camera.incrementShutterSpeed();
+            } else {
+                camera.decrementShutterSpeed();
+            }
+        } catch (Throwable t) {
+            Logger.error("shutter step: " + t); // e.g. mode disallows stepping - field keeps showing the camera's value
+        }
+        // The display refreshes on the ShutterSpeedChange callback (immediate
+        // showConfig would repaint a stale value for timed steps).
+    }
+
+    /** One-time per session: dump every Camera.Parameters key the HAL supports. */
+    private void logSupportedParameters() {
+        try {
+            String flat = camera.getSupportedParameters().flatten();
+            Logger.info("supported parameters: " + flat.length() + " chars");
+            for (int i = 0; i < flat.length(); i += 180) {
+                int end = Math.min(flat.length(), i + 180);
+                Logger.info("params[" + i + ".." + end + "]: " + flat.substring(i, end));
+            }
+        } catch (Throwable t) {
+            Logger.error("supported parameters dump failed: " + t);
+        }
     }
 
     // --- endurance plumbing ---
@@ -471,7 +688,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onLeftKeyDown() {
         if (busy())
             return true;
-        selField = wrap(selField - 1, 3);
+        selField = wrap(selField - 1, 4);
         showConfig();
         return true;
     }
@@ -480,7 +697,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onRightKeyDown() {
         if (busy())
             return true;
-        selField = wrap(selField + 1, 3);
+        selField = wrap(selField + 1, 4);
         showConfig();
         return true;
     }
@@ -553,6 +770,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         capN = 0;
         stillT0 = 0;
         summaryShown = false;
+        bulbShotMs = bulbPos ? BULBS_S[bulbIdx] * 1000L : 0; // frozen per run - config changes mid-run do not apply
+        Logger.info("exposure: " + exposureStr() + (bulbShotMs > 0
+                ? " - bulb, app ends exposure via cancelExposure"
+                : " - camera timed"));
         engine = new IntervalEngine(INTERVALS_S[intervalIdx] * 1000L,
                 DELAYS_S[delayIdx] * 1000L, COUNTS[countIdx], engineListener);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

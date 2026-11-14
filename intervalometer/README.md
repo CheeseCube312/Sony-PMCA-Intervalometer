@@ -41,6 +41,40 @@ per minute - the PMCADemo WifiActivity / Recipe Lab route) + keep-screen-on;
 trash stops with a summary, second trash exits; onPause stops the run.
 Summary logs stored-vs-fired and capture min/avg/max. `DemoActivity` renamed
 `IntervalActivity`.
+0.2.2-0.2.4 made multi-shot runs trustworthy: the full shutter-key cycle per
+frame (takePicture, then cancelTakePicture + startPreview ~2.5 s later -
+skipping the release bricks shot 2+), and the interval became a MINIMUM
+spacing - a slot holds while the previous capture is in flight (firing into a
+busy camera silently loses both shots: v0.2.3 lost 8 of 10 at a 5 s interval
+vs 30 s exposures; v0.2.4 verified 10/10 stored), the summary waits out an
+in-flight last capture, and a 90 s cap marks a never-storing capture lost.
+**0.2.5 adds exposure control + true bulb:** the SDK steps the camera's
+shutter speed (`incrementShutterSpeed`/`decrementShutterSpeed` - software
+state; the dials are just input devices for the same value) and can only READ
+it via `ShutterSpeedChangeListener` (no getter). The config screen gains an
+Exposure field mirroring the camera's current value and stepping it live; at
+the Bulb end stop UP/DOWN adjust the app-side bulb duration (5-300 s)
+instead, and DOWN below the shortest steps back out into the timed list.
+Bulb runs end each exposure with `cancelExposure()` - the SDK's exposure-end
+primitive, while `cancelTakePicture` is the timed-shot release and is ignored
+mid-exposure (the v0.2.4 side finding). The in-flight watchdog and summary
+deadline scale with the bulb duration, and `ShutterListener` /
+`CaptureStatusListener` / `ExposureCompleteListener` are armed as log-only
+ground truth (shutter-open anchor, real in-flight state). First session findings: the Bulb encoding is CONFIRMED as n=65535
+(0xFFFF sentinel), d=1 - not the n==0/d==0 guess (the Exposure field
+briefly showed "65535 s" at the Bulb position until detection was fixed).
+The timed ladder steps cleanly (30/25/20/15/13/10 s in the test mode) and
+one step down from Bulb returns to 30 s. The shutter-open anchor lands
+~700 ms after takePicture (205 ms on a session's first shot),
+`CaptureStatusListener`'s "mode" argument counts shots rather than naming
+a capture mode, and the timed regression held under 0.2.5 with all
+listeners armed - 10/10 stored at a 20 s exposure vs 15 s interval (every
+shot held until the previous capture stored, spacing ~23.3 s). Still
+unverified: whether stepping is accepted in P/A, and whether `takePicture`
+returns immediately at Bulb so the app's `cancelExposure` timer owns the
+exposure length - the short-bulb run is the next gate. A one-time
+`getSupportedParameters()` dump per session catalogs every parameter key
+this HAL accepts.
 
 ## Phase roadmap
 
@@ -77,8 +111,14 @@ land there.
 ## Engine facts (do not fight them)
 
 Full details: `Blank/starting_package/README.md`. The load-bearing ones:
-Android 4.1.2 / API 10, no AndroidX; exposure is never set by the app (user
-sets P/A/S/M before launching). **`Camera.Parameters` is NOT hollow** - the
+Android 4.1.2 / API 10, no AndroidX; exposure is app-visible and -steppable
+since 0.2.5 (`incrementShutterSpeed`/`decrementShutterSpeed` +
+`ShutterSpeedChangeListener` for reading; whether steps are accepted still
+depends on the camera's exposure mode), true bulb via step-past-30 s ended by
+the app with `cancelExposure()`; before 0.2.5 the user set P/A/S/M before
+launching. The SDK also has `setIntervalRecMode` + `startIntervalRec`/
+`stopIntervalRec` (the firmware's native interval recording - what the paid
+Time-lapse app wraps; future spike, not used by this app). **`Camera.Parameters` is NOT hollow** - the
 starter README overgeneralized: only the LIST getters throw NPE; string-key
 `get`/`set`/`flatten` work, and Recipe Lab drives the whole look pipeline
 through them on this platform (its "monochrome" values in `color-mode` /
