@@ -18,12 +18,14 @@ the Sony Alpha 7 II (PlayMemories Camera Apps platform).
 - `Blank/` - PMCA framework demo clones and the original starting package.
 - Build artifacts, `.gradle/`, `local.properties` - regenerated per machine.
 
-## Checkpoint: v0.2.4-mvp (tagged)
+## Checkpoint: v0.2.5-mvp (tagged)
 
-First reliable version: fixed-grid scheduler where the interval is a minimum
-spacing - slots hold while a capture is in flight, so long exposures stretch
-the grid instead of silently losing shots. 90 s never-stored watchdog, summary
-waits out an in-flight last capture. Verified on camera: 5 s interval vs ~30 s
-shutter -> 10/10 stored, zero silent losses.
+Everything in v0.2.4-mvp (interval-as-minimum grid, 90 s never-stored
+watchdog, summary wait), plus exposure control + true bulb: the app steps the
+camera's shutter speed, detects the Bulb position (0xFFFF sentinel), and ends
+each exposure with `cancelExposure()` at the configured duration. Gated on
+camera: Bulb 60 s x 10 -> 10/10 stored (DSC07326-07335); timed regression
+10/10 at 20 s exposure / 15 s interval.
 
-Return to this state with: `git checkout v0.2.4-mvp`
+Return to this state with: `git checkout v0.2.5-mvp`
+(Previous checkpoint: `v0.2.4-mvp` - first reliable minimum-spacing grid.)

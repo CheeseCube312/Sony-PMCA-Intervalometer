@@ -46,8 +46,6 @@ public class IntervalEngine {
     public static final int REASON_DONE = 1;    // shot count reached
     public static final int REASON_ABORTED = 2; // trash key / activity paused
 
-    private static final String ACTION_APO = "com.android.server.DAConnectionManagerService.apo";
-
     private final Handler handler = new Handler();
     private final Listener listener;
     private final long intervalMs;

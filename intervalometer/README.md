@@ -5,7 +5,9 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: Phase 0 done, Phase 1 next.** 0.1.0 was the `Blank/starting_package`
+**Status: 0.2.5-mvp (tagged) - Phase 1 MVP done, exposure control + true bulb
+gated on camera; next is Phase 2 trust work (persistence, endurance).**
+0.1.0 was the `Blank/starting_package`
 smoke test retargeted to `com.jpc.intervalometer` / INTVL logging (preview +
 S2 still verified on camera). 0.1.1 retires the starter's M-JPEG decode
 engine: live view is the plain HAL path (PMCADemo CameraActivity pattern) -
@@ -69,10 +71,11 @@ one step down from Bulb returns to 30 s. The shutter-open anchor lands
 `CaptureStatusListener`'s "mode" argument counts shots rather than naming
 a capture mode, and the timed regression held under 0.2.5 with all
 listeners armed - 10/10 stored at a 20 s exposure vs 15 s interval (every
-shot held until the previous capture stored, spacing ~23.3 s). Still
-unverified: whether stepping is accepted in P/A, and whether `takePicture`
-returns immediately at Bulb so the app's `cancelExposure` timer owns the
-exposure length - the short-bulb run is the next gate. A one-time
+shot held until the previous capture stored, spacing ~23.3 s). Confirmed
+since (Bulb gate, 60 s x 10): `takePicture` returns immediately at Bulb
+(~700 ms, steady after the first shot) so the app's `cancelExposure` timer
+owns the exposure length - 10/10 stored, `cancelTakePicture` released cleanly
+every shot. Still unverified: whether stepping is accepted in P/A. A one-time
 `getSupportedParameters()` dump per session catalogs every parameter key
 this HAL accepts.
 
@@ -80,7 +83,7 @@ this HAL accepts.
 
 | Phase | Scope | Gate (on-camera, A7 II) |
 |---|---|---|
-| 0 (this) | scaffold + rename + `.so` rebuild | preview + S2 still behave exactly like the starter demo |
+| 0 | scaffold + rename + `.so` rebuild | preview + S2 still behave exactly like the starter demo |
 | 1 | MVP: `IntervalEngine` fixed-grid scheduler, config menu (interval/count/delay), run overlay, S2 start / trash stop, APO-off | 30 min @ 30 s, zero misses; measure the real interval floor |
 | 2 | trust: skip-on-overrun, failure abort, card guard, pause/resume, persistence, summary, rear-dial UI | 1 h endurance + card-full behavior |
 | 3 | specialize (likely: battery/screen-off time-lapse track) | scenario end-to-end |

@@ -49,6 +49,7 @@ import java.io.IOException;
  * accepts the next takePicture. Recipe Lab's automated run does takePicture,
  * then cancelTakePicture + startPreview SHUTTER_MS later; the engine slots do
  * the same now (v0.2.0/0.2.1 restarted the preview but never released, so
+ * shot 2+ always threw - the "shot 2+ all fail" log).
  *
  * 0.2.4 - long exposures: the grid fired start-to-start and ignored whether
  * the previous capture was still running, so at a 5 s interval with a 30 s
