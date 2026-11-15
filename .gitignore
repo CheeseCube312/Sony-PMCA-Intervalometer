@@ -13,4 +13,9 @@ local.properties
 *.iml
 obj/
 *.apk
+
+# Camera session logs - pulled from the device after each test round; they
+# churn every pull and are evidence, not version history. Committed LOG.TXT
+# snapshots through 5103f9f stay in git history.
+/LOG.TXT
 /logcat-*.txt
