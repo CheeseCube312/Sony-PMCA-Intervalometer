@@ -133,6 +133,35 @@ stops the run while asleep; S2 still starts one.
 
 ---
 
+## Deferred hygiene (audit 2026-11-15)
+
+The 2026-11-15 hygiene pass landed the mechanical items (volatile HAL
+mirror fields, monotonic clocks for stillT0 + probe windows, onResume
+split into registerCameraListeners + finishCameraOpen) as a no-bump
+commit. Deferred from that audit, as too big or on-camera-dependent:
+
+- **Split IntervalActivity (~1.4k lines, six subsystems in one class).**
+  The real structural debt: extract the ISO control (list + read-back
+  writes), the aperture control (unlock wrapper + probe restore), the
+  exposure mirror + probe restore, and the capture runner (fireCapture +
+  release runnables + watchdog + stats) into their own classes; the
+  activity keeps key routing, the config grid, the run lifecycle.
+  Behavior-preserving in principle, but it reshapes every log line's
+  context — do it in 0.2.x-style camera-verified rounds, not blind.
+- **Camera-open failure UX.** onResume's open-failure catch is log-only:
+  the config grid stays painted with the camera-side fields silently
+  dead (stepping them logs caught NPEs). Needs an overlay error line +
+  a decision on which keys stay live — on-camera round required (the
+  realistic trigger is the stock camera app holding the device).
+- **Small dedups (only if a round touches the code anyway):**
+  probeRestore/apertureProbeRestore are algorithm twins (~45 lines
+  each; unifying needs generics/lambdas this codebase avoids), one
+  write-verified helper for irisUnlock/irisRestore, a hudTitle helper
+  for the 4 "Intervalometer v..." overlay builds, the shared
+  bulb-freeze line in startRun/shotNow.
+
+---
+
 ## Re-deriving the SDK surface (for future sessions)
 
 - Stubs live in `Blank/OpenMemories-Framework/stubs/`. The **sources are jasmin

@@ -70,7 +70,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 5};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
-    private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
+    private volatile CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK) - volatile: the listener (HAL thread) writes it, main reads it
     private volatile boolean bulbPos;              // camera sits at Bulb - 0xFFFF sentinel, confirmed on camera
     // 0.2.10 - the floor-exit from Bulb is issued blind (see adjustExposure): if no
     // confirming timed callback lands within BULB_EXIT_CONFIRM_MS, the exit is
@@ -94,8 +94,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // probe restore (0.2.6): the arm pair nets -1 step on this firmware; anchor the
     // pre-probe value from the first callback and step back to it, bounded, inside
     // a short window after the probe so user steps are never second-guessed.
-    private CameraEx.ShutterSpeedInfo probeAnchor; // first callback after the probe pair
-    private long probeDeadline;                    // wall clock until auto-restore stays armed (0 = inert)
+    private volatile CameraEx.ShutterSpeedInfo probeAnchor; // first callback after the probe pair - armed null on main, read in the listener
+    private volatile long probeDeadline;                    // elapsedRealtime until auto-restore stays armed (0 = inert)
     private int probeCorrections;                  // corrective steps issued for this probe
     /** Bulb duration for THIS run (ms, 0 = timed shots - camera closes on its own). */
     private volatile long bulbShotMs;
@@ -122,13 +122,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // shutter speed (increment/decrementAperture), event-read-only (no
     // getter): ApertureChangeListener drives the F field. Nothing persists
     // app-side - the body keeps its own iris store, like shutter speed.
-    private CameraEx.ApertureInfo apertureInfo; // latest change callback
+    private volatile CameraEx.ApertureInfo apertureInfo; // latest change callback - volatile: the listener (HAL thread) writes it, main reads it
     // probe restore, ported from the 0.2.5 shutter pattern: the shutter arm
     // pair nets -1 step on this firmware, and whether the aperture pair is
     // net-zero is unknown until the first camera test - the anchor + bounded
     // correction guard costs nothing if it turns out clean.
-    private CameraEx.ApertureInfo apertureAnchor; // first callback after the probe pair
-    private long apertureProbeDeadline;           // wall clock until auto-restore stays armed (0 = inert)
+    private volatile CameraEx.ApertureInfo apertureAnchor; // first callback after the probe pair - armed null on main, read in the listener
+    private volatile long apertureProbeDeadline;           // elapsedRealtime until auto-restore stays armed (0 = inert)
     private int apertureCorrections;              // corrective steps issued for this probe
     // 0.2.13 non-manual unlock: outside A/M the body may reject bare iris
     // steps. shooting-preview=iris_ss_iso_aeunlock (LOG.TXT params dump) is
@@ -150,7 +150,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private volatile boolean summaryShown;
     /** Run over, summary not printed yet - the write-hold gap owns the keys (0.2.7). */
     private volatile boolean runEnding;
-    /** takePicture timestamp, consumed by the storeImage log + capture stats. */
+    /** takePicture timestamp (elapsedRealtime), consumed by the storeImage log + capture stats. */
     private volatile long stillT0;
     private int stored;               // storeImage callbacks while running
     private int consecutiveFwRejects; // takePicture throws in a row - FW_REJECT_ABORT aborts the run
@@ -257,7 +257,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         boolean bulb = bulbShotMs > 0;
         try {
             resumePreview(); // safety net: takePicture needs a live preview (no-op if already running)
-            stillT0 = System.currentTimeMillis();
+            stillT0 = SystemClock.elapsedRealtime();
             inFlightCapMs = bulb ? bulbShotMs + WATCH_MARGIN_MS : INFLIGHT_CAP_MS;
             camera.getNormalCamera().takePicture(null, null, null);
             if (bulb) {
@@ -383,6 +383,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         try {
             version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         } catch (Exception e) {
+            // getPackageInfo on our own package cannot realistically fail - keep the "?" default
         }
         Logger.beginSession(version);
         Logger.info("device: " + Build.MODEL + " / Android " + Build.VERSION.RELEASE
@@ -437,6 +438,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             Logger.error("camera open failed: " + Log.getStackTraceString(t));
             return;
         }
+        registerCameraListeners();
+        finishCameraOpen();
+    }
+
+    /**
+     * The seven CameraEx listeners, verbatim from onResume (hygiene): the
+     * shot log, the exposure/aperture mirrors and their probe restores, the
+     * ground-truth logs, the AUTO ISO echo gate. Registration order kept.
+     */
+    private void registerCameraListeners() {
         // Shot log only: the firmware writes the full-res JPEG to the card by
         // itself; the app never touches that file. NOTE: the int is a monotonic
         // sequence counter on this firmware (0,1,2,... - keeps counting across
@@ -446,7 +457,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             public void onDone(int result, CameraEx.StoreImageInfo info, CameraEx cam) {
                 String f = info == null ? "null"
                         : info.DirectoryName + "/" + info.FileName + " (FileNo " + info.FileNo + ")";
-                long ms = stillT0 == 0 ? -1 : System.currentTimeMillis() - stillT0;
+                long ms = stillT0 == 0 ? -1 : SystemClock.elapsedRealtime() - stillT0;
                 stillT0 = 0;
                 Logger.info("still: storeImage done - seq " + result + ", " + ms + " ms, " + f
                         + " - file untouched");
@@ -497,7 +508,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         : status == CameraEx.ShutterListener.STATUS_CANCELED ? "CANCELED"
                         : status == CameraEx.ShutterListener.STATUS_ERROR ? "ERROR" : "?" + status;
                 Logger.info("shutter event: " + s + (stillT0 != 0
-                        ? " @ +" + (System.currentTimeMillis() - stillT0) + " ms" : ""));
+                        ? " @ +" + (SystemClock.elapsedRealtime() - stillT0) + " ms" : ""));
             }
         });
         camera.setCaptureStatusListener(new CameraEx.OnCaptureStatusListener() {
@@ -510,7 +521,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             public void onEnd(int mode, int reason, CameraEx cam) {
                 Logger.info("capture status: END mode " + mode + " reason "
                         + (reason == CameraEx.OnCaptureStatusListener.REASON_CANCEL ? "CANCEL" : "NORMAL")
-                        + (stillT0 != 0 ? " @ +" + (System.currentTimeMillis() - stillT0) + " ms" : ""));
+                        + (stillT0 != 0 ? " @ +" + (SystemClock.elapsedRealtime() - stillT0) + " ms" : ""));
             }
         });
         camera.setExposureCompleteListener(new CameraEx.ExposureCompleteListener() {
@@ -549,6 +560,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     showConfig(); // mirror live changes into the F field
             }
         });
+    }
+
+    /**
+     * The rest of the open sequence, verbatim from onResume (hygiene): the
+     * two probe pairs, the one-time diagnostics, then the preview arm.
+     */
+    private void finishCameraOpen() {
         // Provoke one shutter-speed callback with a down/up pair so the Exposure
         // field mirrors the camera from the first paint (the listener may or may
         // not fire an initial state on arm - this guarantees a value). The pair
@@ -560,7 +578,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             camera.incrementShutterSpeed();
             probeAnchor = null; // next callback in the window anchors the armed value
             probeCorrections = 0;
-            probeDeadline = System.currentTimeMillis() + 3000;
+            probeDeadline = SystemClock.elapsedRealtime() + 3000;
             Logger.info("exposure probe: down/up step pair done");
         } catch (Throwable t) {
             probeDeadline = 0; // pair rejected - no anchor, no correction, logic inert
@@ -575,7 +593,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             camera.decrementAperture();
             apertureAnchor = null; // next callback in the window anchors the armed value
             apertureCorrections = 0;
-            apertureProbeDeadline = System.currentTimeMillis() + 3000;
+            apertureProbeDeadline = SystemClock.elapsedRealtime() + 3000;
             Logger.info("aperture probe: up/down step pair done");
         } catch (Throwable t) {
             apertureProbeDeadline = 0;
@@ -757,7 +775,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * alone - stepping into or out of bulb blindly is worse than a small drift.
      */
     private void probeRestore(CameraEx.ShutterSpeedInfo info) {
-        long now = System.currentTimeMillis();
+        long now = SystemClock.elapsedRealtime();
         if (info == null || now > probeDeadline)
             return; // no window or it closed - user steps are never touched
         if (probeAnchor == null) {
@@ -1061,7 +1079,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * stayed inert - kept as insurance in case step behavior varies by mode.
      */
     private void apertureProbeRestore(CameraEx.ApertureInfo info) {
-        long now = System.currentTimeMillis();
+        long now = SystemClock.elapsedRealtime();
         if (info == null || now > apertureProbeDeadline)
             return; // no window or it closed - user steps are never touched
         if (apertureAnchor == null) {
