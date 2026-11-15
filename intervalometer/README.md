@@ -5,16 +5,13 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.3.1 (built, not yet camera-gated). Everything through 0.3.0 is
-shipped and camera-gated: 0.3.0 (power-saving run mode: panel off, no live
-view, wake HUD) shipped 2026-11-15 - gates G1-G5 passed, the G6 %/h long
-run is still owed (results in roadmap.md); the gate round also caught and
-fixed a key-dispatch crash that froze dark runs. 0.3.1 adds the DEBUG log
-gate (config grid): the verbose session log is off by default, the run
-skeleton and every error still log. Still awaiting
-on-camera verification from earlier rounds: the ISO echo filter, ISO in
-Bulb, the bulb-exit self-check, the bare-edit aperture A/B, the 3-strike
-abort, and the 0.2.15 S2 abort.**
+**Status: 0.3.1 shipped and camera-gated 2026-11-15 (DEBUG log gate passed:
+OFF → skeleton-only log, ON → verbose forensics, the flag persists across
+restart; zero errors on camera). Everything through 0.3.1 is verified —
+details in roadmap.md. Still owed on camera, oldest first: the ISO echo
+filter (needs an in-app ISO change), ISO writes in Bulb, the bare-edit
+aperture A/B, the 3-strike abort re-verify, and the 0.3.0 G6 %/h long
+run (PWR, count=all).**
 
 ## Version history (one line each)
 
