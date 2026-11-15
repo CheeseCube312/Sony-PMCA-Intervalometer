@@ -1,9 +1,9 @@
 # Intervalometer Roadmap
 
 _Shipped sections are stripped every round - one-line summaries per version
-live in intervalometer/README.md, full detail in git history (0.2.x stripped
-2026-11-14; 0.3.0 and 0.3.1 stripped 2026-11-15). The SDK re-derivation
-notes moved to intervalometer/README.md - reference, not plans._
+live in README.md, full detail in git history (0.2.x stripped 2026-11-14;
+0.3.0 and 0.3.1 stripped 2026-11-15). The SDK re-derivation notes moved to
+README.md - reference, not plans._
 
 ---
 
