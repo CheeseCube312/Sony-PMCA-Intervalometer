@@ -139,15 +139,17 @@ import java.io.IOException;
  * field: UP/DOWN call increment/decrementAperture and the
  * ApertureChangeListener callback (event-only, no getter) drives the
  * display - the 0.2.5 shutter pattern ported as-is, incl. the open-time
- * probe pair with bounded corrective steps. Working assumption: raw
- * values are f-numbers x10 (the exposure-complete line logs F100 for
- * what should be f/10); every aperture log carries the raw value, so the
- * first camera test confirms or fixes the one formatter. Outside A/M the
- * body may reject bare steps, so each edit wraps the step in the HAL's
+ * probe pair with bounded corrective steps. Camera round 1 confirmed
+ * the encoding: raw values are f-numbers x100 (test lens walked
+ * 560..3600 in the classic 1/3-stop ladder, f/5.6..f/36) - note the
+ * exposure-complete line logs F100 for f/10, a different x10 scaling.
+ * The open probe pair netted zero with a single coalesced callback, so
+ * the anchor guard stayed inert. Each edit wraps the step in the HAL's
  * shooting-preview=iris_ss_iso_aeunlock (set, verified by read-back,
- * restored off ~1 s after the last edit or on pause) - the open probe
- * stays bare, which lets one camera round show both raw and unlocked
- * step acceptance per mode-dial position.
+ * restored off ~1 s after the last edit or on pause); round 1 ran it
+ * clean through a full f/5.6..f/36 round trip with no preview
+ * perturbation, and it stays until a round A/Bs bare edits per
+ * mode-dial position.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -1066,11 +1068,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     /**
      * F field: UP/DOWN step the camera's real iris via increment/decrementAperture
      * (software state - the mode dial and the lens ring drive the same store).
-     * Outside A/M the body may reject bare steps, so each edit wraps the step
-     * in the HAL's shooting-preview=iris_ss_iso_aeunlock; the open probe stays
-     * bare, which is what the test round A/Bs per mode-dial position. No
-     * repaint here: the change callback paints the kept value (a silently
-     * swallowed step leaves the field - never fight the mode, 0.2.5 lesson).
+     * Camera round 1: UP = bigger f-number = iris stops DOWN (raw 560..3600 =
+     * f/5.6..f/36); events land ~250 ms after the keypress, the first step
+     * after an unlock takes ~1.7 s. Outside A/M the body may reject bare
+     * steps, so each edit wraps the step in the HAL's
+     * shooting-preview=iris_ss_iso_aeunlock; the open probe stays bare, which
+     * is what a later round A/Bs per mode-dial position. No repaint here: the
+     * change callback paints the kept value (a silently swallowed or
+     * out-of-range step leaves the field - never fight the mode, 0.2.5 lesson).
      */
     private void adjustF(int dir) {
         irisUnlock();
@@ -1127,9 +1132,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     /**
      * Undo the aperture probe pair's possible drift (0.2.5 port). First
      * callback in the window anchors the armed value; later in-window callbacks
-     * that differ get one bounded corrective step toward the anchor. "Up" and
-     * "down" here are raw F-number values - which way the optics open is part
-     * of what the first camera test confirms.
+     * that differ get one bounded corrective step toward the anchor. Camera
+     * round 1: the pair netted zero with a single coalesced callback, so this
+     * stayed inert - kept as insurance in case step behavior varies by mode.
      */
     private void apertureProbeRestore(CameraEx.ApertureInfo info) {
         long now = System.currentTimeMillis();
@@ -1159,16 +1164,18 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     }
 
     /**
-     * The F field's display. The x10 encoding is the working assumption (the
-     * exposure-complete line logs "F100" for what should be f/10); every
-     * aperture log line also carries the raw value, so the first camera test
-     * confirms or fixes this one formatter. No callback yet reads "?".
+     * The F field's display. Camera round 1 confirmed raw = f-number x100:
+     * 560 -> f/5.6, 800 -> f/8, 1100 -> f/11, 2900 -> f/29, 3600 -> f/36.
+     * (The exposure-complete line's "F100" is a different, x10 scaling.)
+     * No callback yet reads "?".
      */
     private String fmtAperture(CameraEx.ApertureInfo info) {
         if (info == null || info.currentAperture <= 0)
             return "?";
-        int v = info.currentAperture;
-        return v % 10 == 0 ? "f/" + (v / 10) : "f/" + (v / 10) + "." + (v % 10);
+        int whole = info.currentAperture / 100, frac = info.currentAperture % 100;
+        if (frac == 0)
+            return "f/" + whole;
+        return frac % 10 == 0 ? "f/" + whole + "." + (frac / 10) : "f/" + whole + "." + frac;
     }
 
     /** The F field's grid value (same formatter the aperture log line uses). */

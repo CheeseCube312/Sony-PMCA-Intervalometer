@@ -18,8 +18,14 @@ ApertureChangeListener callback drives the F field (event-only, no getter;
 open probe pair + bounded corrective steps - the 0.2.5 shutter pattern),
 and edits wrap the step in shooting-preview=iris_ss_iso_aeunlock (set,
 read-back verified, restored off ~1 s later or on pause) so the iris moves
-even when the body owns it; the test round decides per mode position
-whether the wrapper stays. Next per roadmap.md: 0.3.0 power saving.**
+even when the body owns it. Camera round 1 confirmed the encoding (raw =
+f-number x100: the test lens walked 560..3600, f/5.6..f/36 in 1/3-stop
+steps), the open probe netted zero, and the unlock wrapper ran clean
+through a full round trip with no preview perturbation - so it stays
+until a round A/Bs bare edits per mode position. 0.2.14 fixes the grid
+display for the x100 encoding (0.2.13 showed f/56 for f/5.6). The ISO
+echo filter still awaits a round with ISO writes. Next per roadmap.md:
+0.3.0 power saving.**
 0.1.0 was the `Blank/starting_package`
 smoke test retargeted to `com.jpc.intervalometer` / INTVL logging (preview +
 S2 still verified on camera). 0.1.1 retires the starter's M-JPEG decode
