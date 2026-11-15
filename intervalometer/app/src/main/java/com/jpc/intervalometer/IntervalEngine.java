@@ -1,7 +1,10 @@
 package com.jpc.intervalometer;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
+
+import java.util.Locale;
 
 /**
  * Fixed-grid interval scheduler (Phase 1).
@@ -47,7 +50,7 @@ public class IntervalEngine {
     public static final int REASON_ABORTED = 2; // trash key / activity paused
     public static final int REASON_FAILED = 3;  // camera rejected the shot command 3 times straight
 
-    private final Handler handler = new Handler();
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private final Listener listener;
     private final long intervalMs;
     private final long startDelayMs;
@@ -154,6 +157,6 @@ public class IntervalEngine {
 
     static String mmss(long ms) {
         long s = ms / 1000;
-        return String.format("%02d:%02d", s / 60, s % 60);
+        return String.format(Locale.US, "%02d:%02d", s / 60, s % 60); // Locale.US: digits stay ASCII whatever the camera's locale
     }
 }

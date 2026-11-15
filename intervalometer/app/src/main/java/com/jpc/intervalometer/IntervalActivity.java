@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -174,7 +175,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private static final long SUMMARY_DELAY_MS = 4000; // last store lands ~3 s after run end; wait for it
     private static final long INFLIGHT_CAP_MS = 90000; // timed shots: give up on a capture that never stores
     private static final long WATCH_MARGIN_MS = 30000; // bulb shots: store + slack after the exposure ends
-    private final Handler handler = new Handler();
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable summaryTask; // set per finished run, cancelled on pause
     private long summaryDeadline; // elapsedRealtime until which the summary waits out the last capture
     private final Runnable shutterRelease = new Runnable() {
@@ -279,6 +280,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         }
     }
 
+    /** The summary's capture suffix: ", capture avg N ms, max M ms" ("" when nothing stored yet). */
+    private String capStats() {
+        return capN > 0 ? ", capture avg " + (capSum / capN) + " ms, max " + capMax + " ms" : "";
+    }
+
     /** The engine callback set, wired to this activity's camera + overlay. */
     private final IntervalEngine.Listener engineListener = new IntervalEngine.Listener() {
         @Override
@@ -352,15 +358,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     }
                     summaryShown = true;
                     runEnding = false;
-                    Logger.info("stored " + stored + " of " + shotsFired + " fired"
-                            + (capN > 0 ? ", capture avg " + (capSum / capN) + " ms, max " + capMax + " ms"
-                            : ""));
+                    Logger.info("stored " + stored + " of " + shotsFired + " fired" + capStats());
                     overlayView.setLines(new String[]{
                             IntervalEngine.reasonName(reason).toUpperCase() + ": " + shotsFired
                                     + " shots in " + IntervalEngine.mmss(elapsedMs) + " (late " + lateShots + ")",
-                            "stored " + stored + "/" + shotsFired
-                                    + (capN > 0 ? ", capture avg " + (capSum / capN) + " ms, max " + capMax + " ms"
-                                    : ""),
+                            "stored " + stored + "/" + shotsFired + capStats(),
                             "S2 config | trash exit"});
                 }
             };
@@ -384,7 +386,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         }
         Logger.beginSession(version);
         Logger.info("device: " + Build.MODEL + " / Android " + Build.VERSION.RELEASE
-                + " / abi " + Build.CPU_ABI + " / " + Build.CPU_ABI2);
+                + " / abi " + abiNames());
         logCpuInfo();
 
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -403,6 +405,25 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         config = new IntervalConfig(getPreferences(MODE_PRIVATE)); // loads + clamps + logs
         showConfig();
+    }
+
+    /**
+     * The ABI list for the session header: SUPPORTED_ABIS from API 21, the
+     * deprecated CPU_ABI fields below that. The A7 II firmware itself is
+     * Android 4.1.2 (API 16), so the fallback is the path that runs on camera.
+     */
+    @SuppressWarnings("deprecation")
+    private static String abiNames() {
+        if (Build.VERSION.SDK_INT >= 21) {
+            StringBuilder names = new StringBuilder();
+            for (String abi : Build.SUPPORTED_ABIS) {
+                if (names.length() > 0)
+                    names.append(' ');
+                names.append(abi);
+            }
+            return names.toString();
+        }
+        return Build.CPU_ABI + " / " + Build.CPU_ABI2;
     }
 
     @Override
