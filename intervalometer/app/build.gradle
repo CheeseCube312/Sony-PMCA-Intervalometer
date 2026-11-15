@@ -12,8 +12,8 @@ android {
         // min/target stay at API 10 - works fine, no AndroidX
         minSdkVersion 10
         targetSdkVersion 10
-        versionCode 18
-        versionName '0.2.12'
+        versionCode 19
+        versionName '0.2.13'
     }
 
     buildTypes {

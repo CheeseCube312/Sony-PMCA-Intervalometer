@@ -24,7 +24,7 @@ import java.io.IOException;
  * no decode, no pixel access, no NDK.
  *
  * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
- * in reading order (interval -> count -> exposure -> delay -> ISO ->
+ * in reading order (interval -> count -> exposure -> delay -> ISO -> F ->
  * shot now),
  * S2 starts the run - on the Shot now field it fires ONE capture instead
  * (0.2.11) - (mid-run S2 is ignored - the engine owns shooting; that also
@@ -134,6 +134,20 @@ import java.io.IOException;
  * logged, never fought. Nothing persists app-side: ISO is a body setting
  * the camera keeps on its own, like it keeps the shutter-speed store. The
  * AutoISOSensitivityListener is armed log-only to learn what AUTO picks.
+ *
+ * 0.2.13 - aperture control (non-manual lenses). The grid gains an F
+ * field: UP/DOWN call increment/decrementAperture and the
+ * ApertureChangeListener callback (event-only, no getter) drives the
+ * display - the 0.2.5 shutter pattern ported as-is, incl. the open-time
+ * probe pair with bounded corrective steps. Working assumption: raw
+ * values are f-numbers x10 (the exposure-complete line logs F100 for
+ * what should be f/10); every aperture log carries the raw value, so the
+ * first camera test confirms or fixes the one formatter. Outside A/M the
+ * body may reject bare steps, so each edit wraps the step in the HAL's
+ * shooting-preview=iris_ss_iso_aeunlock (set, verified by read-back,
+ * restored off ~1 s after the last edit or on pause) - the open probe
+ * stays bare, which lets one camera round show both raw and unlocked
+ * step acceptance per mode-dial position.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -148,14 +162,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
-    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 shot now
+    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 F, 6 shot now
     // LEFT/RIGHT walk the grid in reading order: Interval (top-left) ->
     // Count (top-right) -> Exposure (mid-left) -> Delay (mid-right) ->
-    // ISO (bottom-left) -> Shot now (bottom-right; S2 there fires one
+    // ISO (bottom-left) -> F -> Shot now (last row; S2 there fires one
     // capture instead of a run).
     // Indexed by the current field; the entry is where the key lands.
-    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 0};
-    private static final int[] PREV_FIELD = {5, 2, 0, 1, 3, 4};
+    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 6, 0};
+    private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 5};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK)
@@ -205,6 +219,33 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // regression. Events inside this window after our own write are that echo.
     private static final long ISO_ECHO_WINDOW_MS = 600;
     private long lastIsoWriteMs;  // uptimeMillis() of the last setIso write
+
+    // aperture state (0.2.13) - mirror of the camera's iris. Steppable like
+    // shutter speed (increment/decrementAperture), event-read-only (no
+    // getter): ApertureChangeListener drives the F field. Nothing persists
+    // app-side - the body keeps its own iris store, like shutter speed.
+    private CameraEx.ApertureInfo apertureInfo; // latest change callback
+    // probe restore, ported from the 0.2.5 shutter pattern: the shutter arm
+    // pair nets -1 step on this firmware, and whether the aperture pair is
+    // net-zero is unknown until the first camera test - the anchor + bounded
+    // correction guard costs nothing if it turns out clean.
+    private CameraEx.ApertureInfo apertureAnchor; // first callback after the probe pair
+    private long apertureProbeDeadline;           // wall clock until auto-restore stays armed (0 = inert)
+    private int apertureCorrections;              // corrective steps issued for this probe
+    // 0.2.13 non-manual unlock: outside A/M the body may reject bare iris
+    // steps. shooting-preview=iris_ss_iso_aeunlock (LOG.TXT params dump) is
+    // the HAL's mechanism to change iris/SS/ISO without capturing. Set
+    // before an edit, restored off UNLOCK_HOLD_MS after the last edit (and
+    // on pause); every write is verified by read-back, ISO-path ground truth.
+    private static final String PREVIEW_KEY = "shooting-preview";
+    private static final String PREVIEW_UNLOCK = "iris_ss_iso_aeunlock";
+    private static final long UNLOCK_HOLD_MS = 1000;
+    private final Runnable apertureUnlockRestore = new Runnable() {
+        @Override
+        public void run() {
+            irisRestore();
+        }
+    };
 
     // run state
     private IntervalEngine engine;
@@ -568,6 +609,21 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 Logger.info("ISO auto: camera picked " + (iso == 0 ? "0 (AUTO)" : String.valueOf(iso)));
             }
         });
+        // 0.2.13 - aperture mirror + event ground truth, same shape as the
+        // shutter listener: change events are the only way to READ the iris.
+        camera.setApertureChangeListener(new CameraEx.ApertureChangeListener() {
+            @Override
+            public void onApertureChange(CameraEx.ApertureInfo info, CameraEx cam) {
+                apertureInfo = info;
+                Logger.info("aperture: " + fmtAperture(info)
+                        + " (raw=" + (info == null ? -1 : info.currentAperture)
+                        + " min=" + (info == null ? -1 : info.currentAvailableMin)
+                        + " max=" + (info == null ? -1 : info.currentAvailableMax) + ")");
+                apertureProbeRestore(info);
+                if (!busy())
+                    showConfig(); // mirror live changes into the F field
+            }
+        });
         // Provoke one shutter-speed callback with a down/up pair so the Exposure
         // field mirrors the camera from the first paint (the listener may or may
         // not fire an initial state on arm - this guarantees a value). The pair
@@ -585,6 +641,21 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             probeDeadline = 0; // pair rejected - no anchor, no correction, logic inert
             Logger.info("exposure probe failed: " + t); // stepping may be disallowed in this exposure mode
         }
+        // 0.2.13 - same idea for the iris: provoke one ApertureChangeListener
+        // callback so the F field mirrors the camera from the first paint.
+        // Deliberately BARE (no iris unlock): the test round's first datum is
+        // whether raw steps are accepted in the current mode-dial position.
+        try {
+            camera.incrementAperture();
+            camera.decrementAperture();
+            apertureAnchor = null; // next callback in the window anchors the armed value
+            apertureCorrections = 0;
+            apertureProbeDeadline = System.currentTimeMillis() + 3000;
+            Logger.info("aperture probe: up/down step pair done");
+        } catch (Throwable t) {
+            apertureProbeDeadline = 0;
+            Logger.info("aperture probe failed: " + t); // stepping may be disallowed in this exposure mode
+        }
         logSupportedParameters(); // one-time diagnostic: every key this HAL accepts
         probeIso(); // read-only: supported ISO list + the camera's current ISO (no write at open)
         Logger.info("camera open ok");
@@ -599,6 +670,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         handler.removeCallbacks(shutterRelease);
         handler.removeCallbacks(bulbRelease);
         handler.removeCallbacks(inFlightCap);
+        handler.removeCallbacks(apertureUnlockRestore);
         if (summaryTask != null) {
             handler.removeCallbacks(summaryTask);
             summaryTask = null;
@@ -607,6 +679,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         surfaceHolder.removeCallback(this);
         stopPreview();
         if (camera != null) {
+            irisRestore(); // never leave shooting-preview=iris_ss_iso_aeunlock armed past the session
             camera.release();
             camera = null;
             Logger.info("camera released");
@@ -721,6 +794,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         else if (selField == 4)
             hint = "ISO - UP/DOWN step camera list";
         else if (selField == 5)
+            hint = "F - UP/DOWN step the iris";
+        else if (selField == 6)
             hint = "S2 fires ONE shot at this exposure";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
@@ -728,9 +803,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
                         + "  Delay " + mark(3, config.delayStr()),
-                "ISO " + mark(4, isoStr()) + "  " + mark(5, "Shot now"),
+                "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr()),
+                mark(6, "Shot now"),
                 hint,
-                selField == 5 ? "S2 = ONE SHOT | trash exit" : "S2 start | trash exit"});
+                selField == 6 ? "S2 = ONE SHOT | trash exit" : "S2 start | trash exit"});
     }
 
     private String mark(int field, String value) {
@@ -830,10 +906,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /** UP/DOWN on the config screen: cycle the selected field's value. */
     private void adjust(int dir) {
-        if (selField == 5)
+        if (selField == 6)
             return; // Shot now is an action, not a value - the hint line explains S2
         if (selField == 4) {
             adjustIso(dir); // camera-side value; adjustIso repaints - the config store is untouched
+            return;
+        }
+        if (selField == 5) {
+            adjustF(dir); // camera-side value - the change callback repaints the F field
             return;
         }
         if (selField == 0)
@@ -983,6 +1063,119 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         return isoKept < 0 ? "?" : isoKept == 0 ? "AUTO" : String.valueOf(isoKept);
     }
 
+    /**
+     * F field: UP/DOWN step the camera's real iris via increment/decrementAperture
+     * (software state - the mode dial and the lens ring drive the same store).
+     * Outside A/M the body may reject bare steps, so each edit wraps the step
+     * in the HAL's shooting-preview=iris_ss_iso_aeunlock; the open probe stays
+     * bare, which is what the test round A/Bs per mode-dial position. No
+     * repaint here: the change callback paints the kept value (a silently
+     * swallowed step leaves the field - never fight the mode, 0.2.5 lesson).
+     */
+    private void adjustF(int dir) {
+        irisUnlock();
+        try {
+            if (dir > 0)
+                camera.incrementAperture();
+            else
+                camera.decrementAperture();
+        } catch (Throwable t) {
+            Logger.info("aperture step rejected: " + t);
+        }
+        scheduleIrisRestore(); // the unlock is per-edit hygiene, not a state to leave armed
+    }
+
+    /** Set + read-back-verify the iris/SS/ISO unlock (skipped while already kept). */
+    private void irisUnlock() {
+        handler.removeCallbacks(apertureUnlockRestore); // an edit series keeps it armed
+        try {
+            android.hardware.Camera cam = camera.getNormalCamera();
+            android.hardware.Camera.Parameters p = cam.getParameters();
+            if (!PREVIEW_UNLOCK.equals(p.get(PREVIEW_KEY))) {
+                p.set(PREVIEW_KEY, PREVIEW_UNLOCK);
+                cam.setParameters(p);
+                String kept = cam.getParameters().get(PREVIEW_KEY);
+                Logger.info("iris unlock: " + PREVIEW_UNLOCK
+                        + (PREVIEW_UNLOCK.equals(kept) ? "" : " - camera kept " + kept));
+            }
+        } catch (Throwable t) {
+            Logger.error("iris unlock failed: " + t);
+        }
+    }
+
+    private void scheduleIrisRestore() {
+        handler.removeCallbacks(apertureUnlockRestore);
+        handler.postDelayed(apertureUnlockRestore, UNLOCK_HOLD_MS);
+    }
+
+    /** Restore shooting-preview=off (read-back verified); safe to call redundantly. */
+    private void irisRestore() {
+        handler.removeCallbacks(apertureUnlockRestore);
+        try {
+            android.hardware.Camera cam = camera.getNormalCamera();
+            android.hardware.Camera.Parameters p = cam.getParameters();
+            if (!"off".equals(p.get(PREVIEW_KEY))) {
+                p.set(PREVIEW_KEY, "off");
+                cam.setParameters(p);
+                Logger.info("iris unlock off - camera kept " + cam.getParameters().get(PREVIEW_KEY));
+            }
+        } catch (Throwable t) {
+            Logger.error("iris restore failed: " + t);
+        }
+    }
+
+    /**
+     * Undo the aperture probe pair's possible drift (0.2.5 port). First
+     * callback in the window anchors the armed value; later in-window callbacks
+     * that differ get one bounded corrective step toward the anchor. "Up" and
+     * "down" here are raw F-number values - which way the optics open is part
+     * of what the first camera test confirms.
+     */
+    private void apertureProbeRestore(CameraEx.ApertureInfo info) {
+        long now = System.currentTimeMillis();
+        if (info == null || now > apertureProbeDeadline)
+            return; // no window or it closed - user steps are never touched
+        if (apertureAnchor == null) {
+            apertureAnchor = info;
+            Logger.info("aperture anchor: " + fmtAperture(info));
+        } else if (apertureCorrections < 3 && info.currentAperture != apertureAnchor.currentAperture) {
+            apertureCorrections++;
+            apertureProbeDeadline = now + 2000; // correction callbacks land within ~1 s
+            try {
+                if (info.currentAperture > apertureAnchor.currentAperture) {
+                    camera.decrementAperture(); // raw value too high - step toward the anchor
+                    Logger.info("aperture correction #" + apertureCorrections
+                            + ": stepping toward " + fmtAperture(apertureAnchor));
+                } else {
+                    camera.incrementAperture(); // raw value too low - step toward the anchor
+                    Logger.info("aperture correction #" + apertureCorrections
+                            + ": stepping toward " + fmtAperture(apertureAnchor));
+                }
+            } catch (Throwable t) {
+                apertureProbeDeadline = 0; // mode forbids stepping - give up rather than loop
+                Logger.info("aperture correction failed: " + t);
+            }
+        }
+    }
+
+    /**
+     * The F field's display. The x10 encoding is the working assumption (the
+     * exposure-complete line logs "F100" for what should be f/10); every
+     * aperture log line also carries the raw value, so the first camera test
+     * confirms or fixes this one formatter. No callback yet reads "?".
+     */
+    private String fmtAperture(CameraEx.ApertureInfo info) {
+        if (info == null || info.currentAperture <= 0)
+            return "?";
+        int v = info.currentAperture;
+        return v % 10 == 0 ? "f/" + (v / 10) : "f/" + (v / 10) + "." + (v % 10);
+    }
+
+    /** The F field's grid value (same formatter the aperture log line uses). */
+    private String fStr() {
+        return fmtAperture(apertureInfo);
+    }
+
     /** One-time per session: dump every Camera.Parameters key the HAL supports. */
     private void logSupportedParameters() {
         try {
@@ -1060,7 +1253,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             showConfig();
             return true;
         }
-        if (selField == 5)
+        if (selField == 6)
             shotNow(); // Shot now field: ONE capture at the current exposure, stay in config
         else
             startRun();
@@ -1130,7 +1323,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         runEnding = false;
         consecutiveFwRejects = 0;
         bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0; // frozen per run - config changes mid-run do not apply
-        Logger.info("exposure: " + exposureStr() + ", ISO " + isoStr() + (bulbShotMs > 0
+        Logger.info("exposure: " + exposureStr() + ", F " + fStr() + ", ISO " + isoStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
                 : " - camera timed"));
         engine = new IntervalEngine(config.intervalSeconds() * 1000L,
@@ -1159,7 +1352,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             return;
         }
         bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0;
-        Logger.info("shot now: exposure " + exposureStr() + (bulbShotMs > 0
+        Logger.info("shot now: exposure " + exposureStr() + ", F " + fStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
                 : " - camera timed"));
         if (!fireCapture())
