@@ -7,11 +7,11 @@ straight to the card, with a session log for drift/failure analysis.
 
 **Status: 0.3.1 shipped and camera-gated 2026-11-15 (DEBUG log gate passed:
 OFF → skeleton-only log, ON → verbose forensics, the flag persists across
-restart; zero errors on camera). Everything through 0.3.1 is verified —
-details in roadmap.md. Still owed on camera, oldest first: the ISO echo
-filter (needs an in-app ISO change), ISO writes in Bulb, the bare-edit
-aperture A/B, the 3-strike abort re-verify, and the 0.3.0 G6 %/h long
-run (PWR, count=all).**
+restart; zero errors on camera; in-app ISO writes accepted and the echo
+filter held). Everything through 0.3.1 is verified — details in
+roadmap.md. Still owed on camera, oldest first: ISO writes in Bulb, the
+bare-edit aperture A/B, the 3-strike abort re-verify, and the 0.3.0 G6
+%/h long run (PWR, count=all).**
 
 ## Version history (one line each)
 

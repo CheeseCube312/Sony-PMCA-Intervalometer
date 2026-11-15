@@ -15,10 +15,12 @@ was dropped as dead code (zero callers - the gate runs on setDebug()
 plus the internal flag). The bulb-exit self-check debt is also closed:
 "bulb exit unconfirmed ... re-arming" fired and "bulb exit confirmed:
 30 s" logged - the re-arm fallback was needed on the first Bulb cycle
-and worked. Still owed on camera, oldest first: the ISO echo filter
-(no ISO writes since ffef940 - needs an in-app ISO change; this round
-only dialed camera-side), ISO writes in Bulb, the bare-edit A/B for the
-aperture unlock wrapper, the 3-strike abort (a 2026-11-14 11:11 run
+and worked. The ISO echo filter debt is closed too: five in-app writes
+at 15:33:50-51 (400->320->250->200->160, one step back to 200) were all
+accepted ("camera kept" matched every write, no REJECTED), and no
+"ISO auto" echo followed - the lastIsoWriteMs window suppressed them.
+Still owed on camera, oldest first: ISO writes in Bulb, the bare-edit
+A/B for the aperture unlock wrapper, the 3-strike abort (a 2026-11-14 11:11 run
 logged six consecutive takePicture throws and still finished "done,
 stored 1 of 10" - re-verify deliberately), and the 0.3.0 G6 %/h long
 run (PWR, count=all, trash-stop at end - the %/h delta vs a display-on
@@ -117,9 +119,12 @@ run logs 37 lines where 0.3.0 logged 250+), the in-app toggle arms
 verbose mid-session (one [INFO] "debug log ON - verbose forensics on"),
 and a restart came up ON from the first line - probes, params dump and
 per-shot internals at [DEBUG], skeleton lines [INFO]. Zero [ERROR]
-lines and zero step rejections across all 0.3.1 sessions. Optional
-micro-check next session: toggle OFF and restart (persistence has been
-shown in both directions, just not OFF-after-ON).
+lines and zero step rejections across all 0.3.1 sessions. Bonus: five
+in-app ISO writes ("ISO: wrote X - camera kept X", zero REJECTED)
+proved the echo filter - no "ISO auto" echo after the writes, the
+lastIsoWriteMs window swallowed them. Optional micro-check next
+session: toggle OFF and restart (persistence has been shown in both
+directions, just not OFF-after-ON).
 **Shipped as 0.3.1:** Logger.isDebug() dropped before commit (zero
 callers - the gate runs on setDebug() plus the internal flag).
 
