@@ -19,3 +19,9 @@ obj/
 # snapshots through 5103f9f stay in git history.
 /LOG.TXT
 /logcat-*.txt
+/session-logs/
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store

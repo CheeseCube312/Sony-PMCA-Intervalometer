@@ -1,0 +1,54 @@
+apply plugin: 'java'
+
+repositories {
+    ivy {
+        // jaist.dl.sourceforge.net no longer exists; downloads.sourceforge.net redirects to a live mirror
+        url 'https://downloads.sourceforge.net'
+        patternLayout {
+            artifact '/project/[organisation]/[module]/[module]-[revision]/[module]-[revision].[ext]'
+        }
+        metadataSources {
+            artifact()
+        }
+    }
+}
+
+configurations {
+    tool
+}
+
+dependencies {
+    // download the jasmin assembler from sourceforge
+    tool 'jasmin:jasmin:2.4@zip'
+}
+
+task unpackAssembler(type: Copy) {
+    // unpack the jasmin assembler
+    from(zipTree(configurations.tool.singleFile)) {
+        include '**/jasmin.jar'
+    }
+    into layout.buildDirectory.dir('jasmin')
+    includeEmptyDirs = false
+}
+
+// jasmin output goes into the default java classes dir so it is packaged by the jar task
+def jasminClassesDir = layout.buildDirectory.dir('classes/java/main')
+
+task assembleJasmin(type: JavaExec) {
+    // assemble the jasmin files
+    def sourceDir = file("$projectDir/src/main/jasmin")
+    def sourceSet = fileTree(dir: sourceDir, include: '**/*.j')
+    def sources = sourceSet.files.collect { sourceDir.toPath().relativize(it.toPath()) }
+
+    mainClass = 'jasmin.Main'
+    args = ['-d', jasminClassesDir.get().asFile] + sources
+    classpath = fileTree(dir: layout.buildDirectory.dir('jasmin'), include: '**/*.jar')
+    workingDir = sourceDir
+
+    outputs.dir jasminClassesDir
+    inputs.files sourceSet
+    dependsOn unpackAssembler
+}
+
+classes.dependsOn assembleJasmin
+

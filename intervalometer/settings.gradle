@@ -18,9 +18,9 @@ dependencyResolutionManagement {
 rootProject.name = 'Intervalometer'
 
 include ':app'
-// Requires a sibling checkout of OpenMemories-Framework (framework + stubs)
-// next to this project folder. No AndroidX anywhere.
+// OpenMemories-Framework (framework + stubs) is vendored under third_party/,
+// patched for Gradle 8.9 / JDK 17 - a fresh clone builds as-is. No AndroidX.
 include ':framework'
-project(':framework').projectDir = file('../Blank/OpenMemories-Framework/framework')
+project(':framework').projectDir = file('third_party/OpenMemories-Framework/framework')
 include ':stubs'
-project(':stubs').projectDir = file('../Blank/OpenMemories-Framework/stubs')
+project(':stubs').projectDir = file('third_party/OpenMemories-Framework/stubs')
