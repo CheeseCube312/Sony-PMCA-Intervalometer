@@ -1,6 +1,8 @@
 package com.jpc.intervalometer;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,9 +12,11 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import com.github.ma1co.openmemories.framework.DisplayManager;
 import com.sony.scalar.hardware.CameraEx;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -26,7 +30,7 @@ import java.io.IOException;
  *
  * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
  * in reading order (interval -> count -> exposure -> delay -> ISO -> F ->
- * shot now). S2 starts the run - on the Shot now field it fires ONE capture
+ * PWR -> shot now). S2 starts the run - on the Shot now field it fires ONE capture
  * instead (0.2.11). S2 is also the deliberate abort (0.2.15): any S2 press
  * after the one that fired quits an in-flight capture early (the release the
  * per-frame cycle schedules anyway) and, mid-run, stops the engine at its
@@ -34,6 +38,13 @@ import java.io.IOException;
  * own release is exempt, so a tap can't eat a delay-0 first shot or a single
  * mid-store. S1 autofocus works as always; trash stops a run too, and from
  * the summary trash exits.
+ *
+ * PWR runs (0.3.0): with the config PWR field ON, a run starts dark - live
+ * view stopped, panel off (Display.NONE), shot review cancelled. Any mapped
+ * key wakes a 5 s HUD (taken/planned, battery %, storage estimate); the
+ * first press only wakes, the next one acts. Run end (or stop/pause)
+ * restores the pre-run display before the summary prints, and every stored
+ * shot logs its battery %.
  *
  * Runs hold the camera awake: auto power-off is held off via the
  * DAConnectionManagerService.apo broadcast (the same one PMCADemo's
@@ -60,14 +71,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
-    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 F, 6 shot now
+    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 F, 6 shot now, 7 PWR
     // LEFT/RIGHT walk the grid in reading order: Interval (top-left) ->
     // Count (top-right) -> Exposure (mid-left) -> Delay (mid-right) ->
-    // ISO (bottom-left) -> F -> Shot now (last row; S2 there fires one
+    // ISO (bottom-left) -> F -> PWR -> Shot now (last; S2 there fires one
     // capture instead of a run).
     // Indexed by the current field; the entry is where the key lands.
-    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 6, 0};
-    private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 5};
+    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 7, 0, 6};
+    private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 7, 5};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private volatile CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK) - volatile: the listener (HAL thread) writes it, main reads it
@@ -165,6 +176,39 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      */
     private boolean s2Exempt;
 
+    // --- power-saving run mode (0.3.0, PWR config field) ---
+    /** How long the wake HUD stays up after a key press in a PWR run. */
+    private static final long POWER_WAKE_MS = 5000;
+    /**
+     * G2 gate: true = timed shots in PWR runs skip the inter-shot
+     * resumePreview() (a live HAL preview is exactly the cost the mode
+     * removes). Flip to false if the camera round shows captures failing
+     * without a live preview between them.
+     */
+    private static final boolean POWER_SKIP_RESUME = true;
+    /** This run started in power-saving flavor - frozen at start, like bulbShotMs. */
+    private boolean powerRun;
+    /** Wake HUD currently up (PWR runs only). */
+    private boolean powerAwake;
+    /** The press that woke the HUD from dark - its release is inert (no S2 abort / trash exit). */
+    private boolean wakePress;
+    /** Display state before the run - restored before the summary prints. */
+    private DisplayManager.Display displayBeforeRun = DisplayManager.Display.SCREEN;
+    /** Engine counters mirrored for the wake HUD (it paints on wake, never per tick). */
+    private int shotsTaken;
+    private long runElapsedMs;
+    /** Last stored JPEG - per-shot size average for the wake storage estimate. */
+    private File lastStoredFile;
+    /** The run's review control - kept for the survival readback at run end / pause. */
+    private CameraEx.AutoPictureReviewControl reviewControl;
+    /** The 5 s sleep timer behind the wake HUD. */
+    private final Runnable powerSleep = new Runnable() {
+        @Override
+        public void run() {
+            powerSleepNow();
+        }
+    };
+
     /**
      * The shutter key's release, automated. Recipe Lab's proven per-frame cycle
      * on this body: takePicture (S2 down), then SHUTTER_MS later cancelTakePicture
@@ -189,7 +233,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             } catch (Throwable t) {
                 Logger.error("cancelTakePicture: " + t);
             }
-            resumePreview();
+            if (!powerRun)
+                resumePreview(); // PWR: the live view stays dead between shots (G2)
         }
     };
 
@@ -218,7 +263,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             } catch (Throwable t) {
                 Logger.error("bulb cancelTakePicture: " + t);
             }
-            resumePreview();
+            if (!powerRun)
+                resumePreview(); // PWR: no live view after the exposure either (G2)
         }
     };
 
@@ -256,7 +302,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             return false;
         boolean bulb = bulbShotMs > 0;
         try {
-            resumePreview(); // safety net: takePicture needs a live preview (no-op if already running)
+            // PWR runs (G2): takePicture must fire with the preview still dead -
+            // restarting it between shots would erase the mode's savings. Normal
+            // runs keep the safety net (takePicture needs a live preview).
+            if (!powerRun || !POWER_SKIP_RESUME)
+                resumePreview();
             stillT0 = SystemClock.elapsedRealtime();
             inFlightCapMs = bulb ? bulbShotMs + WATCH_MARGIN_MS : INFLIGHT_CAP_MS;
             camera.getNormalCamera().takePicture(null, null, null);
@@ -289,6 +339,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private final IntervalEngine.Listener engineListener = new IntervalEngine.Listener() {
         @Override
         public void onShoot(int n) {
+            shotsTaken = n; // mirrored for the PWR wake HUD
             if (fireCapture()) {
                 consecutiveFwRejects = 0; // command accepted - a never-store is NOT a rejection (watchdog's case)
                 return;
@@ -319,6 +370,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 return; // stopped from inside onShoot (reject abort) - keep the summary visible
             if (lastApoMs == 0 || SystemClock.elapsedRealtime() - lastApoMs > APO_REFRESH_MS)
                 apoOff();
+            shotsTaken = shotsFired; // mirror for the PWR wake HUD
+            runElapsedMs = elapsedMs;
+            if (powerRun)
+                return; // PWR: panel dark, HUD paints only on wake - no per-tick setLines at all
             int planShots = config.shotCount();
             String plan = planShots > 0 ? "/" + planShots : "/all"; // unlimited runs show the target word
             String status = "shot " + shotsFired + plan + " | next " + IntervalEngine.mmss(nextShotInMs)
@@ -339,6 +394,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             runEnding = true; // the engine is done - the gap until the summary owns the keys
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             apoRestore();
+            if (powerRun)
+                powerEnd(); // panel back to the pre-run display BEFORE the summary prints (0.3.0)
             overlayView.setLines(new String[]{ // replace the stale RUNNING HUD right away
                     "Intervalometer v" + version + " - FINISHING",
                     "waiting for the last write"});
@@ -459,8 +516,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                         : info.DirectoryName + "/" + info.FileName + " (FileNo " + info.FileNo + ")";
                 long ms = stillT0 == 0 ? -1 : SystemClock.elapsedRealtime() - stillT0;
                 stillT0 = 0;
+                if (info != null)
+                    lastStoredFile = new File(info.DirectoryName, info.FileName); // wake-HUD storage estimate input
                 Logger.info("still: storeImage done - seq " + result + ", " + ms + " ms, " + f
-                        + " - file untouched");
+                        + ", battery " + batteryPercent() + "% - file untouched"); // 0.3.0: per-shot battery
                 if (ms >= 0) { // any store with an in-flight stillT0 belongs to a fired shot - the last one lands AFTER run end
                     handler.removeCallbacks(inFlightCap); // stored normally - disarm the watchdog
                     stored++;
@@ -620,6 +679,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         }
         runEnding = false; // no summary will print after a pause - never leave the keys gated
         s2Exempt = false; // fresh keys after a pause
+        powerRun = false; // engine.stop above already restored the display (powerEnd in onFinished)
+        powerAwake = false;
+        wakePress = false;
+        handler.removeCallbacks(powerSleep);
         surfaceHolder.removeCallback(this);
         stopPreview();
         if (camera != null) {
@@ -741,13 +804,17 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             hint = "F - UP/DOWN step the iris";
         else if (selField == 6)
             hint = "S2 fires ONE shot at this exposure";
+        else if (selField == 7)
+            hint = config.pwr() ? "PWR ON - runs start dark, any key wakes the HUD"
+                    : "PWR OFF - panel stays on during runs";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
                 "Interval " + mark(0, config.intervalStr())
                         + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
                         + "  Delay " + mark(3, config.delayStr()),
-                "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr()),
+                "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr())
+                        + "  PWR " + mark(7, config.pwrStr()),
                 mark(6, "Shot now"),
                 hint,
                 selField == 6 ? "S2 = ONE SHOT | trash exit" : "S2 start/stop | trash exit"});
@@ -866,6 +933,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             adjustExposure(dir);
         else if (selField == 2)
             config.adjustCount(dir);
+        else if (selField == 7)
+            config.adjustPwr(); // ON/OFF toggle - same in both directions
         else
             config.adjustDelay(dir);
         config.save();
@@ -1156,10 +1225,197 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         Logger.info("apo restored");
     }
 
+    // --- power-saving run mode (0.3.0, PWR config field) ---
+
+    /**
+     * PWR run start: log the pre-run display, stop the live view, switch the
+     * panel off (Display.NONE), then cancel the shot review once - probe the
+     * supported review times first, log what the firmware kept (G4/G5
+     * evidence). APO plumbing stays exactly as in normal runs.
+     */
+    private void powerEnter() {
+        DisplayManager dm = getDisplayManager();
+        if (dm != null)
+            displayBeforeRun = dm.getActiveDisplay(); // the pre-run truth, not the mirror's last event
+        Logger.info("power run: display before run " + displayBeforeRun + " - going dark");
+        stopPreview();
+        if (dm != null) {
+            try {
+                dm.setActiveDisplay(DisplayManager.Display.NONE);
+                Logger.info("power run: display -> NONE");
+            } catch (Throwable t) {
+                Logger.error("power run display failed: " + t); // panel may stay on - savings lost, run unaffected
+            }
+        }
+        powerReviewOff();
+    }
+
+    /** Review off for this run: probe supported times, cancel, log what stuck. */
+    private void powerReviewOff() {
+        try {
+            CameraEx.AutoPictureReviewControl c = new CameraEx.AutoPictureReviewControl();
+            int[] times = c.getPictureReviewSupportedTimes();
+            StringBuilder sb = new StringBuilder("review: supported times");
+            if (times != null)
+                for (int i = 0; i < times.length; i++)
+                    sb.append(' ').append(times[i]);
+            Logger.info(sb.toString());
+            c.cancelAutoPictureReview();
+            camera.setAutoPictureReviewControl(c);
+            reviewControl = c;
+            Logger.info("review: cancelled - camera kept time " + c.getPictureReviewTime()
+                    + ", type " + c.getReviewType());
+        } catch (Throwable t) {
+            // observed on-camera 0.3.0: the framework stub NPEs after stopPreview - the
+            // review can't render with the panel off anyway, so this never blocked a run
+            Logger.info("review cancel rejected (expected in PWR): " + t);
+        }
+    }
+
+    /**
+     * Run over (PWR): panel back to the pre-run display BEFORE the summary
+     * prints; the review control's state is read back for the survival log
+     * (the camera may reset it per session - don't fight it, just log).
+     */
+    private void powerEnd() {
+        handler.removeCallbacks(powerSleep);
+        powerAwake = false;
+        wakePress = false;
+        powerRun = false; // the ending gap + summary behave like a normal run from here
+        DisplayManager dm = getDisplayManager();
+        if (dm != null) {
+            try {
+                dm.setActiveDisplay(displayBeforeRun);
+                Logger.info("power run end: display restored to " + displayBeforeRun);
+            } catch (Throwable t) {
+                Logger.error("power run end display failed: " + t);
+            }
+        }
+        Logger.info("review readback after run: " + reviewReadback());
+    }
+
+    /** The review control's current state, log-friendly (survival evidence across pause). */
+    private String reviewReadback() {
+        if (reviewControl == null)
+            return "never armed";
+        try {
+            return "time " + reviewControl.getPictureReviewTime()
+                    + ", type " + reviewControl.getReviewType();
+        } catch (Throwable t) {
+            return "readback failed: " + t;
+        }
+    }
+
+    /**
+     * The key gate for PWR runs: while asleep, any mapped key press only
+     * wakes the HUD and is consumed - the action behind the key never fires.
+     * True = the press was consumed as a wake.
+     */
+    private boolean powerWakeGate() {
+        if (!powerRun || powerAwake)
+            return false;
+        wakePress = true; // this press's release must stay inert (S2 abort / trash exit)
+        Logger.info("wake gate: key consumed - HUD on"); // G1 evidence: a key reached the app in the dark
+        powerWake();
+        return true;
+    }
+
+    /** Wake the HUD for POWER_WAKE_MS: panel back on (SCREEN), fresh progress/battery/storage lines. */
+    private void powerWake() {
+        if (!powerAwake) {
+            powerAwake = true;
+            DisplayManager dm = getDisplayManager();
+            if (dm != null) {
+                try {
+                    dm.setActiveDisplay(DisplayManager.Display.SCREEN);
+                    Logger.info("power wake: display -> SCREEN");
+                } catch (Throwable t) {
+                    Logger.error("power wake display failed: " + t);
+                }
+            }
+            showPowerHud();
+        }
+        handler.removeCallbacks(powerSleep);
+        handler.postDelayed(powerSleep, POWER_WAKE_MS);
+    }
+
+    /** Sleep again: panel off, overlay cleared - zero per-tick UI work until the next wake. */
+    private void powerSleepNow() {
+        if (!powerAwake)
+            return;
+        powerAwake = false;
+        DisplayManager dm = getDisplayManager();
+        if (dm != null) {
+            try {
+                dm.setActiveDisplay(DisplayManager.Display.NONE);
+                Logger.info("power sleep: display -> NONE");
+            } catch (Throwable t) {
+                Logger.error("power sleep display failed: " + t);
+            }
+        }
+        overlayView.setLines(new String[0]);
+    }
+
+    /** The wake HUD: taken/planned from the engine, battery %, storage estimate. */
+    private void showPowerHud() {
+        int planShots = config.shotCount();
+        String plan = planShots > 0 ? "/" + planShots : "/all";
+        String card = powerStorageLine();
+        overlayView.setLines(new String[]{
+                "Intervalometer v" + version + " - RUNNING (PWR)",
+                "shot " + shotsTaken + plan + " | +" + IntervalEngine.mmss(runElapsedMs)
+                        + (bulbShotMs > 0 ? " | Bulb " + (bulbShotMs / 1000) + " s" : ""),
+                "battery " + batteryPercent() + "%" + (card == null ? "" : " | " + card)});
+    }
+
+    /**
+     * Storage estimate, computed only at wake (one StatFs + one
+     * File.length()): free space over the last stored JPEG's size. Absent
+     * until the session's first store lands - the HUD then shows battery
+     * only. Null also when the path or StatFs misbehaves (the estimate
+     * quietly degrades, never blocks a wake).
+     */
+    private String powerStorageLine() {
+        if (lastStoredFile == null)
+            return null;
+        try {
+            long avg = lastStoredFile.length();
+            if (avg <= 0)
+                return null;
+            android.os.StatFs st = new android.os.StatFs(
+                    android.os.Environment.getExternalStorageDirectory().getPath());
+            long freeMb = ((long) st.getAvailableBlocks() * st.getBlockSize()) >> 20;
+            String free = freeMb >= 1024
+                    ? (freeMb / 1024) + "." + ((freeMb % 1024) * 10 / 1024) + " GB"
+                    : freeMb + " MB";
+            return free + " free ~ " + (freeMb * 1048576 / avg) + " shots";
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** Battery percent via the sticky ACTION_BATTERY_CHANGED broadcast (-1 = unavailable). */
+    private int batteryPercent() {
+        try {
+            Intent st = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (st == null)
+                return -1;
+            int level = st.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = st.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            if (level < 0 || scale <= 0)
+                return -1;
+            return level * 100 / scale;
+        } catch (Throwable t) {
+            return -1;
+        }
+    }
+
     // --- camera keys (BaseActivity hooks; this camera has no touch screen) ---
 
     @Override
     protected boolean onUpKeyDown() {
+        if (powerWakeGate())
+            return true; // PWR asleep: this press only wakes the HUD
         if (busy())
             return true;
         adjust(1);
@@ -1168,6 +1424,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onDownKeyDown() {
+        if (powerWakeGate())
+            return true;
         if (busy())
             return true;
         adjust(-1);
@@ -1176,6 +1434,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onLeftKeyDown() {
+        if (powerWakeGate())
+            return true;
         if (busy())
             return true;
         selField = PREV_FIELD[selField]; // LEFT: previous in reading order
@@ -1185,6 +1445,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onRightKeyDown() {
+        if (powerWakeGate())
+            return true;
         if (busy())
             return true;
         selField = NEXT_FIELD[selField]; // RIGHT: next in reading order
@@ -1194,6 +1456,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onShutterKeyDown() {
+        if (powerWakeGate())
+            return true; // PWR asleep: wake only - S2 can't start/abort from the dark
         if ((engine != null && engine.isRunning()) || runEnding || stillT0 != 0) {
             s2Exempt = false; // a fresh press while busy - its release is the deliberate abort (0.2.15)
             return true; // mid-run S2 down is ignored - the abort happens on its release (also in the gap / while a capture stores)
@@ -1224,6 +1488,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      */
     @Override
     protected boolean onShutterKeyUp() {
+        if (powerRun && !powerAwake)
+            return true; // release of a wake press after a re-sleep - nothing to abort
+        if (wakePress) {
+            wakePress = false; // the S2 that woke the HUD - exempt from the abort read
+            return true;
+        }
         boolean fired = s2Exempt; // this up ends the press that fired the current capture/run
         s2Exempt = false;
         if (camera == null)
@@ -1275,6 +1545,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onDeleteKeyDown() {
+        if (powerWakeGate())
+            return true; // PWR asleep: trash wakes first - stopping needs a second press
         if (engine != null && engine.isRunning()) {
             engine.stop(IntervalEngine.REASON_ABORTED); // trash stops the run, stays in app
             runEnding = true; // this trash's key-up must not exit before the summary prints
@@ -1287,6 +1559,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onDeleteKeyUp() {
+        if (powerRun && !powerAwake)
+            return true; // release of a wake press - must not exit
+        if (wakePress) {
+            wakePress = false; // the trash that woke the HUD - its release stays inert
+            return true;
+        }
         if (runEnding)
             return true; // the stop happened on key-down - the summary still has to print
         if (stillT0 != 0)
@@ -1296,6 +1574,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onFocusKeyDown() {
+        if (powerWakeGate())
+            return true; // PWR asleep: S1 wakes first
+        if (powerRun)
+            return true; // PWR run, HUD awake: there is no live view - autoFocus would throw
         if (camera == null)
             return true;
         camera.getNormalCamera().autoFocus(null);
@@ -1304,6 +1586,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onFocusKeyUp() {
+        if (powerRun)
+            return true; // no preview in a PWR run: cancelAutoFocus throws - and an S1 release
+                         // straddling the run start killed the app here before the guard (0.3.0)
         if (camera == null)
             return true;
         camera.getNormalCamera().cancelAutoFocus();
@@ -1328,6 +1613,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         Logger.info("exposure: " + exposureStr() + ", F " + fStr() + ", ISO " + isoStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
                 : " - camera timed"));
+        powerRun = config.pwr(); // frozen per run, like bulbShotMs
+        powerAwake = false;
+        wakePress = false;
+        shotsTaken = 0;
+        runElapsedMs = 0;
+        if (powerRun)
+            powerEnter(); // live view off, panel off, review cancelled (0.3.0)
         engine = new IntervalEngine(config.intervalSeconds() * 1000L,
                 config.delaySeconds() * 1000L, config.shotCount(), engineListener);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

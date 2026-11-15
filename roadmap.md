@@ -97,7 +97,7 @@ stops the run while asleep; S2 still starts one.
 - Files: `IntervalActivity.java` (PWR toggle wiring, display set/restore
   around the run, wake HUD + 5 s timer, skip-preview variant of the shot
   cycle per G2, per-shot battery log line), `IntervalConfig.java`
-  (persist PWR), `app/build.gradle` (0.3.0 / versionCode 21), `README.md`.
+  (persist PWR), `app/build.gradle` (0.3.0 / versionCode 22 - 21 was 0.2.15), `README.md`.
 - `IntervalEngine` untouched — power mode is activity-side.
 - Native interval recording (`startIntervalRec` — firmware owns the loop,
   README spike notes) stays the separate battery-friendly track it
@@ -130,6 +130,24 @@ stops the run while asleep; S2 still starts one.
   from dark after a wake press, summary + display restore, log shows the
   per-shot battery curve (the %/h delta vs a display-on run is the proof
   the feature works).
+
+Results (2026-11-15, shipped build): G1-G5 passed, G6 partial.
+- G1/G3: two clean 5-shot PWR runs - wake gate consumed the key,
+  wake/sleep at exactly 5 s, display restored to SCREEN, review never
+  armed (the S2 cancel NPE is cosmetic).
+- G2/G4: every dark-run shot stored with seq increments.
+- G5: run armed at a dialed 1/15 s, again at 1/15 s after a full app
+  restart, and the UP/DOWN shutter cascade echoed 2.5 s -> 1/60 s before
+  a final run armed at 1/60 s.
+- Trash-stop from the wake HUD: four abort runs stopped mid-stage,
+  summary + restore correct each time, app survived every wake press
+  (the wake key's own release stays inert).
+- G6: per-shot battery % sane (94 -> 93% over ~13 min); the real %/h
+  long run (count=all, trash-stop at end) is still owed.
+- The round also caught a freeze: with the panel dark, a key handler
+  threw and killed the main looper (app alive, keys dead) - fixed with a
+  catch-and-log shield on the key dispatch; zero shield hits in every
+  run after.
 
 ---
 

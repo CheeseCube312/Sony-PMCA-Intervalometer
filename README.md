@@ -35,5 +35,6 @@ logged six consecutive `takePicture` throws and still finished
 `done, stored 1 of 10`, so the abort has never fired (the hold warning HAS
 been seen live: shots 8-10 held at 19:35 the same day). Full history and
 status: `intervalometer/README.md`; living plan with open items:
-`roadmap.md`. Next: 0.3.0 power saving. (Previous checkpoint: `v0.2.6` -
-Phase 2 trust work begins.)
+`roadmap.md`. Next: the still-owed on-camera verification list, then an
+optional PWR long-run battery proof (%/h vs display-on). (Previous
+checkpoint: `v0.2.15` - S2 abort. `v0.3.0` tagged 2026-11-15.)

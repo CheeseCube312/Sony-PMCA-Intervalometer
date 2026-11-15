@@ -58,6 +58,7 @@ public class IntervalConfig {
     private int delayIdx = DEF_DELAY;
     private int customIntervalS = INTERVAL_CUSTOM_DEF;
     private int customBulbS = BULB_CUSTOM_DEF;
+    private boolean pwr; // 0.3.0 power-saving run mode - panel off during runs, wake HUD (default OFF)
 
     /** Reads the persisted choices (clamped) - safe to construct in onCreate. */
     public IntervalConfig(SharedPreferences prefs) {
@@ -80,8 +81,10 @@ public class IntervalConfig {
                 INTERVAL_CUSTOM_MIN, INTERVAL_CUSTOM_MAX);
         customBulbS = clampInt(prefs.getInt("customBulbS", BULB_CUSTOM_DEF),
                 BULB_CUSTOM_MIN, BULB_CUSTOM_MAX);
+        pwr = prefs.getBoolean("pwr", false);
         Logger.info("config loaded: interval " + intervalStr() + ", count " + countStr()
-                + ", delay " + delayStr() + ", long exposure " + bulbStr());
+                + ", delay " + delayStr() + ", long exposure " + bulbStr()
+                + ", power saving " + pwrStr());
     }
 
     /** Persists every choice; called after each config-screen edit. */
@@ -92,6 +95,7 @@ public class IntervalConfig {
         e.putInt("delayIdx", delayIdx);
         e.putInt("customIntervalS", customIntervalS);
         e.putInt("customBulbS", customBulbS);
+        e.putBoolean("pwr", pwr);
         e.apply();
     }
 
@@ -145,6 +149,11 @@ public class IntervalConfig {
         delayIdx = wrap(delayIdx + dir, DELAYS_S.length);
     }
 
+    /** 0.3.0: PWR field toggle - direction is irrelevant on an ON/OFF choice. */
+    public void adjustPwr() {
+        pwr = !pwr;
+    }
+
     /** CUSTOM interval slot edit step: 5 s below the 120 s mark, 30 s at and above. */
     private int intervalStep() {
         return customIntervalS < 120 ? 5 : 30;
@@ -182,6 +191,11 @@ public class IntervalConfig {
         return intervalIdx == INTERVALS_S.length;
     }
 
+    /** True when runs start dark (0.3.0 power-saving mode). */
+    public boolean pwr() {
+        return pwr;
+    }
+
     /** True at the 5 s floor - DOWN would step out of Bulb (the caller steps the camera). */
     public boolean bulbAtFloor() {
         return customBulbS <= BULB_CUSTOM_MIN;
@@ -204,6 +218,10 @@ public class IntervalConfig {
 
     public String delayStr() {
         return DELAYS_S[delayIdx] + " s";
+    }
+
+    public String pwrStr() {
+        return pwr ? "ON" : "OFF";
     }
 
     /** Preset durations in friendly units: 60 s stays "60 s", 120 s becomes "2 min", 3600 s "1 h". */
