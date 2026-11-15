@@ -8,10 +8,8 @@ straight to the card, with a session log for drift/failure analysis.
 **Status: 0.3.1 shipped and camera-gated 2026-11-15 (DEBUG log gate passed:
 OFF → skeleton-only log, ON → verbose forensics, the flag persists across
 restart; zero errors on camera; in-app ISO writes accepted and the echo
-filter held). Everything through 0.3.1 is verified — details in
-roadmap.md. Still owed on camera, oldest first: ISO writes in Bulb, the
-bare-edit aperture A/B, the 3-strike abort re-verify, and the 0.3.0 G6
-%/h long run (PWR, count=all).**
+filter held). Everything through 0.3.1 is verified. Open work - owed
+camera runs and deferred hygiene - is tracked in roadmap.md.**
 
 ## Version history (one line each)
 
@@ -31,9 +29,9 @@ bare-edit aperture A/B, the 3-strike abort re-verify, and the 0.3.0 G6
 - 0.2.12 - ISO field walks the camera's supported ISO list, every write read-back verified; auto-ISO echo filter (ffef940).
 - 0.2.13 - aperture control: increment/decrement + ApertureChangeListener mirror, edits wrapped in the iris unlock wrapper.
 - 0.2.14 - encoding round settled: raw = f-number x100; grid display fixed (tag `v0.2.14`).
-- 0.2.15 - S2 abort: any S2 press after the one that fired quits an in-flight capture early and stops a run at its current stage (summary prints); the firing press's own release is exempt, so taps can no longer eat a delay-0 first shot or a single mid-store.
-- 0.3.0 - power-saving run mode (PWR): runs start dark - live view stopped, panel `Display.NONE`, shot review cancelled; any key wakes a 5 s HUD (taken/planned, battery %, storage estimate); the pre-run display is restored before the summary; every stored shot logs its battery %. Adds the key-dispatch crash shield (a handler throw logs and is swallowed instead of killing the main looper - the dark-run freeze found in the gate round). Camera-gated 2026-11-15 (G1-G5 passed; %/h long run owed).
-- 0.3.1 - debug log gate: the config grid gains a DEBUG field (persisted, default OFF). OFF keeps the essential log - session header, device, config, run start/end, per-shot fired/stored, aborts, wake chain, errors; ON adds the camera forensics (params dump, probes, listener mirrors, ISO/aperture step echoes, review/iris internals) and arms live, no restart. The session header names the mode, so a pulled log always says whether it is verbose.
+- 0.2.15 - S2 abort tightened: a press after the firing one quits an in-flight capture early and stops the run at its current stage (summary prints); the firing press's own release is exempt, so taps can't eat a delay-0 first shot or a mid-store single.
+- 0.3.0 - power-saving run mode (PWR): runs start dark (live view stopped, `Display.NONE`, review off), any key wakes a 5 s HUD (taken/planned, battery %, storage estimate); pre-run display restored before the summary; stored shots log battery %. Plus the key-dispatch crash shield (a handler throw logs instead of killing the main looper). Camera-gated (G1-G5).
+- 0.3.1 - file-by-file review round: two-tier debug log gate - config-grid DEBUG field (persisted, default OFF); OFF = essential log (session header, device, config, run start/end, per-shot fired/stored, aborts, wake chain, errors), ON adds camera forensics, arms live, the session header names the mode - plus audit fixes: held-slot tick polls at 250 ms instead of spinning delay-0 through camera-busy holds, the in-flight tick no longer runs after a 3-strike abort, "aperture step rejected" bumped to ERROR; dead code dropped (`currentDisplay` mirror, `Logger.isDebug`).
 
 ## Key findings
 
@@ -69,7 +67,8 @@ drive the same value) and can only READ it via `ShutterSpeedChangeListener`
 stop edit the app-side bulb duration, DOWN below the shortest timed step
 exits back into the timed list. Bulb exit goes via incrementShutterSpeed
 (decrement is a firmware no-op) and is self-verifying: confirm the timed
-callback within 1.5 s, re-arm Bulb on timeout. Bulb exposures end with
+callback within 1.5 s, re-arm Bulb on timeout. Field-proven 2026-11-15: the
+first on-camera Bulb cycle needed the re-arm and it worked. Bulb exposures end with
 `cancelExposure()` (the SDK's exposure-end primitive; `cancelTakePicture`
 is the timed release, ignored mid-exposure), and `takePicture` returns
 immediately at Bulb (~700 ms), so the app timer owns the exposure length.
@@ -94,6 +93,7 @@ mechanism has ever fired on camera - see roadmap.md.
 open; writes are verified by read-back only - a dropped value throws
 nothing. Auto-ISO listener echoes land 100-330 ms after each write, so
 events inside a 600 ms post-write window are skipped (echo filter ffef940).
+Field-proven 2026-11-15: five in-app writes, all kept, no echo escaped.
 
 **Aperture (0.2.13/0.2.14).** `increment/decrementAperture` +
 `ApertureChangeListener` mirror (event-only, no getter; open probe pair +
@@ -103,6 +103,20 @@ restored ~1 s after the last edit or on pause) so the iris moves even when
 the body owns it. Raw encoding = f-number x100 (560..3600 = f/5.6..f/36,
 1/3-stop steps); the open probe netted zero; the wrapper stays until a
 bare-edit A/B says otherwise.
+
+**Mid-run input lock (verified 2026-11-15).** During a run every direction
+key gates on `busy()` (engine running, summary shown, run ending, capture in
+flight), so the field cursor cannot reach ISO/F/Exposure and UP/DOWN cannot
+reach `adjust()` - the only route to any exposure write. ENTER is a no-op;
+PWR-asleep presses only wake the HUD. The per-shot capture path
+(`takePicture`, `startBulb` → `cancelExposure`) touches no exposure
+parameter, and the run anchors (bulb duration, PWR display state) freeze at
+run start; the bulb-exit confirm only flips the app-side field. S2 and trash
+stay live deliberately - they are the abort controls. The body's
+ISO/shutter/aperture wheels are continuous encoders (only the mode dial has
+detents) and the HAL offers no input lock (`ae-lock` is moot - the app never
+writes exposure mode), so a physical nudge mid-run is unblockable; it
+surfaces only at DEBUG tier, so EXIF is the evidence in a skeleton-only log.
 
 ## Building
 
@@ -124,6 +138,8 @@ retired. The pristine pixel-path engine stays in `Blank/starting_package`
 
 `Logger` writes `/sdcard/INTVL/LOG.TXT` (rotation attempt to LOG.OLD.TXT;
 this firmware rejects renames, sessions append). Pull the SD card to read it.
+The device copy was purged 2026-11-15 - pulls are fresh-only now; historical
+cumulative snapshots live in git through `5103f9f` (untracked since `2b2e9a4`).
 Camera open/preview lifecycle, S2 stills (timing + card path) and any errors
 land there. The camera's wall clock resets to 1970-01-01 on a power cycle,
 so absolute LOG.TXT timestamps are only comparable within one powered
@@ -131,12 +147,14 @@ session - the run-relative times (`fired @ +mm:ss`, planned) are unaffected.
 
 Two tiers (0.3.1): ERROR (crash shields, watchdog, failures) and the INFO
 skeleton always log; the DEBUG tier (params dump, probes, listener mirrors,
-step echoes, review/iris internals) only while the config grid's DEBUG field
-is ON. The flag persists across restarts and power cycles like every config
-choice and arms live on toggle; the session header names the mode. To
-troubleshoot a failure: DEBUG ON, reproduce, pull LOG.TXT, DEBUG OFF.
+per-shot capture values, step echoes, review/iris internals) only while the
+config grid's DEBUG field is ON. The flag persists across restarts and
+power cycles like every config choice and arms live on toggle; the session
+header names the mode. To troubleshoot a failure: DEBUG ON, reproduce,
+pull LOG.TXT, DEBUG OFF. Gate sanity check (0.3.1): a 10-shot PWR run logs
+~37 lines with DEBUG off, 250+ with it on.
 
-## Engine facts (do not fight them)
+## Device and platform facts (do not fight them)
 
 Full details: `Blank/starting_package/README.md`. The load-bearing ones:
 Android 4.1.2 / API 10, no AndroidX. `Camera.Parameters` is NOT hollow -
@@ -165,4 +183,25 @@ Measured on A7 II (ILCE-7M2, 2026-11-13 session log):
   the supported-intervals getter returns null. Firmware owns shutter +
   storage: zero app work per frame, but no per-shot logging or control.
   Candidate for a future battery-friendly track.
+
+## Re-deriving the SDK surface
+
+All SDK facts in this file were verified against the compiled stubs - not
+assumed. To re-check any of it:
+
+- Stubs: `Blank/OpenMemories-Framework/stubs/`. The **sources are jasmin
+  assembly text** (readable signatures):
+  `stubs/src/main/jasmin/com/sony/scalar/...` - e.g. `hardware/CameraEx.j`,
+  `sysutil/didep/Power.j`, `sysutil/didep/Settings.j`.
+- No `javap` on this machine (JRE 1.8 only, no JAVA_HOME). Use PowerShell:
+  `Select-String -Path <file>.j -Pattern '^\.method'` lists every method with
+  its exact JNI signature; drop the `^` anchor for method bodies/strings.
+- Compiled jar (what the app actually links):
+  `Blank/OpenMemories-Framework/stubs/build/libs/stubs.jar` (320 KB); list
+  classes via `System.IO.Compression.ZipFile::OpenRead(...).Entries.FullName`.
+- `CameraEx` has 119 public methods; inner classes (listeners + info
+  holders) are the read-back mechanism for anything without a getter.
+- Runtime ground truth for param keys: the per-session
+  `getSupportedParameters()` dump in LOG.TXT (search `params[` -
+  `iso-sensitivity-values`, `shooting-preview-values`, ...).
 
