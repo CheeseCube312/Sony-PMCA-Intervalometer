@@ -184,8 +184,43 @@ owns the aperture (mode dial not in A/M where required).
 
 ## 0.3.0 (versionCode 21) — Power-saving run mode
 
-**Goal:** long-timelapse battery extension: live view off, no shot preview,
-panel off; wake to a minimal info HUD (`43/120`, battery %, storage left).
+**Goal:** make very long sessions (hours) viable on one battery. During a
+power run everything not needed for capture goes dark: panel off, no live
+view, no per-shot review flash. Any keypress wakes a minimal HUD for a few
+seconds — `35/100` (or `152/∞`), battery %, and a warning when the card
+can't hold all remaining shots — then the screen sleeps again. Trash still
+stops the run while asleep; S2 still starts one.
+
+### Design (outlined 2026-11-14)
+- **Enable:** new config field `PWR` (ON/OFF, persisted like the other
+  fields, default OFF). One start path (S2); the toggle decides the run
+  flavor. Rejected alternative: a second start key — grid fields are
+  visible persistent state, and two start buttons invite "which mode am I
+  in?" bugs.
+- **Run start (PWR ON):** log the current display state (the
+  DisplayManager.Listener data BaseActivity already receives), stop
+  preview, `setActiveDisplay(Display.NONE)`, then set the auto-picture
+  review control once (probe `getPictureReviewSupportedTimes()` first,
+  log what sticks). APO-off renewal stays exactly as today — the system's
+  own display-off/APO must never fight the dark panel either.
+- **During the run:** overlay suppressed; no per-tick UI work while
+  asleep. Timed shots skip the `resumePreview()` between captures IF gate
+  G2 passes (see below) — otherwise keep the normal cycle and bank the
+  backlight savings alone. Every stored shot logs its battery % (sticky
+  `ACTION_BATTERY_CHANGED`) — the session log becomes the power-curve
+  measurement for free.
+- **Wake HUD:** first keypress wakes only (pocket-press protection);
+  auto-sleep after 5 s (POWER_WAKE_MS constant, tunable); while the HUD
+  is awake keys act normally — trash stops (second press), other keys
+  refresh the 5 s timer. S2 stays ignored during the run, as today.
+- **Storage warning:** computed at wake only (cheap: one StatFs + one
+  File.length() per wake, not per tick): free bytes / avg shot size
+  (last stored file, path from the existing storeImage log) = `full in
+  ~N shots`; HUD warns when N < remaining shots, or under an absolute
+  floor (< 10) for `∞` runs.
+- **Run end / stop / pause:** display restored to the pre-run state
+  BEFORE the summary shows. Review control: log whether it survives
+  pause (the camera may reset per session) — don't fight it if so.
 
 ### What we already know
 - **Real LCD-off exists:** framework `DisplayManager.setActiveDisplay(Display.NONE)`
@@ -219,22 +254,42 @@ panel off; wake to a minimal info HUD (`43/120`, battery %, storage left).
   panel is off.
 
 ### Implementation sketch
-- Files: `IntervalActivity.java` (PwrSave config toggle + run-start/stop wiring,
-  wake-on-key → info overlay with shots/battery/storage, ~10 s idle → display
-  NONE again, skip preview resume while active), `IntervalConfig.java` (persist
-  toggle), `app/build.gradle` (0.3.0/20), `README.md`.
-- Wake = any key: show display + info HUD; keys keep their normal functions, so
-  the HUD must also be dismissible and the stop key (trash) must still work
-  while "off".
+- Files: `IntervalActivity.java` (PWR toggle wiring, display set/restore
+  around the run, wake HUD + 5 s timer, skip-preview variant of the shot
+  cycle per G2, per-shot battery log line), `IntervalConfig.java`
+  (persist PWR), `app/build.gradle` (0.3.0 / versionCode 21), `README.md`.
+- `IntervalEngine` untouched — power mode is activity-side.
+- Native interval recording (`startIntervalRec` — firmware owns the loop,
+  README spike notes) stays the separate battery-friendly track it
+  already was; NOT part of 0.3.0 (no per-shot logging or control there).
 - Minor version bump justified: changes run-time behavior, not just config.
 
-### Camera-test gates (must pass before shipping)
-- Capture + `storeImage` still complete with the display set to NONE and preview
-  stopped (does the capture pipeline care?).
-- Key events still delivered while the panel is off (wake works at all).
-- `setActiveDisplay(NONE)` requirements: stop preview first? (do it anyway).
-- Battery %/remain-time values sane; StatFs path correct on-device.
-- Store-review suppression verified (no flash of the last shot between captures).
+### Camera-test gates (risk order; must pass before shipping)
+- **G1 keys-while-dark:** hardware keys still reach the activity with
+  Display.NONE active — the whole wake interaction hangs on this.
+  Fallbacks if not: wake via S1 half-press, or minimum panel brightness
+  instead of NONE (less saving, still something).
+- **G2 capture-without-preview:** timed shots complete without the
+  cancelTakePicture + startPreview cycle between them (v0.2.4 showed
+  skipping the *release* bricks shot 2+; is resume equally required?).
+  Bulb runs don't resume preview anyway (cancelExposure ends the shot).
+- **G3 display restore:** NONE → remembered state, no stuck EVF/HDMI
+  (Display.Listener events already arrive — watch them during the test).
+- **G4 review suppression:** stills still store + seq increments with the
+  review cancelled (cancel must not drop the file).
+- **G5 perturbation:** does display-off or the review control disturb the
+  exposure listeners / Bulb position detection (the 0.2.12 interaction
+  question, now with a second writer in the mix)?
+- **G6 battery numbers:** sticky % values sane on this firmware (optional
+  Sony Power remain-time listener as a bonus readout); StatFs path
+  correct on-device.
+
+### Camera-test round
+- G1..G6 in order; then one real long run (60-shot Bulb or 30 s x 60) in
+  PWR mode: wake HUD correct (shots/battery/storage), trash-stop works
+  from dark after a wake press, summary + display restore, log shows the
+  per-shot battery curve (the %/h delta vs a display-on run is the proof
+  the feature works).
 
 ---
 
@@ -255,9 +310,12 @@ panel off; wake to a minimal info HUD (`43/120`, battery %, storage left).
 - Runtime ground truth for param keys: the per-session `getSupportedParameters()`
   dump in LOG.TXT (search `params[` — `iso-sensitivity-values`,
   `shooting-preview-values`, etc.).
-- LOG.TXT is cumulative (append-on-rotation-failure); v0.2.10 session lives at
-  lines ~2505-2670. The 0.2.10 "late 8303 ms" snowball was ruled user-caused
-  (UI fields 2 s/2 s vs saved 5 s config), engine correct — see 0.2.10 session notes.
+- LOG.TXT used to be cumulative (append-on-rotation-failure) — purged from
+  the device 2026-11-15 once its conclusions were banked; future pulls are
+  fresh-only. Historical snapshots live in git history through `5103f9f`
+  (untracked since `2b2e9a4`). The 0.2.10 "late 8303 ms" snowball was ruled
+  user-caused (UI fields 2 s/2 s vs saved 5 s config), engine correct —
+  see 0.2.10 session notes.
 
 
 
