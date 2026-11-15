@@ -25,12 +25,14 @@ import java.io.IOException;
  *
  * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
  * in reading order (interval -> count -> exposure -> delay -> ISO -> F ->
- * shot now),
- * S2 starts the run - on the Shot now field it fires ONE capture instead
- * (0.2.11) - (mid-run S2 is ignored - the engine owns shooting; that also
- * covers the write-hold gap before the summary prints), S1 autofocus works
- * as always, trash stops a run and the summary prints; from the summary,
- * trash exits.
+ * shot now). S2 starts the run - on the Shot now field it fires ONE capture
+ * instead (0.2.11). S2 is also the deliberate abort (0.2.15): any S2 press
+ * after the one that fired quits an in-flight capture early (the release the
+ * per-frame cycle schedules anyway) and, mid-run, stops the engine at its
+ * current stage - stored shots stay, the summary prints. The firing press's
+ * own release is exempt, so a tap can't eat a delay-0 first shot or a single
+ * mid-store. S1 autofocus works as always; trash stops a run too, and from
+ * the summary trash exits.
  *
  * Runs hold the camera awake: auto power-off is held off via the
  * DAConnectionManagerService.apo broadcast (the same one PMCADemo's
@@ -38,118 +40,11 @@ import java.io.IOException;
  * 1 Hz tick since the firmware re-asserts APO, and restored on stop; the
  * window keeps the screen on. Leaving the activity (onPause) stops the run.
  *
- * 0.1.3 - the monochrome live view (AND stills) is a camera LOOK state, not
- * a display problem: Recipe Lab proves the HAL preview is this same
- * open(0,null)+SurfaceView path and still gets color, because it drives the
- * Sony runtime look keys over Camera.Parameters after startPreview. Confirmed
- * on camera 2026-11-14: the session opens with color-mode=mono;
- * forceColorLook() forces the color baseline (standard/off/false) right
- * after startPreview and the camera keeps it. One improvement over PMCADemo:
- * the preview also (re)starts when the surface already exists on resume
- * (PMCADemo shows a black screen after a pause/resume cycle that kept it).
- *
- * 0.2.2 - multi-shot runs need the shutter key's FULL cycle per frame, not
- * just takePicture: the HAL must get cancelTakePicture (S2 up) before it
- * accepts the next takePicture. Recipe Lab's automated run does takePicture,
- * then cancelTakePicture + startPreview SHUTTER_MS later; the engine slots do
- * the same now (v0.2.0/0.2.1 restarted the preview but never released, so
- * shot 2+ always threw - the "shot 2+ all fail" log).
- *
- * 0.2.4 - long exposures: the grid fired start-to-start and ignored whether
- * the previous capture was still running, so at a 5 s interval with a 30 s
- * shutter 8 of 10 shots fired INTO an in-flight exposure and were silently
- * lost (takePicture "succeeds", no image ever stores - only the two slots
- * that started idle produced files). Now the engine holds a slot while the
- * camera is busy (interval = minimum spacing), the summary waits out an
- * in-flight last capture, and a 90 s cap marks a never-storing capture as
- * lost instead of wedging the run.
- *
- * 0.2.5 - exposure control + true bulb. The Sony SDK (verified against the
- * compiled stubs) has real shutter-speed control: incrementShutterSpeed() /
- * decrementShutterSpeed() step the camera's software value (the dials are
- * just input devices for the same state - there is no fixed dial position to
- * fight), and ShutterSpeedChangeListener is the only way to READ it (no
- * getter). The config screen gains an Exposure field that mirrors the
- * camera's current value and steps it live; stepping past the timed end stop
- * reaches Bulb. Bulb has no duration on the camera, so UP/DOWN at the Bulb
- * position adjusts the app-side bulb duration instead (the exposure length
- * the engine enforces). In bulb runs each shot schedules cancelExposure()
- * (the SDK's exposure-end primitive - cancelTakePicture is the timed-shot
- * release and is ignored mid-exposure, the v0.2.4 side finding) at the bulb
- * duration, and the in-flight watchdog + summary deadline scale with it.
- * ShutterListener / CaptureStatusListener / ExposureCompleteListener are
- * armed as log-only ground truth for now (shutter-open anchor, real
- * in-flight state) - nothing behavioral depends on them yet.
- *
- * 0.2.6 - trust work. Config persists across launches via SharedPreferences
- * (the Recipe-Lab-proven store on this firmware); indices clamp on load and
- * the lists only ever grow at the end, so old values stay valid. Interval
- * presets reach 1 h, bulb presets 10 min; both fields end in a CUSTOM slot -
- * stepping past the last preset lands on a per-session value edited in place
- * with UP/DOWN (5 s steps below the 120 s / 60 s marks, 30 s above; ranges
- * 2 s-1 h and 5 s-30 min) that persists with the rest of the config. A run
- * aborts as FAILED after 3 consecutive takePicture rejections (firmware
- * rejection is deterministic - v0.2.0/0.2.1 lesson); never-storing captures
- * stay watchdog-only. While a slot is held - interval shorter than the write
- * time - the overlay warns "camera busy - shot N waits"; the shot fires when
- * the store lands, on-grid timing otherwise unchanged.
- *
- * 0.2.7 - config state extracted into IntervalConfig: the preset tables, the
- * CUSTOM slots, stepping, persistence and display strings moved there - this
- * activity keeps camera, exposure, run screen and key routing only. No
- * behavior change: every choice steps and persists exactly as in 0.2.6.
- *
- * 0.2.7 UX - the run-end gap is owned: between the engine finishing and the
- * summary printing (4 s, longer while a write is still in flight) the keys
- * hold (no S2 restart, no hidden config edits, no trash-release exit) and
- * the screen says "FINISHING - waiting for the last write" instead of the
- * stale RUNNING HUD. Trash now exits from the summary, as its legend claims.
- * LEFT/RIGHT walk the config grid in reading order, CUSTOM slots and the
- * bulb floor get a hint line, unlimited count reads "all" instead of "inf".
- * Exposure rework: the timed range is purely the camera's own stock list,
- * stepped live one position per press; Bulb holds a single custom
- * long-exposure value in seconds (5-1800 s, 5 s/30 s steps, persisted) and
- * the field reads "custom N s" there - the app-side bulb preset list is
- * gone.
- *
- * 0.2.11 - single shot + count rework. The config grid gains a Shot now
- * field below the 2x2 grid: S2 there fires ONE capture at the current
- * exposure (timed closes on its own; Bulb ends via cancelExposure at the
- * custom seconds) and the config screen stays up. The per-frame cycle
- * (resume preview -> takePicture -> scheduled release -> never-store
- * watchdog) is extracted into fireCapture() so engine slots and singles
- * share the exact proven path; singles carry no run bookkeeping (no
- * engine, no reject-abort counter) and trash is gated while a capture is
- * in flight so it can't release the camera mid-exposure. busy() now also
- * covers an in-flight capture. Count becomes a 5-shot-step ladder 5..600
- * ending in unlimited ("all"; fresh pref key - IntervalConfig), and the
- * RUNNING HUD reads "shot n/all" on unlimited runs.
- *
- * 0.2.12 - ISO control. The grid gains an ISO field: UP/DOWN walk the
- * camera's supported ISO list (the iso-sensitivity-values parameter, read
- * at open - unlike shutter speed there is no step method). Every write
- * goes through the forceColorLook string set -> setParameters -> read-back
- * path and the field displays what the camera KEPT (dropped values throw
- * nothing on this HAL, so the read-back is the only truth); rejections are
- * logged, never fought. Nothing persists app-side: ISO is a body setting
- * the camera keeps on its own, like it keeps the shutter-speed store. The
- * AutoISOSensitivityListener is armed log-only to learn what AUTO picks.
- *
- * 0.2.13 - aperture control (non-manual lenses). The grid gains an F
- * field: UP/DOWN call increment/decrementAperture and the
- * ApertureChangeListener callback (event-only, no getter) drives the
- * display - the 0.2.5 shutter pattern ported as-is, incl. the open-time
- * probe pair with bounded corrective steps. Camera round 1 confirmed
- * the encoding: raw values are f-numbers x100 (test lens walked
- * 560..3600 in the classic 1/3-stop ladder, f/5.6..f/36) - note the
- * exposure-complete line logs F100 for f/10, a different x10 scaling.
- * The open probe pair netted zero with a single coalesced callback, so
- * the anchor guard stayed inert. Each edit wraps the step in the HAL's
- * shooting-preview=iris_ss_iso_aeunlock (set, verified by read-back,
- * restored off ~1 s after the last edit or on pause); round 1 ran it
- * clean through a full f/5.6..f/36 round trip with no preview
- * perturbation, and it stays until a round A/Bs bare edits per
- * mode-dial position.
+ * Version-by-version history (0.1.x mono fix, the 0.2.x trust/UX/exposure
+ * rounds) and the firmware ground truth behind every rule here live in
+ * README.md - Version history and Key findings - and in the git log; this
+ * doc keeps only the current shape: config grid + fields, key routing, the
+ * shared fireCapture() per-frame cycle, run lifecycle, exposure mirrors.
  */
 public class IntervalActivity extends BaseActivity implements SurfaceHolder.Callback {
     private static final int FW_REJECT_ABORT = 3; // consecutive takePicture rejections that abort a run
@@ -261,6 +156,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private long capSum, capMax; // capture ms sum/max for the summary
     private int capN;
     private long lastApoMs;      // elapsedRealtime of the last APO-off broadcast
+    /**
+     * S2 abort arming (0.2.15): true from the key-down that FIRES a capture
+     * or run until that press's own key-up - which is exempt from the abort
+     * read. Any S2 key-down landing while busy (mid-run, mid-capture, the
+     * ending gap) clears it, so that press's release is the deliberate abort.
+     */
+    private boolean s2Exempt;
 
     /**
      * The shutter key's release, automated. Recipe Lab's proven per-frame cycle
@@ -268,7 +170,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * + startPreview (S2 up). Skipping the release leaves the HAL in capture
      * state - the next takePicture throws (the v0.2.0/0.2.1 "shot 2+ all fail").
      */
-    private static final long SHUTTER_MS = 2500; // DevTools.SHUTTER_MS - what a capture needs on this body
+    private static final long SHUTTER_MS = 2500; // what a capture needs on this body (Recipe Lab's proven value)
     private static final long SUMMARY_DELAY_MS = 4000; // last store lands ~3 s after run end; wait for it
     private static final long INFLIGHT_CAP_MS = 90000; // timed shots: give up on a capture that never stores
     private static final long WATCH_MARGIN_MS = 30000; // bulb shots: store + slack after the exposure ends
@@ -678,6 +580,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             summaryTask = null;
         }
         runEnding = false; // no summary will print after a pause - never leave the keys gated
+        s2Exempt = false; // fresh keys after a pause
         surfaceHolder.removeCallback(this);
         stopPreview();
         if (camera != null) {
@@ -808,7 +711,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr()),
                 mark(6, "Shot now"),
                 hint,
-                selField == 6 ? "S2 = ONE SHOT | trash exit" : "S2 start | trash exit"});
+                selField == 6 ? "S2 = ONE SHOT | trash exit" : "S2 start/stop | trash exit"});
     }
 
     private String mark(int field, String value) {
@@ -1252,14 +1155,17 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onShutterKeyDown() {
-        if ((engine != null && engine.isRunning()) || runEnding || stillT0 != 0)
-            return true; // mid-run S2 is ignored - the engine owns shooting (also in the gap / while a capture stores)
+        if ((engine != null && engine.isRunning()) || runEnding || stillT0 != 0) {
+            s2Exempt = false; // a fresh press while busy - its release is the deliberate abort (0.2.15)
+            return true; // mid-run S2 down is ignored - the abort happens on its release (also in the gap / while a capture stores)
+        }
         if (summaryShown) {
             summaryShown = false;
             runEnding = false;
             showConfig();
             return true;
         }
+        s2Exempt = true; // the firing press's own release is exempt from the abort read (0.2.15)
         if (selField == 6)
             shotNow(); // Shot now field: ONE capture at the current exposure, stay in config
         else
@@ -1267,15 +1173,65 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         return true;
     }
 
+    /**
+     * S2 up (0.2.15): the deliberate abort. The release that ends the press
+     * which FIRED the current capture or run is exempt - it quits nothing
+     * (before 0.2.15 this handler cancelTakePicture'd unconditionally, so a
+     * fast release could eat a delay-0 first shot or a single mid-store).
+     * Any later S2 release quits an in-flight capture (the same release the
+     * per-frame cycle schedules - just early) and, mid-run, stops the engine
+     * at its current stage: stored shots stay, the summary prints. Idle
+     * releases stay the harmless unlatch they always were.
+     */
     @Override
     protected boolean onShutterKeyUp() {
+        boolean fired = s2Exempt; // this up ends the press that fired the current capture/run
+        s2Exempt = false;
         if (camera == null)
             return true;
-        try {
-            camera.cancelTakePicture();
-        } catch (Throwable ignored) {
+        boolean shooting = stillT0 != 0 || (engine != null && engine.isRunning());
+        if (!fired && shooting) {
+            abortByS2();
+            return true;
+        }
+        if (fired && shooting)
+            Logger.info("S2 up: firing press's own release - nothing aborted"); // 0.2.15 evidence line
+        if (!shooting) {
+            try {
+                camera.cancelTakePicture(); // idle release - harmless unlatch, as before
+            } catch (Throwable ignored) {
+            }
         }
         return true;
+    }
+
+    /**
+     * The S2 abort (0.2.15): quit an in-flight capture now - the same release
+     * the per-frame cycle schedules (cancelTakePicture, or cancelExposure at
+     * the bulb duration), just not at +2.5 s / bulb seconds - and stop a
+     * running engine at its current stage. Stored shots stay; the summary
+     * prints like after a trash stop (singles carry no summary - no run
+     * bookkeeping). If a quit capture stores anyway, the late store just logs.
+     */
+    private void abortByS2() {
+        if (stillT0 != 0) {
+            handler.removeCallbacks(shutterRelease);
+            handler.removeCallbacks(bulbRelease);
+            handler.removeCallbacks(inFlightCap);
+            stillT0 = 0; // we stop waiting for the store
+            if (bulbShotMs > 0) {
+                bulbRelease.run(); // cancelExposure ends the exposure; cancelTakePicture + preview follow
+                Logger.info("S2 abort: bulb exposure quit early");
+            } else {
+                shutterRelease.run(); // cancelTakePicture + resume preview
+                Logger.info("S2 abort: capture quit early");
+            }
+        }
+        if (engine != null && engine.isRunning()) {
+            engine.stop(IntervalEngine.REASON_ABORTED); // the summary path, same as the trash stop
+            runEnding = true; // keys stay held until the summary prints, like after a trash stop
+            Logger.info("S2 abort: run stopped at its current stage");
+        }
     }
 
     @Override

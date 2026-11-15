@@ -5,11 +5,12 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.2.14 - exposure control + true bulb, the Phase 2 trust work,
-and the capture/UX rounds through 0.2.14 are all shipped and camera-gated.
-Still owed on camera: the ISO echo filter, ISO in Bulb, the bulb-exit
-self-check, the bare-edit aperture A/B, and the 3-strike abort (see
-roadmap.md). Next: 0.3.0 power saving.**
+**Status: 0.2.15 - exposure control + true bulb, the Phase 2 trust work,
+and the capture/UX rounds through 0.2.15 are all shipped and camera-gated.
+Shipped but awaiting on-camera verification: the ISO echo filter, ISO in
+Bulb, the bulb-exit self-check, the bare-edit aperture A/B, the 3-strike
+abort, and the 0.2.15 S2 abort (verification gates live in roadmap.md).
+Next: 0.3.0 power saving.**
 
 ## Version history (one line each)
 
@@ -29,6 +30,7 @@ roadmap.md). Next: 0.3.0 power saving.**
 - 0.2.12 - ISO field walks the camera's supported ISO list, every write read-back verified; auto-ISO echo filter (ffef940).
 - 0.2.13 - aperture control: increment/decrement + ApertureChangeListener mirror, edits wrapped in the iris unlock wrapper.
 - 0.2.14 - encoding round settled: raw = f-number x100; grid display fixed (tag `v0.2.14`).
+- 0.2.15 - S2 abort: any S2 press after the one that fired quits an in-flight capture early and stops a run at its current stage (summary prints); the firing press's own release is exempt, so taps can no longer eat a delay-0 first shot or a single mid-store.
 - 0.3.0 - planned: power-saving run mode (design in roadmap.md).
 
 ## Key findings
@@ -47,8 +49,8 @@ depth is irrelevant).
 t0 + delay + n*interval; late shots still fire and log their delta - slots
 are never skipped, so the log shows the real interval floor. Runs hold the
 camera awake (APO-off broadcast renewed per minute + keep-screen-on); trash
-stops with a summary, second trash exits; onPause stops the run. Summary
-logs stored-vs-fired and capture min/avg/max.
+or a second S2 press (0.2.15) stops with a summary, second trash exits;
+onPause stops the run. Summary logs stored-vs-fired and capture min/avg/max.
 
 **Multi-shot trust (0.2.2-0.2.4).** The interval is a MINIMUM spacing: a
 slot holds while the previous capture is in flight (firing into a busy
@@ -145,7 +147,7 @@ Measured on A7 II (ILCE-7M2, 2026-11-13 session log):
 - Stills are plain `takePicture` straight to the card (~1-2 s capture window;
   `setStoreImageCompleteListener` armed for shot logging: seq counter, elapsed
   ms, card path).
-- Screen wake: `SCREEN_BRIGHTNESS_WAKE_LOCK` in BaseActivity.
+- Screen wake: `FLAG_KEEP_SCREEN_ON` on the activity window during runs - no wake lock anywhere.
 - No touchscreen - keys only (UP/DOWN/LEFT/RIGHT/ENTER, S1/S2, trash, rear/
   front dials, FN/AEL/C1 via PMCADemo-style hooks when needed).
 - Native interval recording (separate spike APK, 11-14): needs

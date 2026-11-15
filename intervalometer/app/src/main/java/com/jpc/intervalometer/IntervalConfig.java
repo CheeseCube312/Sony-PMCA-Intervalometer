@@ -72,7 +72,8 @@ public class IntervalConfig {
         // 0.2.11: the count list was reworked (5-shot steps + unlimited), which
         // shifts indices - a fresh key instead of "countIdx" so a 0.2.10 store
         // can't silently select a different count (the lists-grow-at-the-end
-        // rule covers appends, not deliberate reworks; one-time default reset).
+        // rule covers appends, not deliberate reworks). A missing key lands on
+        // DEF_COUNT (60); a corrupt one clamps to slot 0 (5 shots) - both safe.
         countIdx = clampIdx(prefs.getInt("countSlot", DEF_COUNT), COUNTS.length);
         delayIdx = clampIdx(prefs.getInt("delayIdx", DEF_DELAY), DELAYS_S.length);
         customIntervalS = clampInt(prefs.getInt("customIntervalS", INTERVAL_CUSTOM_DEF),
