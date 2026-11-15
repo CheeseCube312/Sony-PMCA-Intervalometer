@@ -59,6 +59,12 @@ public class IntervalConfig {
     private int customIntervalS = INTERVAL_CUSTOM_DEF;
     private int customBulbS = BULB_CUSTOM_DEF;
     private boolean pwr; // 0.3.0 power-saving run mode - panel off during runs, wake HUD (default OFF)
+    private boolean debugLog; // 0.3.1 verbose-logging gate - the Logger's DEBUG tier (default OFF)
+
+    /** The debug-log flag without a full load - onCreate arms the Logger before the session header. */
+    public static boolean readDebugLog(SharedPreferences prefs) {
+        return prefs.getBoolean("debugLog", false);
+    }
 
     /** Reads the persisted choices (clamped) - safe to construct in onCreate. */
     public IntervalConfig(SharedPreferences prefs) {
@@ -82,9 +88,10 @@ public class IntervalConfig {
         customBulbS = clampInt(prefs.getInt("customBulbS", BULB_CUSTOM_DEF),
                 BULB_CUSTOM_MIN, BULB_CUSTOM_MAX);
         pwr = prefs.getBoolean("pwr", false);
+        debugLog = readDebugLog(prefs);
         Logger.info("config loaded: interval " + intervalStr() + ", count " + countStr()
                 + ", delay " + delayStr() + ", long exposure " + bulbStr()
-                + ", power saving " + pwrStr());
+                + ", power saving " + pwrStr() + ", debug log " + debugLogStr());
     }
 
     /** Persists every choice; called after each config-screen edit. */
@@ -96,6 +103,7 @@ public class IntervalConfig {
         e.putInt("customIntervalS", customIntervalS);
         e.putInt("customBulbS", customBulbS);
         e.putBoolean("pwr", pwr);
+        e.putBoolean("debugLog", debugLog);
         e.apply();
     }
 
@@ -154,6 +162,12 @@ public class IntervalConfig {
         pwr = !pwr;
     }
 
+    /** 0.3.1: DEBUG field toggle; returns the new state so the caller arms the Logger live. */
+    public boolean adjustDebugLog() {
+        debugLog = !debugLog;
+        return debugLog;
+    }
+
     /** CUSTOM interval slot edit step: 5 s below the 120 s mark, 30 s at and above. */
     private int intervalStep() {
         return customIntervalS < 120 ? 5 : 30;
@@ -196,6 +210,11 @@ public class IntervalConfig {
         return pwr;
     }
 
+    /** True while the verbose-logging gate is armed (0.3.1). */
+    public boolean debugLog() {
+        return debugLog;
+    }
+
     /** True at the 5 s floor - DOWN would step out of Bulb (the caller steps the camera). */
     public boolean bulbAtFloor() {
         return customBulbS <= BULB_CUSTOM_MIN;
@@ -222,6 +241,10 @@ public class IntervalConfig {
 
     public String pwrStr() {
         return pwr ? "ON" : "OFF";
+    }
+
+    public String debugLogStr() {
+        return debugLog ? "ON" : "OFF";
     }
 
     /** Preset durations in friendly units: 60 s stays "60 s", 120 s becomes "2 min", 3600 s "1 h". */

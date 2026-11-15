@@ -15,7 +15,8 @@ import java.util.Locale;
  * shifts nothing after it and drift stays zero by construction. Ticks run on
  * the main looper via Handler, at the next deadline or every 1 s, whichever
  * comes first (the 1 s heartbeat drives the countdown overlay and the
- * auto-power-off refresh without extra timers).
+ * auto-power-off refresh without extra timers); a held slot re-polls at a
+ * fixed 250 ms cadence instead (its deadline is already past).
  *
  * Time base is SystemClock.elapsedRealtime() (monotonic); wall clock is only
  * in Logger stamps. The engine owns timing/state only - the activity fires
@@ -49,6 +50,9 @@ public class IntervalEngine {
     public static final int REASON_DONE = 1;    // shot count reached
     public static final int REASON_ABORTED = 2; // trash key / activity paused
     public static final int REASON_FAILED = 3;  // camera rejected the shot command 3 times straight
+
+    /** Re-tick cadence while a slot is held: its deadline is already past (wait <= 0) and postDelayed(0) would spin the looper. */
+    private static final long HOLD_POLL_MS = 250;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Listener listener;
@@ -142,11 +146,20 @@ public class IntervalEngine {
                 }
                 now = SystemClock.elapsedRealtime(); // captures take seconds - re-read
             }
+            if (!running)
+                return; // stop() ran from inside onShoot (3-strike abort) - the summary is already out
             long next = t0 + startDelayMs + (long) fired * intervalMs;
             listener.onTick(now - t0, fired, Math.max(0, next - now));
             // Re-tick at the deadline or in 1 s (heartbeat), whichever is sooner.
-            long wait = Math.max(0, next - SystemClock.elapsedRealtime());
-            handler.postDelayed(this, Math.min(wait, 1000));
+            // While holding, the deadline is already past (wait would be <= 0) -
+            // poll the camera at a fixed cadence instead: postDelayed(0) would
+            // spin the main looper for the whole hold (bulb holds for tens of s).
+            if (holding) {
+                handler.postDelayed(this, HOLD_POLL_MS);
+            } else {
+                long wait = Math.max(0, next - SystemClock.elapsedRealtime());
+                handler.postDelayed(this, Math.min(wait, 1000));
+            }
         }
     };
 

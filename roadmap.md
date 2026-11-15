@@ -1,153 +1,127 @@
 # Intervalometer Feature Roadmap
 
-_Created 2026-11-14 after the 0.2.10 no-bug verdict. Stripped 2026-11-14:
-every shipped 0.2.x section deleted - one-line summaries per version live
-in intervalometer/README.md, full detail in git history. What remains: the
-live progress block, the next version (0.3.0 power saving), and the SDK
-re-derivation notes._
+_Created 2026-11-14 after the 0.2.10 no-bug verdict. Stripped 2026-11-14
+(0.2.x) and again 2026-11-15 (0.3.0): every shipped section deleted -
+one-line summaries per version live in intervalometer/README.md, full
+detail in git history. What remains: the live progress block, the pending
+0.3.1 section, the deferred-hygiene list, and the SDK re-derivation notes._
 
-_Progress: 0.2.11, 0.2.12 and 0.2.13 shipped and camera-tested, plus an
-out-of-plan 0.2.14 (versionCode 20) fixing the aperture display once the
-encoding round landed. Still owed on camera: the ISO echo filter (no ISO
-writes since ffef940), ISO writes in Bulb, the bulb-exit self-check
-("bulb exit confirmed" has never logged), and the bare-edit A/B for the
-aperture unlock wrapper. Also never exercised: the 3-strike abort - a
-2026-11-14 11:11 run logged six consecutive takePicture throws and still
-finished `done, stored 1 of 10` (either a pre-0.2.6 build or the abort
-never fires under real consecutive failures - re-verify deliberately).
-Next: 0.3.0 power saving - versionCode 21 (20 was consumed by 0.2.14)._
+_Progress: 0.2.11-0.2.15, 0.3.0 and 0.3.1 shipped and camera-tested
+(0.3.0: G1-G5 passed; the G6 %/h long run still owed). 0.3.1 closed the
+file-by-file review round (all five files have verdicts, one defect
+fixed - "aperture step rejected" tier), its DEBUG gate passed on the
+A7 II 2026-11-15 (details in the 0.3.1 section), and Logger.isDebug()
+was dropped as dead code (zero callers - the gate runs on setDebug()
+plus the internal flag). The bulb-exit self-check debt is also closed:
+"bulb exit unconfirmed ... re-arming" fired and "bulb exit confirmed:
+30 s" logged - the re-arm fallback was needed on the first Bulb cycle
+and worked. Still owed on camera, oldest first: the ISO echo filter
+(no ISO writes since ffef940 - needs an in-app ISO change; this round
+only dialed camera-side), ISO writes in Bulb, the bare-edit A/B for the
+aperture unlock wrapper, the 3-strike abort (a 2026-11-14 11:11 run
+logged six consecutive takePicture throws and still finished "done,
+stored 1 of 10" - re-verify deliberately), and the 0.3.0 G6 %/h long
+run (PWR, count=all, trash-stop at end - the %/h delta vs a display-on
+run is the proof). Next: the owed camera runs and the deferred-hygiene
+list; the 0.3.1 section gets stripped next round per convention._
 
 All SDK facts below were verified against the compiled stubs — **not assumed**.
 See "Re-deriving the SDK surface" at the bottom for how to re-check any of this.
 
 ---
 
-## 0.3.0 (versionCode 21) — Power-saving run mode
+## 0.3.1 (versionCode 23) - code-review round, all five files closed
 
-**Goal:** make very long sessions (hours) viable on one battery. During a
-power run everything not needed for capture goes dark: panel off, no live
-view, no per-shot review flash. Any keypress wakes a minimal HUD for a few
-seconds — `35/100` (or `152/∞`), battery %, and a warning when the card
-can't hold all remaining shots — then the screen sleeps again. Trash still
-stops the run while asleep; S2 still starts one.
+**Goal:** post-tag file-by-file code review. First file: Logger. The
+production build should not pay for the verbose session log, but a third
+party hitting an issue must be able to turn it back on without adb.
 
-### Design (outlined 2026-11-14)
-- **Enable:** new config field `PWR` (ON/OFF, persisted like the other
-  fields, default OFF). One start path (S2); the toggle decides the run
-  flavor. Rejected alternative: a second start key — grid fields are
-  visible persistent state, and two start buttons invite "which mode am I
-  in?" bugs.
-- **Run start (PWR ON):** log the current display state (the
-  DisplayManager.Listener data BaseActivity already receives), stop
-  preview, `setActiveDisplay(Display.NONE)`, then set the auto-picture
-  review control once (probe `getPictureReviewSupportedTimes()` first,
-  log what sticks). APO-off renewal stays exactly as today — the system's
-  own display-off/APO must never fight the dark panel either.
-- **During the run:** overlay suppressed; no per-tick UI work while
-  asleep. Timed shots skip the `resumePreview()` between captures IF gate
-  G2 passes (see below) — otherwise keep the normal cycle and bank the
-  backlight savings alone. Every stored shot logs its battery % (sticky
-  `ACTION_BATTERY_CHANGED`) — the session log becomes the power-curve
-  measurement for free.
-- **Wake HUD:** first keypress wakes only (pocket-press protection);
-  auto-sleep after 5 s (POWER_WAKE_MS constant, tunable); while the HUD
-  is awake keys act normally — trash stops (second press), other keys
-  refresh the 5 s timer. S2 stays ignored during the run, as today.
-- **Storage warning:** computed at wake only (cheap: one StatFs + one
-  File.length() per wake, not per tick): free bytes / avg shot size
-  (last stored file, path from the existing storeImage log) = `full in
-  ~N shots`; HUD warns when N < remaining shots, or under an absolute
-  floor (< 10) for `∞` runs.
-- **Run end / stop / pause:** display restored to the pre-run state
-  BEFORE the summary shows. Review control: log whether it survives
-  pause (the camera may reset per session) — don't fight it if so.
+**Shipped:**
+- Two-tier Logger: ERROR (crash shields, watchdog, failures) and the INFO
+  skeleton (session header, device, config, run start/end, per-shot
+  fired/stored, aborts, wake chain, apo restore) always log; 41 forensic
+  call sites (params dump ~30 lines, probes, listener mirrors, ISO/aperture
+  step echoes, review/iris internals, cpu line) moved to a new
+  `Logger.debug()` that writes only while the gate is ON.
+- The gate is the config grid's DEBUG field (field 8, between PWR and Shot
+  now): persisted in SharedPreferences like every other choice - it must
+  survive app kills and camera power cycles to catch intermittent issues -
+  default OFF, arms live on toggle (no restart), session header names the
+  mode. Grid: `PWR OFF  DEBUG OFF` on its own line.
+- Review verdicts: the per-shot `fired`/`stored` lines stay always-on
+  (they ARE the %/h + drift measurement, ~2 file writes per shot is noise
+  against seconds-long spacing); the per-line open/append/close FileWriter
+  stays (fine at these rates - a writer-per-line is only worth revisiting
+  if a future feature logs per-tick). Not yet camera-gated.
+- Engine review (file 2): its four lines (run start/finish, shot fired,
+  slot held) ARE the skeleton - all stay always-on INFO. The audit fixed
+  two tick-loop warts, no grid-math changes: a held slot re-posted its own
+  tick with delay 0 (deadline already past), spinning the main looper for
+  the whole camera-busy hold (tens of seconds on bulb) - now a fixed 250 ms
+  poll; and after a 3-strike abort (stop() from inside onShoot) the
+  in-flight tick still ran one onTick + re-post - the engine now returns
+  (the activity's onTick guard stays as belt-and-braces). Verified while
+  auditing: fireCapture() marks the capture in-flight before takePicture
+  returns, so the engine's canShoot() re-check cannot double-fire into a
+  busy camera.
+- BaseActivity review (file 3): all five lines stay - Resume/Pause (the
+  wake chain) and Display changed as INFO, both key-dispatch shield
+  catches as ERROR. Dropped a dead mirror: currentDisplay tracked
+  display-change events under a comment claiming it was the PWR restore
+  target, but the restore uses the live pre-run snapshot
+  (displayBeforeRun) and the firmware never echoes the app's own
+  Display.NONE switches - the field had no readers. The Display changed
+  line itself stays; it is the wake-chain and panel-state evidence.
+- IntervalConfig review (file 4): closed, zero defects. Arming order is
+  right: onCreate reads the flag straight from the store (readDebugLog)
+  and arms the Logger BEFORE beginSession, so the header names the mode;
+  the config object is constructed later in onCreate, so the
+  "config loaded ... debug log" line lands inside the session. One key,
+  one default: load() delegates to readDebugLog(), save() persists the
+  same flag after every grid edit - the toggle survives kills and the
+  pre-header read and the load can never disagree (both use
+  getPreferences(MODE_PRIVATE), one cached store). adjustDebugLog()
+  mirrors adjustPwr() (flip, return the new state); the caller arms the
+  Logger live and logs the transition as always-on INFO, so a pulled
+  log shows exactly when verbose armed/disarmed mid-session. Grid
+  wiring checked: NEXT_FIELD/PREV_FIELD cover field 8 with correct wrap
+  (PWR -> DEBUG -> Shot now -> Interval), UP/DOWN toggles, hint line
+  and the "PWR x  DEBUG x" grid line all present.
+- IntervalActivity review (file 5): closed with one fix - "aperture step
+  rejected" (adjustF's catch) was INFO while its sibling "shutter step"
+  is ERROR; same event class (the camera's step call threw, the field
+  keeps the camera's value), and it fires after irisUnlock() whose own
+  failure is ERROR - now ERROR, so an "F key does nothing" report is
+  diagnosable from a skeleton-only log. Tier counts shift to 27 info /
+  41 debug / 26 error. Everything else verified in place: the 27 INFO
+  lines are the README skeleton (run-start exposure identity, per-shot
+  stored + battery, summary stored-vs-fired, late-store correction,
+  watchdog give-up, open/release/preview lifecycle, the bulb exit
+  confirmed/unconfirmed pair, PWR display before/after + wake chain,
+  S2 aborts, ISO-step-skipped user feedback); every ERROR is a genuine
+  failure path (HAL rejects, 3-strike abort, crash handler, parameter
+  write failures, PWR display failures); all 41 DEBUG are forensic
+  (listener mirrors, probes + inert probe failures, params dump,
+  review + iris + ISO internals, cpu line). Kept as-is on purpose:
+  ISO probe failed is ERROR while the step-pair probes are DEBUG (an
+  ISO probe failure kills the field permanently - isoValues stays
+  empty - a failed pair just leaves the mirror logic inert);
+  "params dump failed" is ERROR though the dump is DEBUG (one-time,
+  and a throw there means the HAL connection is degraded); "review
+  cancel rejected" stays DEBUG (the documented on-camera stub NPE
+  never blocks a run).
 
-### What we already know
-- **Real LCD-off exists:** framework `DisplayManager.setActiveDisplay(Display.NONE)`
-  (ma1co wrapper over `com.sony.scalar.hardware.avio.DisplayManager`,
-  `DEVICE_ID_NONE`). The app already depends on this class — `BaseActivity`
-  implements `DisplayManager.Listener` (display-change events arrive today,
-  e.g. the `Display changed: FINDER` log lines). `Display` enum includes
-  SCREEN / FINDER / HDMI / NONE.
-- **Shot preview can be suppressed:** `camera.setAutoPictureReviewControl(
-  CameraEx$AutoPictureReviewControl)` (CameraEx.j:279); the control object offers
-  `cancelAutoPictureReview()`, `setPictureReviewTime(I)`, `getPictureReviewTime()`,
-  `getPictureReviewSupportedTimes()[I`, `getReviewType()I`, and constants
-  `PICTURE_REVIEW_TYPE_SINGLE=0`, `PICTURE_REVIEW_TYPE_10=2`,
-  `PICTURE_REVIEW_TYPE_INVALID=-1`.
-- **Live view off is one existing call:** `stopPreview()`
-  (`IntervalActivity.java:606`); the only change is *skipping* the automatic
-  `resumePreview()` after each shot (shutter-release path currently always
-  restarts it).
-- **Battery:** no SDK percent getter. Percent via standard Android sticky
-  `ACTION_BATTERY_CHANGED` (`LEVEL`/`SCALE`) — the camera is Android 4.1.2.
-  Bonus: `com.sony.scalar.sysutil.didep.Power` — `getInstance()`,
-  `setBatteryRemainTimeListener(BatteryRemainTimeListener)` with
-  `onChanged(I)` (remaining **time**, `-1 = INVALID_BATTERY_REMAIN`), `release()`.
-- **Storage:** plain `android.os.StatFs` on the external-storage root (GB free).
-- **Auto-power-off plumbing already exists** (`apoOff()/apoRestore()` around
-  runs; `Settings.getAutoPowerOffTime()/setAutoPowerOffTime(I)`,
-  `getDispMode(I)` in Settings.j) — power mode should keep APO off during runs
-  and NOT let the system's own display-off fight ours.
-- Engine is untouched by this feature: absolute grid, hold-when-busy, overlay
-  lines keep updating; in power mode the overlay is simply hidden while the
-  panel is off.
-
-### Implementation sketch
-- Files: `IntervalActivity.java` (PWR toggle wiring, display set/restore
-  around the run, wake HUD + 5 s timer, skip-preview variant of the shot
-  cycle per G2, per-shot battery log line), `IntervalConfig.java`
-  (persist PWR), `app/build.gradle` (0.3.0 / versionCode 22 - 21 was 0.2.15), `README.md`.
-- `IntervalEngine` untouched — power mode is activity-side.
-- Native interval recording (`startIntervalRec` — firmware owns the loop,
-  README spike notes) stays the separate battery-friendly track it
-  already was; NOT part of 0.3.0 (no per-shot logging or control there).
-- Minor version bump justified: changes run-time behavior, not just config.
-
-### Camera-test gates (risk order; must pass before shipping)
-- **G1 keys-while-dark:** hardware keys still reach the activity with
-  Display.NONE active — the whole wake interaction hangs on this.
-  Fallbacks if not: wake via S1 half-press, or minimum panel brightness
-  instead of NONE (less saving, still something).
-- **G2 capture-without-preview:** timed shots complete without the
-  cancelTakePicture + startPreview cycle between them (v0.2.4 showed
-  skipping the *release* bricks shot 2+; is resume equally required?).
-  Bulb runs don't resume preview anyway (cancelExposure ends the shot).
-- **G3 display restore:** NONE → remembered state, no stuck EVF/HDMI
-  (Display.Listener events already arrive — watch them during the test).
-- **G4 review suppression:** stills still store + seq increments with the
-  review cancelled (cancel must not drop the file).
-- **G5 perturbation:** does display-off or the review control disturb the
-  exposure listeners / Bulb position detection (the 0.2.12 interaction
-  question, now with a second writer in the mix)?
-- **G6 battery numbers:** sticky % values sane on this firmware (optional
-  Sony Power remain-time listener as a bonus readout); StatFs path
-  correct on-device.
-
-### Camera-test round
-- G1..G6 in order; then one real long run (60-shot Bulb or 30 s x 60) in
-  PWR mode: wake HUD correct (shots/battery/storage), trash-stop works
-  from dark after a wake press, summary + display restore, log shows the
-  per-shot battery curve (the %/h delta vs a display-on run is the proof
-  the feature works).
-
-Results (2026-11-15, shipped build): G1-G5 passed, G6 partial.
-- G1/G3: two clean 5-shot PWR runs - wake gate consumed the key,
-  wake/sleep at exactly 5 s, display restored to SCREEN, review never
-  armed (the S2 cancel NPE is cosmetic).
-- G2/G4: every dark-run shot stored with seq increments.
-- G5: run armed at a dialed 1/15 s, again at 1/15 s after a full app
-  restart, and the UP/DOWN shutter cascade echoed 2.5 s -> 1/60 s before
-  a final run armed at 1/60 s.
-- Trash-stop from the wake HUD: four abort runs stopped mid-stage,
-  summary + restore correct each time, app survived every wake press
-  (the wake key's own release stays inert).
-- G6: per-shot battery % sane (94 -> 93% over ~13 min); the real %/h
-  long run (count=all, trash-stop at end) is still owed.
-- The round also caught a freeze: with the panel dark, a key handler
-  threw and killed the main looper (app alive, keys dead) - fixed with a
-  catch-and-log shield on the key dispatch; zero shield hits in every
-  run after.
+**Camera gate PASSED (A7 II, 2026-11-15, 3 sessions):** debug OFF ->
+skeleton-only (zero [DEBUG] lines in either OFF session; a 10-shot PWR
+run logs 37 lines where 0.3.0 logged 250+), the in-app toggle arms
+verbose mid-session (one [INFO] "debug log ON - verbose forensics on"),
+and a restart came up ON from the first line - probes, params dump and
+per-shot internals at [DEBUG], skeleton lines [INFO]. Zero [ERROR]
+lines and zero step rejections across all 0.3.1 sessions. Optional
+micro-check next session: toggle OFF and restart (persistence has been
+shown in both directions, just not OFF-after-ON).
+**Shipped as 0.3.1:** Logger.isDebug() dropped before commit (zero
+callers - the gate runs on setDebug() plus the internal flag).
 
 ---
 

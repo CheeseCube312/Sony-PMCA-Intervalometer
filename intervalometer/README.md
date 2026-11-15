@@ -5,11 +5,13 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.3.0 - everything through 0.2.15 is shipped and camera-gated.
-0.3.0 (power-saving run mode: panel off, no live view, wake HUD) shipped
-2026-11-15: gates G1-G5 passed, the G6 %/h long run is still owed
-(results in roadmap.md); the gate round also caught and fixed a
-key-dispatch crash that froze dark runs. Still awaiting
+**Status: 0.3.1 (built, not yet camera-gated). Everything through 0.3.0 is
+shipped and camera-gated: 0.3.0 (power-saving run mode: panel off, no live
+view, wake HUD) shipped 2026-11-15 - gates G1-G5 passed, the G6 %/h long
+run is still owed (results in roadmap.md); the gate round also caught and
+fixed a key-dispatch crash that froze dark runs. 0.3.1 adds the DEBUG log
+gate (config grid): the verbose session log is off by default, the run
+skeleton and every error still log. Still awaiting
 on-camera verification from earlier rounds: the ISO echo filter, ISO in
 Bulb, the bulb-exit self-check, the bare-edit aperture A/B, the 3-strike
 abort, and the 0.2.15 S2 abort.**
@@ -34,6 +36,7 @@ abort, and the 0.2.15 S2 abort.**
 - 0.2.14 - encoding round settled: raw = f-number x100; grid display fixed (tag `v0.2.14`).
 - 0.2.15 - S2 abort: any S2 press after the one that fired quits an in-flight capture early and stops a run at its current stage (summary prints); the firing press's own release is exempt, so taps can no longer eat a delay-0 first shot or a single mid-store.
 - 0.3.0 - power-saving run mode (PWR): runs start dark - live view stopped, panel `Display.NONE`, shot review cancelled; any key wakes a 5 s HUD (taken/planned, battery %, storage estimate); the pre-run display is restored before the summary; every stored shot logs its battery %. Adds the key-dispatch crash shield (a handler throw logs and is swallowed instead of killing the main looper - the dark-run freeze found in the gate round). Camera-gated 2026-11-15 (G1-G5 passed; %/h long run owed).
+- 0.3.1 - debug log gate: the config grid gains a DEBUG field (persisted, default OFF). OFF keeps the essential log - session header, device, config, run start/end, per-shot fired/stored, aborts, wake chain, errors; ON adds the camera forensics (params dump, probes, listener mirrors, ISO/aperture step echoes, review/iris internals) and arms live, no restart. The session header names the mode, so a pulled log always says whether it is verbose.
 
 ## Key findings
 
@@ -128,6 +131,13 @@ Camera open/preview lifecycle, S2 stills (timing + card path) and any errors
 land there. The camera's wall clock resets to 1970-01-01 on a power cycle,
 so absolute LOG.TXT timestamps are only comparable within one powered
 session - the run-relative times (`fired @ +mm:ss`, planned) are unaffected.
+
+Two tiers (0.3.1): ERROR (crash shields, watchdog, failures) and the INFO
+skeleton always log; the DEBUG tier (params dump, probes, listener mirrors,
+step echoes, review/iris internals) only while the config grid's DEBUG field
+is ON. The flag persists across restarts and power cycles like every config
+choice and arms live on toggle; the session header names the mode. To
+troubleshoot a failure: DEBUG ON, reproduce, pull LOG.TXT, DEBUG OFF.
 
 ## Engine facts (do not fight them)
 

@@ -30,7 +30,7 @@ import java.io.IOException;
  *
  * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
  * in reading order (interval -> count -> exposure -> delay -> ISO -> F ->
- * PWR -> shot now). S2 starts the run - on the Shot now field it fires ONE capture
+ * PWR -> DEBUG -> shot now). S2 starts the run - on the Shot now field it fires ONE capture
  * instead (0.2.11). S2 is also the deliberate abort (0.2.15): any S2 press
  * after the one that fired quits an in-flight capture early (the release the
  * per-frame cycle schedules anyway) and, mid-run, stops the engine at its
@@ -71,14 +71,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
-    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 F, 6 shot now, 7 PWR
+    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 F, 6 shot now, 7 PWR, 8 debug log
     // LEFT/RIGHT walk the grid in reading order: Interval (top-left) ->
     // Count (top-right) -> Exposure (mid-left) -> Delay (mid-right) ->
-    // ISO (bottom-left) -> F -> PWR -> Shot now (last; S2 there fires one
-    // capture instead of a run).
+    // ISO (bottom-left) -> F -> PWR -> DEBUG -> Shot now (last; S2 there
+    // fires one capture instead of a run).
     // Indexed by the current field; the entry is where the key lands.
-    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 7, 0, 6};
-    private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 7, 5};
+    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 7, 0, 8, 6};
+    private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 8, 5, 7};
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private volatile CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK) - volatile: the listener (HAL thread) writes it, main reads it
@@ -229,7 +229,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 return;
             try {
                 camera.cancelTakePicture();
-                Logger.info("capture released (cancelTakePicture)");
+                Logger.debug("capture released (cancelTakePicture)");
             } catch (Throwable t) {
                 Logger.error("cancelTakePicture: " + t);
             }
@@ -253,13 +253,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 return;
             try {
                 camera.cancelExposure();
-                Logger.info("bulb exposure ended (cancelExposure) @ " + bulbShotMs + " ms");
+                Logger.debug("bulb exposure ended (cancelExposure) @ " + bulbShotMs + " ms");
             } catch (Throwable t) {
                 Logger.error("cancelExposure: " + t); // shutter may hang open - loud, the watchdog caps the run
             }
             try {
                 camera.cancelTakePicture();
-                Logger.info("bulb released (cancelTakePicture)");
+                Logger.debug("bulb released (cancelTakePicture)");
             } catch (Throwable t) {
                 Logger.error("bulb cancelTakePicture: " + t);
             }
@@ -442,6 +442,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         } catch (Exception e) {
             // getPackageInfo on our own package cannot realistically fail - keep the "?" default
         }
+        Logger.setDebug(IntervalConfig.readDebugLog(getPreferences(MODE_PRIVATE))); // before the header - it names the mode
         Logger.beginSession(version);
         Logger.info("device: " + Build.MODEL + " / Android " + Build.VERSION.RELEASE
                 + " / abi " + abiNames());
@@ -548,7 +549,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     handler.removeCallbacks(bulbExitConfirm);
                     Logger.info("bulb exit confirmed: " + fmtSpeed(info));
                 }
-                Logger.info("shutter speed: " + fmtSpeed(info)
+                Logger.debug("shutter speed: " + fmtSpeed(info)
                         + " (n=" + (info == null ? -1 : info.currentShutterSpeed_n)
                         + " d=" + (info == null ? -1 : info.currentShutterSpeed_d)
                         + " min n=" + (info == null ? -1 : info.currentAvailableMin_n)
@@ -566,19 +567,19 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 String s = status == CameraEx.ShutterListener.STATUS_OK ? "OK"
                         : status == CameraEx.ShutterListener.STATUS_CANCELED ? "CANCELED"
                         : status == CameraEx.ShutterListener.STATUS_ERROR ? "ERROR" : "?" + status;
-                Logger.info("shutter event: " + s + (stillT0 != 0
+                Logger.debug("shutter event: " + s + (stillT0 != 0
                         ? " @ +" + (SystemClock.elapsedRealtime() - stillT0) + " ms" : ""));
             }
         });
         camera.setCaptureStatusListener(new CameraEx.OnCaptureStatusListener() {
             @Override
             public void onStart(int mode, CameraEx cam) {
-                Logger.info("capture status: START mode " + mode);
+                Logger.debug("capture status: START mode " + mode);
             }
 
             @Override
             public void onEnd(int mode, int reason, CameraEx cam) {
-                Logger.info("capture status: END mode " + mode + " reason "
+                Logger.debug("capture status: END mode " + mode + " reason "
                         + (reason == CameraEx.OnCaptureStatusListener.REASON_CANCEL ? "CANCEL" : "NORMAL")
                         + (stillT0 != 0 ? " @ +" + (SystemClock.elapsedRealtime() - stillT0) + " ms" : ""));
             }
@@ -586,7 +587,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         camera.setExposureCompleteListener(new CameraEx.ExposureCompleteListener() {
             @Override
             public void onDone(int result, CameraEx.ExposureInfo info, CameraEx cam) {
-                Logger.info("exposure complete: result " + result
+                Logger.debug("exposure complete: result " + result
                         + (info != null ? " (F" + info.FNo + " ISO " + info.IsoSpeedRate
                         + " n=" + info.ShutterSpeedNumber + " d=" + info.ShutterSpeedDeanom + ")" : ""));
             }
@@ -601,7 +602,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             public void onChanged(int iso, CameraEx cam) {
                 if (SystemClock.uptimeMillis() - lastIsoWriteMs < ISO_ECHO_WINDOW_MS)
                     return; // late echo of our own write, not a body decision
-                Logger.info("ISO auto: camera picked " + (iso == 0 ? "0 (AUTO)" : String.valueOf(iso)));
+                Logger.debug("ISO auto: camera picked " + (iso == 0 ? "0 (AUTO)" : String.valueOf(iso)));
             }
         });
         // 0.2.13 - aperture mirror + event ground truth, same shape as the
@@ -610,7 +611,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             @Override
             public void onApertureChange(CameraEx.ApertureInfo info, CameraEx cam) {
                 apertureInfo = info;
-                Logger.info("aperture: " + fmtAperture(info)
+                Logger.debug("aperture: " + fmtAperture(info)
                         + " (raw=" + (info == null ? -1 : info.currentAperture)
                         + " min=" + (info == null ? -1 : info.currentAvailableMin)
                         + " max=" + (info == null ? -1 : info.currentAvailableMax) + ")");
@@ -638,10 +639,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             probeAnchor = null; // next callback in the window anchors the armed value
             probeCorrections = 0;
             probeDeadline = SystemClock.elapsedRealtime() + 3000;
-            Logger.info("exposure probe: down/up step pair done");
+            Logger.debug("exposure probe: down/up step pair done");
         } catch (Throwable t) {
             probeDeadline = 0; // pair rejected - no anchor, no correction, logic inert
-            Logger.info("exposure probe failed: " + t); // stepping may be disallowed in this exposure mode
+            Logger.debug("exposure probe failed: " + t); // stepping may be disallowed in this exposure mode
         }
         // 0.2.13 - same idea for the iris: provoke one ApertureChangeListener
         // callback so the F field mirrors the camera from the first paint.
@@ -653,10 +654,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             apertureAnchor = null; // next callback in the window anchors the armed value
             apertureCorrections = 0;
             apertureProbeDeadline = SystemClock.elapsedRealtime() + 3000;
-            Logger.info("aperture probe: up/down step pair done");
+            Logger.debug("aperture probe: up/down step pair done");
         } catch (Throwable t) {
             apertureProbeDeadline = 0;
-            Logger.info("aperture probe failed: " + t); // stepping may be disallowed in this exposure mode
+            Logger.debug("aperture probe failed: " + t); // stepping may be disallowed in this exposure mode
         }
         logSupportedParameters(); // one-time diagnostic: every key this HAL accepts
         probeIso(); // read-only: supported ISO list + the camera's current ISO (no write at open)
@@ -703,7 +704,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Logger.info("surface changed " + width + "x" + height + " fmt " + format);
+        Logger.debug("surface changed " + width + "x" + height + " fmt " + format);
     }
 
     @Override
@@ -744,7 +745,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             StringBuilder before = new StringBuilder("look before:");
             for (String k : keys)
                 before.append(' ').append(k).append('=').append(p.get(k));
-            Logger.info(before.toString());
+            Logger.debug(before.toString());
 
             p.set("color-mode", "standard"); // Creative Style; Recipe Lab's table: 6 = "mono"
             p.set("picture-effect", "off"); // PE off; rough-mono / richtone-mono are the mono PEs
@@ -755,7 +756,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             StringBuilder after = new StringBuilder("look after:");
             for (String k : keys)
                 after.append(' ').append(k).append('=').append(back.get(k));
-            Logger.info(after.toString());
+            Logger.debug(after.toString());
         } catch (Throwable t) {
             Logger.error("forceColorLook failed: " + Log.getStackTraceString(t));
         }
@@ -768,7 +769,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             camera.getNormalCamera().stopPreview();
             Logger.info("preview stopped");
         } catch (Throwable t) {
-            Logger.info("stopPreview: " + t); // not started / already stopped - fine
+            Logger.debug("stopPreview: " + t); // not started / already stopped - fine
         }
     }
 
@@ -807,14 +808,17 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         else if (selField == 7)
             hint = config.pwr() ? "PWR ON - runs start dark, any key wakes the HUD"
                     : "PWR OFF - panel stays on during runs";
+        else if (selField == 8)
+            hint = config.debugLog() ? "DEBUG ON - full session log (forensics)"
+                    : "DEBUG OFF - essential log only";
         overlayView.setLines(new String[]{
                 "Intervalometer v" + version,
                 "Interval " + mark(0, config.intervalStr())
                         + "  Count " + mark(2, config.countStr()),
                 "Exposure " + mark(1, exposureStr())
                         + "  Delay " + mark(3, config.delayStr()),
-                "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr())
-                        + "  PWR " + mark(7, config.pwrStr()),
+                "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr()),
+                "PWR " + mark(7, config.pwrStr()) + "  DEBUG " + mark(8, config.debugLogStr()),
                 mark(6, "Shot now"),
                 hint,
                 selField == 6 ? "S2 = ONE SHOT | trash exit" : "S2 start/stop | trash exit"});
@@ -847,21 +851,21 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             return; // no window or it closed - user steps are never touched
         if (probeAnchor == null) {
             probeAnchor = info;
-            Logger.info("probe anchor: " + fmtSpeed(info));
+            Logger.debug("probe anchor: " + fmtSpeed(info));
         } else if (probeCorrections < 3 && !isBulb(info) && !sameSpeed(info, probeAnchor)) {
             probeCorrections++;
             probeDeadline = now + 2000; // correction callbacks land within ~1 s
             try {
                 if (fasterThan(info, probeAnchor)) {
                     camera.decrementShutterSpeed(); // too fast - step toward slower
-                    Logger.info("probe correction #" + probeCorrections + ": stepping slower toward " + fmtSpeed(probeAnchor));
+                    Logger.debug("probe correction #" + probeCorrections + ": stepping slower toward " + fmtSpeed(probeAnchor));
                 } else {
                     camera.incrementShutterSpeed(); // too slow - step toward faster
-                    Logger.info("probe correction #" + probeCorrections + ": stepping faster toward " + fmtSpeed(probeAnchor));
+                    Logger.debug("probe correction #" + probeCorrections + ": stepping faster toward " + fmtSpeed(probeAnchor));
                 }
             } catch (Throwable t) {
                 probeDeadline = 0; // mode forbids stepping - give up rather than loop
-                Logger.info("probe correction failed: " + t);
+                Logger.debug("probe correction failed: " + t);
             }
         }
     }
@@ -935,6 +939,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             config.adjustCount(dir);
         else if (selField == 7)
             config.adjustPwr(); // ON/OFF toggle - same in both directions
+        else if (selField == 8) {
+            Logger.setDebug(config.adjustDebugLog()); // ON/OFF toggle - armed live, no restart needed
+            Logger.info("debug log " + config.debugLogStr() + (config.debugLog()
+                    ? " - verbose forensics on" : " - forensics off, essential log only"));
+        }
         else
             config.adjustDelay(dir);
         config.save();
@@ -995,7 +1004,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         int idx = isoIdx < 0 ? 0 : isoIdx;
         int next = idx + dir;
         if (next < 0 || next >= isoValues.length) {
-            Logger.info("ISO at list end - kept " + isoStr());
+            Logger.debug("ISO at list end - kept " + isoStr());
             return;
         }
         setIso(isoValues[next]);
@@ -1010,7 +1019,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             cam.setParameters(p);
             lastIsoWriteMs = SystemClock.uptimeMillis();
             adoptIso(cam.getParameters().get(ISO_KEY));
-            Logger.info("ISO: wrote " + (value == 0 ? "0 (AUTO)" : String.valueOf(value))
+            Logger.debug("ISO: wrote " + (value == 0 ? "0 (AUTO)" : String.valueOf(value))
                     + " - camera kept " + isoStr() + (isoKept == value ? "" : " - REJECTED"));
         } catch (Throwable t) {
             Logger.error("ISO write failed: " + t);
@@ -1055,14 +1064,14 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     try {
                         parsed[n++] = Integer.parseInt(parts[i].trim());
                     } catch (NumberFormatException e) {
-                        Logger.info("ISO list: skipped unparsable \"" + parts[i] + "\"");
+                        Logger.debug("ISO list: skipped unparsable \"" + parts[i] + "\"");
                     }
                 }
                 isoValues = new int[n];
                 System.arraycopy(parsed, 0, isoValues, 0, n);
             }
             adoptIso(p.get(ISO_KEY));
-            Logger.info("ISO: camera at " + isoStr() + ", " + isoValues.length + " supported"
+            Logger.debug("ISO: camera at " + isoStr() + ", " + isoValues.length + " supported"
                     + (isoValues.length > 0
                             ? " (" + isoValues[0] + ".." + isoValues[isoValues.length - 1] + ")"
                             : ""));
@@ -1096,7 +1105,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             else
                 camera.decrementAperture();
         } catch (Throwable t) {
-            Logger.info("aperture step rejected: " + t);
+            Logger.error("aperture step rejected: " + t); // same class as shutter step - mode disallows stepping, field keeps the camera's value
         }
         scheduleIrisRestore(); // the unlock is per-edit hygiene, not a state to leave armed
     }
@@ -1111,7 +1120,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 p.set(PREVIEW_KEY, PREVIEW_UNLOCK);
                 cam.setParameters(p);
                 String kept = cam.getParameters().get(PREVIEW_KEY);
-                Logger.info("iris unlock: " + PREVIEW_UNLOCK
+                Logger.debug("iris unlock: " + PREVIEW_UNLOCK
                         + (PREVIEW_UNLOCK.equals(kept) ? "" : " - camera kept " + kept));
             }
         } catch (Throwable t) {
@@ -1133,7 +1142,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             if (!"off".equals(p.get(PREVIEW_KEY))) {
                 p.set(PREVIEW_KEY, "off");
                 cam.setParameters(p);
-                Logger.info("iris unlock off - camera kept " + cam.getParameters().get(PREVIEW_KEY));
+                Logger.debug("iris unlock off - camera kept " + cam.getParameters().get(PREVIEW_KEY));
             }
         } catch (Throwable t) {
             Logger.error("iris restore failed: " + t);
@@ -1153,23 +1162,23 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             return; // no window or it closed - user steps are never touched
         if (apertureAnchor == null) {
             apertureAnchor = info;
-            Logger.info("aperture anchor: " + fmtAperture(info));
+            Logger.debug("aperture anchor: " + fmtAperture(info));
         } else if (apertureCorrections < 3 && info.currentAperture != apertureAnchor.currentAperture) {
             apertureCorrections++;
             apertureProbeDeadline = now + 2000; // correction callbacks land within ~1 s
             try {
                 if (info.currentAperture > apertureAnchor.currentAperture) {
                     camera.decrementAperture(); // raw value too high - step toward the anchor
-                    Logger.info("aperture correction #" + apertureCorrections
+                    Logger.debug("aperture correction #" + apertureCorrections
                             + ": stepping toward " + fmtAperture(apertureAnchor));
                 } else {
                     camera.incrementAperture(); // raw value too low - step toward the anchor
-                    Logger.info("aperture correction #" + apertureCorrections
+                    Logger.debug("aperture correction #" + apertureCorrections
                             + ": stepping toward " + fmtAperture(apertureAnchor));
                 }
             } catch (Throwable t) {
                 apertureProbeDeadline = 0; // mode forbids stepping - give up rather than loop
-                Logger.info("aperture correction failed: " + t);
+                Logger.debug("aperture correction failed: " + t);
             }
         }
     }
@@ -1198,10 +1207,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     private void logSupportedParameters() {
         try {
             String flat = camera.getSupportedParameters().flatten();
-            Logger.info("supported parameters: " + flat.length() + " chars");
+            Logger.debug("supported parameters: " + flat.length() + " chars");
             for (int i = 0; i < flat.length(); i += 180) {
                 int end = Math.min(flat.length(), i + 180);
-                Logger.info("params[" + i + ".." + end + "]: " + flat.substring(i, end));
+                Logger.debug("params[" + i + ".." + end + "]: " + flat.substring(i, end));
             }
         } catch (Throwable t) {
             Logger.error("supported parameters dump failed: " + t);
@@ -1242,7 +1251,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         if (dm != null) {
             try {
                 dm.setActiveDisplay(DisplayManager.Display.NONE);
-                Logger.info("power run: display -> NONE");
+                Logger.debug("power run: display -> NONE");
             } catch (Throwable t) {
                 Logger.error("power run display failed: " + t); // panel may stay on - savings lost, run unaffected
             }
@@ -1259,16 +1268,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             if (times != null)
                 for (int i = 0; i < times.length; i++)
                     sb.append(' ').append(times[i]);
-            Logger.info(sb.toString());
+            Logger.debug(sb.toString());
             c.cancelAutoPictureReview();
             camera.setAutoPictureReviewControl(c);
             reviewControl = c;
-            Logger.info("review: cancelled - camera kept time " + c.getPictureReviewTime()
+            Logger.debug("review: cancelled - camera kept time " + c.getPictureReviewTime()
                     + ", type " + c.getReviewType());
         } catch (Throwable t) {
             // observed on-camera 0.3.0: the framework stub NPEs after stopPreview - the
             // review can't render with the panel off anyway, so this never blocked a run
-            Logger.info("review cancel rejected (expected in PWR): " + t);
+            Logger.debug("review cancel rejected (expected in PWR): " + t);
         }
     }
 
@@ -1291,7 +1300,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 Logger.error("power run end display failed: " + t);
             }
         }
-        Logger.info("review readback after run: " + reviewReadback());
+        Logger.debug("review readback after run: " + reviewReadback());
     }
 
     /** The review control's current state, log-friendly (survival evidence across pause). */
@@ -1663,9 +1672,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             while ((line = in.readLine()) != null)
                 if (line.startsWith("Processor") || line.startsWith("Hardware")
                         || line.startsWith("Features"))
-                    Logger.info("cpu: " + line.trim());
+                    Logger.debug("cpu: " + line.trim());
         } catch (IOException e) {
-            Logger.info("cpuinfo unavailable: " + e);
+            Logger.debug("cpuinfo unavailable: " + e);
         } finally {
             if (in != null)
                 try {

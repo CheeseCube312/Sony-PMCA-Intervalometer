@@ -26,6 +26,17 @@ public class Logger {
     public static final String TAG = "INTVL";
     public static final String LOG_DIR = "INTVL";
 
+    /**
+     * The debug gate (0.3.1): OFF - the production log keeps only the
+     * lifecycle skeleton (session header, device, config, run start/end,
+     * per-shot fired/stored lines, aborts, wake chain, errors); ON - every
+     * debug() line is written too, for third-party troubleshooting.
+     * Persisted via IntervalConfig; armed in onCreate, re-armed live on
+     * toggle. volatile: the UI thread writes it, camera/HAL listener
+     * threads read it on every debug() call.
+     */
+    private static volatile boolean debug = false;
+
     public static File getFile() {
         return new File(Environment.getExternalStorageDirectory(), LOG_DIR + "/LOG.TXT");
     }
@@ -42,7 +53,8 @@ public class Logger {
         boolean hadPrevious = file.exists();
         boolean rotated = hadPrevious && file.renameTo(old);
         log("INFO", "--- " + TAG + " v" + version + " session start "
-                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date()) + " ---");
+                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date())
+                + " (debug log " + (debug ? "ON" : "OFF") + ") ---");
         if (hadPrevious && !rotated)
             log("INFO", "log rotation failed - appending to previous sessions");
     }
@@ -69,5 +81,23 @@ public class Logger {
 
     public static void error(String msg) {
         log("ERROR", msg);
+    }
+
+    /** Arms/disarms the verbose tier (the config screen's DEBUG field); takes effect immediately. */
+    public static void setDebug(boolean on) {
+        debug = on;
+    }
+
+    /**
+     * Verbose forensics (0.3.1): camera-internal echoes - the params dump,
+     * probe pairs, listener mirrors, ISO/aperture step echoes, review and
+     * iris internals. Written (and echoed to logcat) only while the debug
+     * gate is ON; the INFO/ERROR tiers always log. String building at the
+     * call site still happens - the gate skips the file I/O, which is the
+     * real per-line cost (open/append/close).
+     */
+    public static void debug(String msg) {
+        if (debug)
+            log("DEBUG", msg);
     }
 }

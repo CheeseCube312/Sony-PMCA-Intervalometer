@@ -15,8 +15,6 @@ import com.sony.scalar.sysutil.ScalarInput;
  */
 public class BaseActivity extends Activity implements DisplayManager.Listener {
     private DisplayManager displayManager;
-    /** Last display-change event (also seeded at resume) - the PWR run's restore target (0.3.0). */
-    protected DisplayManager.Display currentDisplay = DisplayManager.Display.SCREEN;
 
     @Override
     protected void onResume() {
@@ -25,7 +23,6 @@ public class BaseActivity extends Activity implements DisplayManager.Listener {
 
         displayManager = DisplayManager.create(this);
         displayManager.addListener(this);
-        currentDisplay = displayManager.getActiveDisplay(); // seed the mirror before the first event
 
         // LOW color depth while the camera preview is running (as PMCADemo's CameraActivity)
         setColorDepth(false);
@@ -134,7 +131,10 @@ public class BaseActivity extends Activity implements DisplayManager.Listener {
 
     @Override
     public void displayChanged(DisplayManager.Display display) {
-        currentDisplay = display;
+        // Only real-device flips (SCREEN/FINDER/HDMI) reach this - the app's own
+        // Display.NONE switches do not echo back (0.3.0 gate-log evidence), so a
+        // listener-side mirror can never observe the dark phase. The PWR restore
+        // target is snapshotted live at run start instead (IntervalActivity).
         Logger.info("Display changed: " + display);
     }
 
