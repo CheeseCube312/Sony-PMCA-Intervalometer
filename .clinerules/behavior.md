@@ -16,3 +16,10 @@
 ## Verification
 - After changes: 1-3 sentences on what changed and why. No more.
 - Run tests/build if available. Report pass/fail plainly — no speculation.
+
+## Git
+- Repo root is the workspace root - never `git add -A` / `git add .`; stage
+  files explicitly (untracked log churn lives at the root).
+- LOG.TXT / logcat dumps are per-session camera pulls - never commit log churn.
+- `gradlew` piped through `2>&1`: exit 1 from the deprecation note is not a
+  build failure - check for BUILD SUCCESSFUL.

@@ -5,7 +5,7 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.2.13 - Phase 2 trust work shipped through 0.2.10: persistence,
+**Status: 0.2.14 - Phase 2 trust work shipped through 0.2.10: persistence,
 custom slots, failure abort, exposure control + true bulb (self-checking
 Bulb exit). 0.2.11 added single shooting ("Shot now" on the config grid -
 one capture at the current exposure, staying in config) and reworked count

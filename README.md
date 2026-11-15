@@ -7,8 +7,6 @@ the Sony Alpha 7 II (PlayMemories Camera Apps platform).
 
 - `intervalometer/` - the app project (Gradle, Java). See its `README.md` for
   the full development history and current status.
-- `LOG.TXT` - pulled session logs from the camera; the empirical evidence
-  behind every engine decision.
 - `.clinerules` - assistant working conventions for this workspace.
 
 ## What's deliberately NOT tracked
@@ -16,18 +14,24 @@ the Sony Alpha 7 II (PlayMemories Camera Apps platform).
 - `recipe-lab-sony-pmca/` - third-party Recipe Lab reference app (upstream
   clone; git can't embed nested repos, and its content doesn't change).
 - `Blank/` - PMCA framework demo clones and the original starting package.
+- `LOG.TXT` - pulled camera session logs (the empirical evidence behind
+  every engine decision). They churn every pull, so they stay untracked;
+  committed snapshots through `5103f9f` remain in history.
 - Build artifacts, `.gradle/`, `local.properties` - regenerated per machine.
 
-## Checkpoint: v0.2.6
+## Checkpoint: v0.2.14
 
-Everything in v0.2.5-mvp (exposure control + true bulb, interval-as-minimum
-grid, 90 s never-stored watchdog, summary wait), plus the first Phase 2
-trust work: config persists across restarts and power cycles, custom
-interval/bulb slots edit in place and persist their value, presets run out
-to 1 h interval / 30 min bulb, a run stops as `failed` after 3 consecutive
-`takePicture` rejections, and the running overlay warns when a shot is
-held behind a live capture. Gated on camera 2026-11-14: persistence incl.
-a power cycle, custom-slot bounds, long presets, 10/10 on-grid at the
-custom 5 s interval. Hold warning + reject abort are code-shipped but not
-yet exercised on camera - tag only after both have been seen live
-(Previous checkpoint: `v0.2.5-mvp` - exposure control + true bulb.)
+Phase 1 (0.2.0-0.2.5: exposure control + true bulb) and Phase 2 trust work
+(0.2.6-0.2.10: persistence, custom slots, failure abort, hold warning) are
+shipped and camera-gated. Since: 0.2.11 single shot + count ladder, 0.2.12
+ISO control (read-back verified), 0.2.13 aperture control (event-driven,
+iris unlock wrapper), 0.2.14 aperture display fix for the confirmed x100
+encoding - tagged `v0.2.14`. Still owed on camera: the ISO echo filter
+(no ISO writes since the fix), ISO in Bulb, the bulb-exit self-check, the
+bare-edit aperture A/B, and the 3-strike abort - a 2026-11-14 11:11 run
+logged six consecutive `takePicture` throws and still finished
+`done, stored 1 of 10`, so the abort has never fired (the hold warning HAS
+been seen live: shots 8-10 held at 19:35 the same day). Full history and
+status: `intervalometer/README.md`; living plan with open items:
+`roadmap.md`. Next: 0.3.0 power saving. (Previous checkpoint: `v0.2.6` -
+Phase 2 trust work begins.)

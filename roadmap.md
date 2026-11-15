@@ -4,12 +4,28 @@ _Created 2026-11-14 after the 0.2.10 no-bug verdict. Base: 0.2.10, versionCode 1
 tree clean at `5ee6842`. Order agreed: 0.2.11 → 0.2.12 → 0.2.13 → 0.3.0, one commit +
 one camera-test round per version (house cadence). Delete this file when done._
 
+_Progress: 0.2.11, 0.2.12 and 0.2.13 shipped and camera-tested, plus an
+out-of-plan 0.2.14 (versionCode 20) fixing the aperture display once the
+encoding round landed. Still owed on camera: the ISO echo filter (no ISO
+writes since ffef940), ISO writes in Bulb, the bulb-exit self-check
+("bulb exit confirmed" has never logged), and the bare-edit A/B for the
+aperture unlock wrapper. Also never exercised: the 3-strike abort - a
+2026-11-14 11:11 run logged six consecutive takePicture throws and still
+finished `done, stored 1 of 10` (either a pre-0.2.6 build or the abort
+never fires under real consecutive failures - re-verify deliberately).
+Next: 0.3.0 power saving - versionCode 21 (20 was consumed by 0.2.14)._
+
 All SDK facts below were verified against the compiled stubs — **not assumed**.
 See "Re-deriving the SDK surface" at the bottom for how to re-check any of this.
 
 ---
 
-## 0.2.11 (versionCode 17) — Capture UX: single shot + count rework
+## 0.2.11 (versionCode 17) — Capture UX: single shot + count rework — SHIPPED
+
+**Outcome:** shipped and camera-verified (single shot, the 5-step count
+ladder, trash-stop of unlimited runs, count-slot persistence). The
+bulb-exit self-check carry-over in the test plan below was NOT closed here -
+it has still never logged.
 
 **Goal:** standalone one-shot capture at current exposure (dark frame / preview tool),
 and shot-count setting in 5-shot increments + an unlimited (∞) mode.
@@ -62,7 +78,14 @@ and shot-count setting in 5-shot increments + an unlimited (∞) mode.
 
 ---
 
-## 0.2.12 (versionCode 18) — ISO control
+## 0.2.12 (versionCode 18) — ISO control — SHIPPED
+
+**Outcome:** shipped; the timed ISO walk verified the write path (read-back
+"wrote X - camera kept Y" lines, AUTO picked 400 at open and the listener
+reported it). Post-test fix ffef940 added the echo filter (exactly one
+"kept" line per write) - unverified since, no ISO writes happened in the
+0.2.13/0.2.14 rounds. Bulb never exercised, so the "in Bulb?" question
+below stays open.
 
 **Goal:** new config field "ISO"; UP/DOWN walks the camera's supported ISO list
 (incl. AUTO); display always reflects what the camera actually kept.
@@ -103,7 +126,17 @@ and shot-count setting in 5-shot increments + an unlimited (∞) mode.
 
 ---
 
-## 0.2.13 (versionCode 19) — Aperture control (non-manual lenses)
+## 0.2.13 (versionCode 19) — Aperture control (non-manual lenses) — SHIPPED
+
+**Outcome:** shipped; camera round 1 proved the encoding guess below wrong -
+raw = f-number x100, not x10 (the lens walked 560..3600 = f/5.6..f/36 in
+1/3-stop steps). The open probe netted zero (one coalesced callback, the
+anchor guard stayed inert). The `iris_ss_iso_aeunlock` wrapper ran a clean
+f/5.6 -> f/36 -> f/5.6 round trip with no preview perturbation, so it stays
+until a bare-edit A/B per mode position (own open item). 0.2.14
+(versionCode 20, commit 87b0446) fixed the F-field display for x100.
+`enableIrisRing`/`disableIrisRing` remains unexercised - the log-only plan
+stands.
 
 **Goal:** new config field "F"; UP/DOWN steps the iris even when the lens/body
 owns the aperture (mode dial not in A/M where required).
@@ -149,7 +182,7 @@ owns the aperture (mode dial not in A/M where required).
 
 ---
 
-## 0.3.0 (versionCode 20) — Power-saving run mode
+## 0.3.0 (versionCode 21) — Power-saving run mode
 
 **Goal:** long-timelapse battery extension: live view off, no shot preview,
 panel off; wake to a minimal info HUD (`43/120`, battery %, storage left).
