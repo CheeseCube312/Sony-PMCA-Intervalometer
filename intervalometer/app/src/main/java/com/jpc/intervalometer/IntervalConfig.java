@@ -18,12 +18,17 @@ import android.content.SharedPreferences;
  * it. Only the custom long-exposure seconds live here (0.2.7 UX: the old
  * bulb-preset index key is stale and no longer read).
  *
- * CUSTOM slots: stepping past the last preset lands on a per-session value
- * edited in place and persisted with the config. It is a value, not a named
- * preset - the slot's position in the list stays fixed (append-only rule
- * above). The long exposure is the same idea taken further (0.2.7 UX): the
- * timed range is the camera's own stock list, and the single app-side value
- * at the Bulb position is always custom - 5-1800 s, no preset list.
+ * CUSTOM slots (0.4.0c rework): an ordinary entry in each list - LEFT/RIGHT
+ * only SELECTS it, nothing edits in place anymore. ENTER on it opens the
+ * activity's full-screen value editor (h/m/s units for the interval, a
+ * four-digit wheel for the count) and the confirmed value persists here.
+ * The count's CUSTOM sits before "all" (custom, then unlimited last), which
+ * re-points the old indices - the count persists under a fresh key
+ * ("countSlot2"), the same one-time-reset pattern the 0.2.11 rework used.
+ * The long exposure is the same idea taken further (0.2.7 UX): the timed
+ * range is the camera's own stock list, and the single app-side value at
+ * the Bulb position is always custom - 5-1800 s, still edited by LEFT/RIGHT
+ * in place (two step sizes need no editor).
  *
  * 0.2.11 - count rework: the old {10, 60, all} list becomes a 5-shot-step
  * ladder 5..600 ending in unlimited ("all"). Same wrap-around stepping as
@@ -35,18 +40,23 @@ import android.content.SharedPreferences;
 public class IntervalConfig {
     /** Config choices are discrete lists - no typing on a 4-key camera. */
     private static final int[] INTERVALS_S = {2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600};
-    // 0.2.11 rework: 5..600 in 5-shot steps, then unlimited (-1) - 121 slots.
-    private static final int[] COUNTS = new int[121];
+    // 0.2.11 ladder, reworked 0.4.0c: 5..600 in 5-shot steps, then CUSTOM
+    // (sentinel 0 - the value lives in customCount), then unlimited (-1).
+    private static final int[] COUNTS = new int[122];
     static {
         for (int i = 0; i < 120; i++)
             COUNTS[i] = 5 * (i + 1);
-        COUNTS[120] = -1; // unlimited - the engine runs until stopped (shotCount <= 0)
+        COUNTS[120] = 0;  // CUSTOM slot - ENTER opens the digit editor
+        COUNTS[121] = -1; // unlimited - the engine runs until stopped (shotCount <= 0)
     }
     private static final int[] DELAYS_S = {0, 2, 5, 10};
     private static final int DEF_INTERVAL = 4; // 30 s - the Phase 1 gate value
     private static final int DEF_COUNT = 11;   // 60 shots = 30 min @ 30 s
     private static final int DEF_DELAY = 0;
-    private static final int INTERVAL_CUSTOM_DEF = 45, INTERVAL_CUSTOM_MIN = 2, INTERVAL_CUSTOM_MAX = 3600;
+    // 0.4.0c: the h/m/s editor reaches 99:59:59 - the cap follows (was 3600).
+    private static final int INTERVAL_CUSTOM_DEF = 45, INTERVAL_CUSTOM_MIN = 2, INTERVAL_CUSTOM_MAX = 359999;
+    // the CUSTOM shot count (0.4.0c): four digits, 1-9999
+    private static final int COUNT_CUSTOM_DEF = 750, COUNT_CUSTOM_MIN = 1, COUNT_CUSTOM_MAX = 9999;
     // the custom long exposure - the one app-side exposure value (camera Bulb position)
     private static final int BULB_CUSTOM_DEF = 60, BULB_CUSTOM_MIN = 5, BULB_CUSTOM_MAX = 1800;
 
@@ -57,6 +67,7 @@ public class IntervalConfig {
     private int countIdx = DEF_COUNT;
     private int delayIdx = DEF_DELAY;
     private int customIntervalS = INTERVAL_CUSTOM_DEF;
+    private int customCount = COUNT_CUSTOM_DEF;
     private int customBulbS = BULB_CUSTOM_DEF;
     private boolean pwr; // 0.3.0 power-saving run mode - panel off during runs, wake HUD (default OFF)
     private boolean debugLog; // 0.3.1 verbose-logging gate - the Logger's DEBUG tier (default OFF)
@@ -81,10 +92,15 @@ public class IntervalConfig {
         // can't silently select a different count (the lists-grow-at-the-end
         // rule covers appends, not deliberate reworks). A missing key lands on
         // DEF_COUNT (60); a corrupt one clamps to slot 0 (5 shots) - both safe.
-        countIdx = clampIdx(prefs.getInt("countSlot", DEF_COUNT), COUNTS.length);
+        // 0.4.0c: the CUSTOM count moved before "all" (an index shift) - the
+        // count persists under a fresh key ("countSlot2"), one-time reset to
+        // the 60-shot default on the first 0.4.0c launch (0.2.11's pattern).
+        countIdx = clampIdx(prefs.getInt("countSlot2", DEF_COUNT), COUNTS.length);
         delayIdx = clampIdx(prefs.getInt("delayIdx", DEF_DELAY), DELAYS_S.length);
         customIntervalS = clampInt(prefs.getInt("customIntervalS", INTERVAL_CUSTOM_DEF),
                 INTERVAL_CUSTOM_MIN, INTERVAL_CUSTOM_MAX);
+        customCount = clampInt(prefs.getInt("customCount", COUNT_CUSTOM_DEF),
+                COUNT_CUSTOM_MIN, COUNT_CUSTOM_MAX);
         customBulbS = clampInt(prefs.getInt("customBulbS", BULB_CUSTOM_DEF),
                 BULB_CUSTOM_MIN, BULB_CUSTOM_MAX);
         pwr = prefs.getBoolean("pwr", false);
@@ -98,7 +114,8 @@ public class IntervalConfig {
     public void save() {
         SharedPreferences.Editor e = prefs.edit();
         e.putInt("intervalIdx", intervalIdx);
-        e.putInt("countSlot", countIdx); // fresh key with the 0.2.11 count rework (see load)
+        e.putInt("countSlot2", countIdx); // fresh key with the 0.4.0c CUSTOM-count rework (see load)
+        e.putInt("customCount", customCount);
         e.putInt("delayIdx", delayIdx);
         e.putInt("customIntervalS", customIntervalS);
         e.putInt("customBulbS", customBulbS);
@@ -107,24 +124,16 @@ public class IntervalConfig {
         e.apply();
     }
 
-    // --- config-screen stepping (UP/DOWN per field) ---
+    // --- config-screen stepping (LEFT/RIGHT per field) ---
 
     /**
-     * Interval field: UP/DOWN walk the presets and one CUSTOM slot
-     * (index == INTERVALS_S.length). ON the custom slot the same keys edit
-     * the value in place (intervalStep()); stepping below its floor returns
-     * to the presets at the top (3600 s).
+     * Interval field (0.4.0c): LEFT/RIGHT walk the presets and the CUSTOM
+     * slot like any other list entry. The custom value is NOT edited here
+     * anymore - while the slot is selected, the activity opens its h/m/s
+     * editor on ENTER instead.
      */
     public void adjustInterval(int dir) {
-        if (intervalIdx == INTERVALS_S.length) { // CUSTOM slot - UP/DOWN edit the value in place
-            int v = customIntervalS + dir * intervalStep();
-            if (v < INTERVAL_CUSTOM_MIN)
-                intervalIdx = INTERVALS_S.length - 1; // below the floor: back into the presets
-            else
-                customIntervalS = Math.min(INTERVAL_CUSTOM_MAX, v);
-        } else {
-            intervalIdx = wrap(intervalIdx + dir, INTERVALS_S.length + 1); // +1 = the CUSTOM slot
-        }
+        intervalIdx = wrap(intervalIdx + dir, INTERVALS_S.length + 1); // +1 = the CUSTOM slot
     }
 
     /**
@@ -149,6 +158,25 @@ public class IntervalConfig {
         return true;
     }
 
+    /**
+     * Floors the long-exposure duration for a fresh timed->Bulb entry
+     * (0.4.0): the exposure dial lands on BULB 5 s one step past the 30 s
+     * end stop - the same handshake value the LEFT floor-exit leaves from -
+     * so the breakover reads as one continuous dial in both directions.
+     */
+    public void resetBulbToFloor() {
+        customBulbS = BULB_CUSTOM_MIN;
+    }
+
+    /**
+     * Direct write, used only by IntervalActivity's swallowed-entry
+     * self-check (0.4.0) to restore the pre-entry duration when the Bulb
+     * step proves lost. Clamped to the 5-1800 s range like every edit path.
+     */
+    public void setBulbSeconds(int s) {
+        customBulbS = Math.max(BULB_CUSTOM_MIN, Math.min(BULB_CUSTOM_MAX, s));
+    }
+
     public void adjustCount(int dir) {
         countIdx = wrap(countIdx + dir, COUNTS.length);
     }
@@ -166,11 +194,6 @@ public class IntervalConfig {
     public boolean adjustDebugLog() {
         debugLog = !debugLog;
         return debugLog;
-    }
-
-    /** CUSTOM interval slot edit step: 5 s below the 120 s mark, 30 s at and above. */
-    private int intervalStep() {
-        return customIntervalS < 120 ? 5 : 30;
     }
 
     /** Long-exposure edit step: 5 s in the short range, 30 s at 60 s and up. */
@@ -195,14 +218,38 @@ public class IntervalConfig {
         return DELAYS_S[delayIdx];
     }
 
-    /** Shots per run; -1 = unlimited. */
+    /** Shots per run: the ladder value, the CUSTOM count, or -1 = unlimited. */
     public int shotCount() {
-        return COUNTS[countIdx];
+        int v = COUNTS[countIdx];
+        return v == 0 ? customCount : v;
     }
 
-    /** True while the interval selection sits on the CUSTOM slot (UP/DOWN edit the value). */
+    /** True while the interval selection sits on the CUSTOM slot (ENTER opens the h/m/s editor). */
     public boolean intervalIsCustom() {
         return intervalIdx == INTERVALS_S.length;
+    }
+
+    /** True while the count selection sits on the CUSTOM slot (ENTER opens the digit editor). */
+    public boolean countIsCustom() {
+        return COUNTS[countIdx] == 0;
+    }
+
+    /** The CUSTOM shot count's current value (the digit editor seeds from it). */
+    public int customCount() {
+        return customCount;
+    }
+
+    /** Writes the interval editor's confirmed h/m/s - units clamped, total to 99:59:59. */
+    public void setCustomIntervalHms(int h, int m, int s) {
+        h = Math.max(0, Math.min(99, h));
+        m = Math.max(0, Math.min(59, m));
+        s = Math.max(0, Math.min(59, s));
+        customIntervalS = clampInt(h * 3600 + m * 60 + s, INTERVAL_CUSTOM_MIN, INTERVAL_CUSTOM_MAX);
+    }
+
+    /** Writes the count editor's confirmed value, clamped to 1-9999. */
+    public void setCustomCount(int n) {
+        customCount = clampInt(n, COUNT_CUSTOM_MIN, COUNT_CUSTOM_MAX);
     }
 
     /** True when runs start dark (0.3.0 power-saving mode). */
@@ -223,8 +270,17 @@ public class IntervalConfig {
     // --- display strings (config screen + logs) ---
 
     public String intervalStr() {
-        return intervalIdx < INTERVALS_S.length ? fmtDur(INTERVALS_S[intervalIdx])
-                : customIntervalS + " s (custom)";
+        return fmtDur(intervalSeconds()) + (intervalIsCustom() ? " (custom)" : "");
+    }
+
+    /**
+     * Grid display for the INTERVAL field (0.4.0): the custom slot drops
+     * "(custom)" - the chip and the hint line carry that - and both slots
+     * share fmtDur, so the custom ladder reads like the presets: 2 min,
+     * 2.5 min, 3 min... instead of flipping back to raw seconds.
+     */
+    public String intervalGridStr() {
+        return fmtDur(intervalSeconds());
     }
 
     public String bulbStr() {
@@ -232,7 +288,8 @@ public class IntervalConfig {
     }
 
     public String countStr() {
-        return COUNTS[countIdx] > 0 ? String.valueOf(COUNTS[countIdx]) : "all";
+        int v = COUNTS[countIdx];
+        return v > 0 ? String.valueOf(v) : v == 0 ? String.valueOf(customCount) : "all";
     }
 
     public String delayStr() {
@@ -247,13 +304,62 @@ public class IntervalConfig {
         return debugLog ? "ON" : "OFF";
     }
 
-    /** Preset durations in friendly units: 60 s stays "60 s", 120 s becomes "2 min", 3600 s "1 h". */
+    /**
+     * Durations in friendly units: raw seconds under 2 min (60 s), whole and
+     * half minutes from 2 min up (2 min, 2.5 min, 3 min), whole and half
+     * hours at and above 1 h (1 h, 1.5 h, 2 h - the h/m/s editor's range).
+     * The free-form editor makes off-grid values ordinary now, so anything
+     * else reads out in full (3 min 17 s, 1 h 1 min 1 s) instead of raw
+     * seconds - truthful, no rounding.
+     */
     private static String fmtDur(int s) {
-        if (s >= 3600)
-            return (s / 3600) + " h";
-        if (s >= 120)
-            return (s / 60) + " min";
+        if (s >= 3600 && s % 1800 == 0) {
+            int h = s / 3600, m = (s % 3600) / 60;
+            return m == 0 ? h + " h" : h + ".5 h";
+        }
+        if (s >= 120 && s % 30 == 0)
+            return s % 60 == 0 ? (s / 60) + " min" : (s / 60) + ".5 min";
+        if (s >= 120) {
+            int h = s / 3600, m = (s % 3600) / 60;
+            StringBuilder b = new StringBuilder();
+            if (h > 0)
+                b.append(h).append(" h ");
+            if (m > 0 || h > 0)
+                b.append(m).append(" min ");
+            return b.append(s % 60).append(" s").toString();
+        }
         return s + " s";
+    }
+
+    /**
+     * The series estimate's units: minutes under an hour, hours + minutes
+     * above (seconds are noise on an estimate that already pads ~3 s of
+     * store time per frame).
+     */
+    static String fmtHm(long s) {
+        if (s < 60)
+            return s + " s";
+        if (s < 3600)
+            return (s / 60) + " min";
+        long h = s / 3600, m = (s % 3600) / 60;
+        return m == 0 ? h + " h" : h + " h " + m + " min";
+    }
+
+    /** Observed per-frame store time on this body (2-3 s) - the estimate's padding. */
+    private static final int EST_STORE_S = 3;
+
+    /**
+     * Series wall-clock estimate: delay + (shots-1) x cadence + one exposure
+     * + one store, where the cadence floor is exposure + store (the engine
+     * never fires into a busy camera - a long exposure stretches the spacing
+     * past a short interval, see IntervalEngine's hold rule). shots <= 0
+     * (unlimited) estimates nothing.
+     */
+    static long seriesSeconds(int intervalS, int delayS, int shots, int exposureS) {
+        if (shots <= 0)
+            return 0;
+        long cadence = Math.max(intervalS, exposureS + EST_STORE_S);
+        return delayS + (long) (shots - 1) * cadence + exposureS + EST_STORE_S;
     }
 
     // --- clamps (a hand-edited or older store can never select a bad slot) ---

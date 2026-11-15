@@ -47,6 +47,11 @@ remain in history), and build artifacts / `.gradle/` / `local.properties`
 - 0.2.15 - S2 abort tightened: a press after the firing one quits an in-flight capture early and stops the run at its current stage (summary prints); the firing press's own release is exempt, so taps can't eat a delay-0 first shot or a mid-store single.
 - 0.3.0 - power-saving run mode (PWR): runs start dark (live view stopped, `Display.NONE`, review off), any key wakes a 5 s HUD (taken/planned, battery %, storage estimate); pre-run display restored before the summary; stored shots log battery %. Plus the key-dispatch crash shield (a handler throw logs instead of killing the main looper). Camera-gated (G1-G5).
 - 0.3.1 - file-by-file review round: two-tier debug log gate - config-grid DEBUG field (persisted, default OFF); OFF = essential log (session header, device, config, run start/end, per-shot fired/stored, aborts, wake chain, errors), ON adds camera forensics, arms live, the session header names the mode - plus audit fixes: held-slot tick polls at 250 ms instead of spinning delay-0 through camera-busy holds, the in-flight tick no longer runs after a 3-strike abort, "aperture step rejected" bumped to ERROR; dead code dropped (`currentDisplay` mirror, `Logger.isDebug`).
+- 0.4.0 - UI pass: the config screen is an auto-collapsing dropdown menu - a tab bar (RUN PLAN / EXPOSURE / SINGLE SHOT / SETTINGS) along the top picked with LEFT/RIGHT, DOWN opens a category's items and walks them, LEFT/RIGHT adjusts the value, UP backs out to the tabs, and the contextual hint + key legend pin to the screen's bottom edge instead of riding under the walked items; after ~4 s of key silence only the tab bar stays, keeping the live view clear for framing and focus. Hold-ENTER help cards for every item and tab (any key closes, the closing press's release is swallowed), `BULB n s` exposure wording with honest custom-interval formatting, guard-windowed breakover transitions in both directions (RIGHT crosses the 30 s end stop onto BULB 5 s and climbs the 5/30 s steps, LEFT walks back and exits at the floor, and held keys can no longer bounce 30 s <-> BULB while a callback is in flight), VERSION info in SETTINGS instead of a title row, and a camera-open-failure card instead of a dead grid.
+- 0.4.0b - interval naming: the custom slot's 30 s steps above 2 min read 2.5 min, 3 min, 3.5 min... instead of flipping between seconds and minutes; INTERVAL help card states the custom rule. Version letter-bumped per UI tweak (0.4.0b, 0.4.0c...) so the VERSION field identifies the installed build.
+- 0.4.0c - value editors: CUSTOM became a plain entry in both lists (no more in-place 5 s/30 s stepping - LEFT/RIGHT only selects it); an ENTER tap on it opens a full-screen editor, h/m/s units for the interval (cap raised to 99:59:59) and a four-digit wheel for a new CUSTOM shot count (1-9999, persisted under a fresh `countSlot2` key, sitting before `all`); a dim `series ~` line on RUN PLAN estimates the total run time (delay + shots x cadence, cadence floored at exposure + ~3 s of card store - the engine holds a slot behind a live capture, so long exposures stretch the spacing), also logged at run start; off-grid custom values read `3 min 17 s` instead of raw seconds, and fmtDur learned half hours (1.5 h).
+- 0.4.0d - linger fixes: the open dropdown waits 10 s of key silence before collapsing (was 4 s - it folded away mid-thought); a selected CUSTOM interval reads `INTERVAL custom 45 s` instead of a bare value so the slot is unmistakable; the value editor never auto-collapses (the idle timer armed before it opened used to repaint the grid over it mid-edit) - ENTER saves or trash cancels, nothing else closes it.
+- 0.4.0e - naming: the PWR field reads `POWER SAVING OFF/ON` instead of `PWR OFF` - the old label said nothing about what it switched; the field's help card and the SETTINGS tab card use the same name.
 
 ## Key findings
 
@@ -78,12 +83,17 @@ capture lost. The overlay warns `camera busy - shot N waits` while held.
 **Exposure + true Bulb (0.2.5+).** The SDK steps shutter speed
 (`incrementShutterSpeed`/`decrementShutterSpeed` - software state; the dials
 drive the same value) and can only READ it via `ShutterSpeedChangeListener`
-(no getter). Bulb is the 65535 (0xFFFF) sentinel; UP/DOWN at the Bulb end
-stop edit the app-side bulb duration, DOWN below the shortest timed step
-exits back into the timed list. Bulb exit goes via incrementShutterSpeed
-(decrement is a firmware no-op) and is self-verifying: confirm the timed
-callback within 1.5 s, re-arm Bulb on timeout. Field-proven 2026-11-15: the
-first on-camera Bulb cycle needed the re-arm and it worked. Bulb exposures end with
+(no getter). Bulb is the 65535 (0xFFFF) sentinel; at the Bulb end stop
+LEFT/RIGHT edit the app-side bulb duration, and LEFT at the 5 s floor exits
+back into the timed list. incrementShutterSpeed is the only stepping that
+crosses the breakover, in BOTH directions - from the 30 s end stop it enters
+Bulb, from Bulb it lands back on 30 s (decrement is a firmware no-op there)
+- so a held key used to ping-pong the break while the callback was in
+flight. 0.4.0: both transitions claim the new position optimistically and
+self-verify (confirm the matching callback within 1.5 s, revert on timeout),
+and an entry floors the duration to 5 s so the dial reads 30 s -> BULB 5 s
+-> BULB n s. Field-proven 2026-11-15: the first on-camera Bulb cycle needed
+the exit re-arm and it worked. Bulb exposures end with
 `cancelExposure()` (the SDK's exposure-end primitive; `cancelTakePicture`
 is the timed release, ignored mid-exposure), and `takePicture` returns
 immediately at Bulb (~700 ms), so the app timer owns the exposure length.
@@ -121,7 +131,7 @@ bare-edit A/B says otherwise.
 
 **Mid-run input lock (verified 2026-11-15).** During a run every direction
 key gates on `busy()` (engine running, summary shown, run ending, capture in
-flight), so the field cursor cannot reach ISO/F/Exposure and UP/DOWN cannot
+flight), so the item walk cannot reach ISO/F/Exposure and LEFT/RIGHT cannot
 reach `adjust()` - the only route to any exposure write. ENTER is a no-op;
 PWR-asleep presses only wake the HUD. The per-shot capture path
 (`takePicture`, `startBulb` → `cancelExposure`) touches no exposure

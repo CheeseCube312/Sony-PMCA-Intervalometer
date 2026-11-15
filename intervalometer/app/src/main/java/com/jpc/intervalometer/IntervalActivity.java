@@ -19,6 +19,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Intervalometer main activity (Phase 1): config screen + fixed-grid runs.
@@ -28,16 +30,21 @@ import java.io.IOException;
  * .setPreviewDisplay -> startPreview). The app never touches preview bytes -
  * no decode, no pixel access, no NDK.
  *
- * Keys: UP/DOWN adjust the selected config value, LEFT/RIGHT walk the grid
- * in reading order (interval -> count -> exposure -> delay -> ISO -> F ->
- * PWR -> DEBUG -> shot now). S2 starts the run - on the Shot now field it fires ONE capture
- * instead (0.2.11). S2 is also the deliberate abort (0.2.15): any S2 press
- * after the one that fired quits an in-flight capture early (the release the
- * per-frame cycle schedules anyway) and, mid-run, stops the engine at its
- * current stage - stored shots stay, the summary prints. The firing press's
- * own release is exempt, so a tap can't eat a delay-0 first shot or a single
- * mid-store. S1 autofocus works as always; trash stops a run too, and from
- * the summary trash exits.
+ * Keys (0.4.0 dropdown menu): a tab bar across the top - RUN PLAN, EXPOSURE,
+ * SINGLE SHOT, SETTINGS - LEFT/RIGHT pick the category, DOWN opens its items
+ * and walks them, LEFT/RIGHT adjust the selected item, UP backs out to the
+ * tabs. The open menu auto-collapses to the bare tab bar after a short idle,
+ * keeping the live view clear for framing and focus; any key re-opens it.
+ * Holding ENTER opens the item's (or category's) help card; any key closes
+ * it (0.4.0). S2 starts the run - under SINGLE SHOT it fires ONE capture
+ * instead (0.2.11). S2 is also
+ * the deliberate abort (0.2.15): any S2 press after the one that fired quits
+ * an in-flight capture early (the release the per-frame cycle schedules
+ * anyway) and, mid-run, stops the engine at its current stage - stored shots
+ * stay, the summary prints. The firing press's own release is exempt, so a
+ * tap can't eat a delay-0 first shot or a single mid-store. S1 autofocus
+ * works as always; trash stops a run too, and from the summary trash exits.
+ * A failed camera open paints a failure card instead of a dead grid (0.4.0).
  *
  * PWR runs (0.3.0): with the config PWR field ON, a run starts dark - live
  * view stopped, panel off (Display.NONE), shot review cancelled. Any mapped
@@ -71,14 +78,37 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // config screen state - values, stepping and persistence live in IntervalConfig (0.2.7)
     private IntervalConfig config;
-    private int selField; // 0 interval, 1 exposure, 2 count, 3 delay, 4 ISO, 5 F, 6 shot now, 7 PWR, 8 debug log
-    // LEFT/RIGHT walk the grid in reading order: Interval (top-left) ->
-    // Count (top-right) -> Exposure (mid-left) -> Delay (mid-right) ->
-    // ISO (bottom-left) -> F -> PWR -> DEBUG -> Shot now (last; S2 there
-    // fires one capture instead of a run).
-    // Indexed by the current field; the entry is where the key lands.
-    private static final int[] NEXT_FIELD = {2, 3, 1, 4, 5, 7, 0, 8, 6};
-    private static final int[] PREV_FIELD = {6, 2, 0, 1, 3, 4, 8, 5, 7};
+    // 0.4.0 - dropdown menu: a tab bar of categories along the top (LEFT/RIGHT
+    // pick one, wrapping), DOWN opens the selected category's items and walks
+    // them, LEFT/RIGHT adjust the item's value, UP from the first item backs
+    // out to the tabs. The open menu auto-collapses to the bare tab bar after
+    // MENU_IDLE_MS of key silence, so the live view stays clear for framing
+    // and focus; any config key press re-opens it (menuTouch).
+    private int catSel;       // 0 RUN PLAN, 1 EXPOSURE, 2 SINGLE SHOT, 3 SETTINGS
+    private int itemSel = -1; // -1 = tab level, else index into CAT_FIELDS[catSel]
+    private boolean expanded = true; // the category's sub-menu is on screen
+    // Item -> legacy field id: hint()/HELP[]/adjust() keep their 0.2.x
+    // indices. 9 is VERSION, a display-only pseudo-field.
+    private static final int[][] CAT_FIELDS = {{0, 2, 3}, {1, 4, 5}, {6}, {7, 8, 9}};
+    // 0.4.0 - help cards: hold ENTER on any item (or tab) for a full-screen
+    // card (what it does, its range, its gotcha); any key closes it and
+    // that press's release stays inert (helpGate/helpUpGate).
+    private static final long HELP_HOLD_MS = 800;
+    private boolean enterHeld;     // ENTER down in progress (the hold timer checks it on fire)
+    private boolean helpMode;      // help card shown - every key press closes it
+    private boolean helpUpSwallow; // the release of the press that closed the card stays inert
+
+    // 0.4.0c - the value editor: an ENTER TAP on a CUSTOM slot (interval or
+    // shots) opens a full-screen editor; the old in-place stepping is gone.
+    // The hold-ENTER help card keeps working everywhere else - tryOpenEditor
+    // runs before the hold timer is armed, and while the editor is open it
+    // consumes every key until ENTER saves or trash cancels.
+    private static final int EDIT_NONE = 0, EDIT_INTERVAL = 1, EDIT_SHOTS = 2;
+    private int editorMode;                        // EDIT_* - what the editor is editing
+    private final int[] editorHms = new int[3];    // interval editor's h / m / s
+    private final int[] editorDigits = new int[4]; // shots editor, thousands..ones
+    private int editorCursor;                      // focused h/m/s unit or digit
+    private boolean editorUpSwallow;               // the trash release that cancelled the editor stays inert
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
     private volatile CameraEx.ShutterSpeedInfo shutterInfo; // latest change callback (no getter in the SDK) - volatile: the listener (HAL thread) writes it, main reads it
@@ -100,6 +130,29 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     + " ms - re-arming Bulb");
             if (!busy())
                 showConfig(); // repaint the Exposure field back to custom seconds
+        }
+    };
+    // 0.4.0 - the timed->Bulb entry is the floor exit's mirror: the increment
+    // past the 30 s end stop is issued blind and only trusted once a Bulb
+    // callback lands. If none does within BULB_ENTER_CONFIRM_MS, the step was
+    // swallowed (the camera never left 30 s) - bulbPos drops back and the
+    // entry's floor reset of the duration is undone.
+    private static final long BULB_ENTER_CONFIRM_MS = 1500;
+    private volatile long bulbEnterPendingAt; // ms since boot when the entry increment fired (0 = none)
+    private int bulbEnterPrevS;               // bulb seconds before the entry's floor reset - restored on a swallowed entry
+    /** Fires when no Bulb callback confirmed the timed->Bulb entry in time - stays timed, restores the duration. */
+    private final Runnable bulbEnterConfirm = new Runnable() {
+        @Override
+        public void run() {
+            if (bulbEnterPendingAt == 0)
+                return; // the callback confirmed the entry in time - no-op
+            bulbEnterPendingAt = 0;
+            bulbPos = false; // entry increment was swallowed - the camera never left 30 s
+            config.setBulbSeconds(bulbEnterPrevS); // undo the floor reset
+            Logger.info("bulb entry unconfirmed after " + BULB_ENTER_CONFIRM_MS
+                    + " ms - staying timed");
+            if (!busy())
+                showConfig(); // repaint the Exposure field back to the timed value
         }
     };
     // probe restore (0.2.6): the arm pair nets -1 step on this firmware; anchor the
@@ -492,8 +545,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         try {
             camera = CameraEx.open(0, null);
         } catch (Throwable t) {
-            // e.g. the stock camera app still holds the device
+            // e.g. the stock camera app still holds the device - 0.4.0: paint
+            // a failure card instead of leaving the config grid dead on screen
             Logger.error("camera open failed: " + Log.getStackTraceString(t));
+            showCameraFail();
             return;
         }
         registerCameraListeners();
@@ -548,6 +603,11 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     bulbExitPendingAt = 0; // timed callback arrived - floor exit confirmed
                     handler.removeCallbacks(bulbExitConfirm);
                     Logger.info("bulb exit confirmed: " + fmtSpeed(info));
+                }
+                if (bulbEnterPendingAt != 0 && isBulb(info)) {
+                    bulbEnterPendingAt = 0; // Bulb callback arrived - timed->Bulb entry confirmed
+                    handler.removeCallbacks(bulbEnterConfirm);
+                    Logger.info("bulb entry confirmed: " + fmtSpeed(info));
                 }
                 Logger.debug("shutter speed: " + fmtSpeed(info)
                         + " (n=" + (info == null ? -1 : info.currentShutterSpeed_n)
@@ -674,12 +734,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         handler.removeCallbacks(bulbRelease);
         handler.removeCallbacks(inFlightCap);
         handler.removeCallbacks(apertureUnlockRestore);
+        handler.removeCallbacks(bulbExitConfirm); // drop any unconfirmed-breakover self-checks
+        handler.removeCallbacks(bulbEnterConfirm);
         if (summaryTask != null) {
             handler.removeCallbacks(summaryTask);
             summaryTask = null;
         }
         runEnding = false; // no summary will print after a pause - never leave the keys gated
         s2Exempt = false; // fresh keys after a pause
+        editorMode = EDIT_NONE; // fresh config screen too - never resume into the editor
+        editorUpSwallow = false;
         powerRun = false; // engine.stop above already restored the display (powerEnd in onFinished)
         powerAwake = false;
         wakePress = false;
@@ -790,52 +854,463 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // --- config screen ---
 
-    /** Paints the config grid; the hint line is contextual (CUSTOM slot, long exposure, ISO, Shot now). */
-    private void showConfig() {
-        String hint = "UP/DOWN value  LEFT/RIGHT field";
-        if (selField == 0 && config.intervalIsCustom())
-            hint = "CUSTOM slot - UP/DOWN edit value";
-        else if (selField == 1 && bulbPos)
-            hint = config.bulbAtFloor()
-                    ? "5 s floor - DOWN exits to timed"
-                    : "long exposure - UP/DOWN edit seconds";
-        else if (selField == 4)
-            hint = "ISO - UP/DOWN step camera list";
-        else if (selField == 5)
-            hint = "F - UP/DOWN step the iris";
-        else if (selField == 6)
-            hint = "S2 fires ONE shot at this exposure";
-        else if (selField == 7)
-            hint = config.pwr() ? "PWR ON - runs start dark, any key wakes the HUD"
-                    : "PWR OFF - panel stays on during runs";
-        else if (selField == 8)
-            hint = config.debugLog() ? "DEBUG ON - full session log (forensics)"
-                    : "DEBUG OFF - essential log only";
-        overlayView.setLines(new String[]{
-                "Intervalometer v" + version,
-                "Interval " + mark(0, config.intervalStr())
-                        + "  Count " + mark(2, config.countStr()),
-                "Exposure " + mark(1, exposureStr())
-                        + "  Delay " + mark(3, config.delayStr()),
-                "ISO " + mark(4, isoStr()) + "  F " + mark(5, fStr()),
-                "PWR " + mark(7, config.pwrStr()) + "  DEBUG " + mark(8, config.debugLogStr()),
-                mark(6, "Shot now"),
-                hint,
-                selField == 6 ? "S2 = ONE SHOT | trash exit" : "S2 start/stop | trash exit"});
+    /** The selected item's legacy field id, or -1 at the tab level. */
+    private int field() {
+        return itemSel < 0 ? -1 : CAT_FIELDS[catSel][itemSel];
     }
 
-    private String mark(int field, String value) {
-        return selField == field ? "[" + value + "]" : value;
+    /** Tab style: amber chip on the open category, dim for the rest of the bar. */
+    private int tabStyle(int cat) {
+        return catSel == cat ? OverlayView.STYLE_ACCENT : OverlayView.STYLE_DIM;
+    }
+
+    /** Item style: amber chip on the walked item, white for its siblings. */
+    private int itemStyle(int item) {
+        return itemSel == item ? OverlayView.STYLE_ACCENT : OverlayView.STYLE_NORMAL;
+    }
+
+    /**
+     * Paints the config screen (0.4.0 dropdown): the tab bar always, and -
+     * while the menu is open - the selected category's items under it, plus
+     * the control rows pinned to the screen's bottom edge (hint bright,
+     * key legend dim) so they don't ride along under every walked item.
+     * The tab bar's parts flow (COL_FLOW) under one rule; items sit on the
+     * left column, the walked one chipped.
+     */
+    private void showConfig() {
+        List<OverlayView.Row> rows = new ArrayList<>();
+        rows.add(new OverlayView.Row(new OverlayView.Part[]{
+                new OverlayView.Part("RUN PLAN", OverlayView.COL_A, tabStyle(0)),
+                new OverlayView.Part("EXPOSURE", OverlayView.COL_FLOW, tabStyle(1)),
+                new OverlayView.Part("SINGLE SHOT", OverlayView.COL_FLOW, tabStyle(2)),
+                new OverlayView.Part("SETTINGS", OverlayView.COL_FLOW, tabStyle(3))}, true));
+        if (expanded) {
+            int[] fields = CAT_FIELDS[catSel];
+            for (int i = 0; i < fields.length; i++)
+                rows.add(new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part(itemText(fields[i]), OverlayView.COL_A, itemStyle(i))}));
+            // RUN PLAN only: the series estimate rides above the hint (pin 3;
+            // hidden for "all" - unlimited runs estimate nothing)
+            long series = catSel == 0 ? IntervalConfig.seriesSeconds(config.intervalSeconds(),
+                    config.delaySeconds(), config.shotCount(), exposureEstSeconds()) : 0;
+            if (series > 0)
+                rows.add(new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part("series ~ " + IntervalConfig.fmtHm(series),
+                                OverlayView.COL_A, OverlayView.STYLE_DIM)}, false, 3));
+            // hint + legend pinned to the bottom rows - constant position,
+            // detached from the item list above
+            rows.add(new OverlayView.Row(new OverlayView.Part[]{
+                    new OverlayView.Part(hint(), OverlayView.COL_A, OverlayView.STYLE_NORMAL)}, false, 2));
+            rows.add(new OverlayView.Row(new OverlayView.Part[]{
+                    new OverlayView.Part(footer(), OverlayView.COL_A, OverlayView.STYLE_DIM)}, false, 1));
+        }
+        overlayView.setRows(rows.toArray(new OverlayView.Row[0]));
+    }
+
+    /** One open item's row: label + current value (keyed by the legacy field id). */
+    private String itemText(int f) {
+        if (f == 0)
+            // "custom" in the line itself (0.4.0d) - a bare value could be a preset
+            return "INTERVAL " + (config.intervalIsCustom() ? "custom " : "") + config.intervalGridStr();
+        if (f == 1)
+            return "EXPOSURE " + exposureStr();
+        if (f == 2)
+            return "SHOTS " + config.countStr();
+        if (f == 3)
+            return "DELAY " + config.delayStr();
+        if (f == 4)
+            return "ISO " + isoStr();
+        if (f == 5)
+            return "F " + fStr();
+        if (f == 7)
+            // named out (0.4.0e) - "PWR OFF" said nothing about what it powers
+            return "POWER SAVING " + config.pwrStr();
+        if (f == 8)
+            return "DEBUG " + config.debugLogStr();
+        if (f == 9)
+            return "VERSION v" + version;
+        return "SHOT NOW"; // 6 - an action, no value
+    }
+
+    // The open menu collapses after this much key silence - a framing pause
+    // leaves just the tab bar over the live view. 10 s (0.4.0d, was 4 s):
+    // the menu folded away mid-thought too often.
+    private static final long MENU_IDLE_MS = 10000;
+    private final Runnable menuCollapse = new Runnable() {
+        @Override
+        public void run() {
+            if (!expanded || busy() || helpMode || editorMode != EDIT_NONE)
+                return; // the idle collapse never fights a card, the editor or a busy camera
+            expanded = false;
+            showConfig();
+        }
+    };
+
+    /** Any config key press: re-open the sub-menu and re-arm the idle collapse. */
+    private void menuTouch() {
+        handler.removeCallbacks(menuCollapse);
+        handler.postDelayed(menuCollapse, MENU_IDLE_MS);
+        if (!expanded) {
+            expanded = true;
+            showConfig();
+        }
+    }
+
+    /** The key legend - carries the help-card discovery since 0.4.0. */
+    private String footer() {
+        return (catSel == 2 ? "S2 = ONE SHOT | trash exit" : "S2 start/stop | trash exit")
+                + " | hold ENTER = help";
+    }
+
+    /**
+     * The contextual hint, uniform shape (0.4.0): what LEFT/RIGHT do here,
+     * then the one gotcha. Pinned to the screen's bottom edge above the
+     * key-legend footer; at tab level the hint teaches the way into the
+     * items.
+     */
+    private String hint() {
+        if (itemSel < 0)
+            return "LEFT/RIGHT category - DOWN opens";
+        int f = field();
+        if (f == 0)
+            return config.intervalIsCustom()
+                    ? "ENTER edits - h/m/s, trash cancels"
+                    : "LEFT/RIGHT presets - CUSTOM at the end";
+        if (f == 1) {
+            if (bulbPos)
+                return config.bulbAtFloor()
+                        ? "5 s floor - LEFT exits to timed"
+                        : "BULB - LEFT/RIGHT edit seconds 5-1800";
+            return "LEFT/RIGHT step the body's shutter list";
+        }
+        if (f == 2)
+            return config.countIsCustom()
+                    ? "ENTER edits - 1 to 9999, trash cancels"
+                    : "LEFT/RIGHT step - CUSTOM + all at the end";
+        if (f == 3)
+            return "LEFT/RIGHT delay before the first shot";
+        if (f == 4)
+            return "LEFT/RIGHT step the camera's ISO list";
+        if (f == 5)
+            return "LEFT/RIGHT step the iris (A/M dial)";
+        if (f == 6)
+            return "S2 fires ONE shot at this exposure";
+        if (f == 7)
+            return config.pwr() ? "runs start dark - any key wakes HUD"
+                    : "panel stays on during runs";
+        if (f == 8)
+            return config.debugLog() ? "full session log - forensics" : "essential log only";
+        return "display only"; // 9 - VERSION
+    }
+
+    /**
+     * Help cards (0.4.0): opened by holding ENTER. Index = legacy field id
+     * (see CAT_FIELDS; 9 = VERSION), 10-13 = the categories at tab level.
+     * Entry = {title, body lines...}. Kept truthful to
+     * IntervalConfig's lists and IntervalEngine's hold-never-skip rule.
+     */
+    private static final String[][] HELP = {
+            { // 0 interval - the engine waits out a busy camera, it never skips
+                    "INTERVAL",
+                    "Time between shot STARTS.",
+                    "A slot waits while the camera is still",
+                    "storing - shots fire late, never skipped:",
+                    "the interval is a minimum under long",
+                    "exposures. LEFT/RIGHT walks the presets",
+                    "2 s - 1 h; CUSTOM sits at the end, and",
+                    "ENTER there opens an h/m/s editor",
+                    "(UP/DOWN sets a unit, ENTER saves)."},
+            { // 1 exposure
+                    "EXPOSURE",
+                    "Shutter speed for every shot.",
+                    "LEFT/RIGHT step the body's own list; one",
+                    "step past 30 s lands on BULB 5 s.",
+                    "In BULB, LEFT/RIGHT set the app-side",
+                    "duration 5-1800 s; LEFT at the 5 s",
+                    "floor returns to the timed list."},
+            { // 2 count
+                    "SHOTS",
+                    "Frames per run: 5-600 in 5-shot steps,",
+                    "then CUSTOM - ENTER opens a four-digit",
+                    "editor (1-9999) - then 'all', which runs",
+                    "until stopped. LEFT/RIGHT walks the list."},
+            { // 3 delay
+                    "DELAY",
+                    "Wait before the FIRST shot only.",
+                    "0 fires immediately - use it to let the",
+                    "camera settle after pressing S2."},
+            { // 4 iso
+                    "ISO",
+                    "Sensitivity from the camera's own",
+                    "list (AUTO included where offered).",
+                    "LEFT/RIGHT step; the field shows what",
+                    "the camera kept."},
+            { // 5 f
+                    "F",
+                    "Aperture. LEFT/RIGHT step the iris",
+                    "within the lens's range; the field",
+                    "shows what the camera kept.",
+                    "Stepping needs A or M on the dial."},
+            { // 6 shot now
+                    "SHOT NOW",
+                    "S2 here fires ONE capture at the",
+                    "current exposure - no run, no count.",
+                    "Same cycle as a run shot (S1 focuses)."},
+            { // 7 power saving
+                    "POWER SAVING",
+                    "Power-saving runs.",
+                    "ON: runs start dark - live view off,",
+                    "panel asleep; any key wakes a 5 s HUD",
+                    "(shots, battery, storage).",
+                    "OFF: the screen stays on throughout."},
+            { // 8 debug
+                    "DEBUG",
+                    "Verbose session log.",
+                    "ON adds camera forensics lines; arms",
+                    "live, no restart. Leave OFF unless",
+                    "hunting a bug."},
+            { // 9 version
+                    "VERSION",
+                    "The build of Intervalometer that is",
+                    "installed; also shown in the run HUD",
+                    "and the end-of-run summary.",
+                    "Display only - nothing to adjust."},
+            { // 10 RUN PLAN tab
+                    "RUN PLAN",
+                    "The run itself: INTERVAL between shot",
+                    "starts, how many SHOTS, and the DELAY",
+                    "before the first one. DOWN opens the",
+                    "items; LEFT/RIGHT walks, ENTER on a",
+                    "CUSTOM slot edits it. The series line",
+                    "estimates the total time from interval,",
+                    "exposure and ~3 s of card store per shot."},
+            { // 11 EXPOSURE tab
+                    "EXPOSURE",
+                    "Per-shot exposure: shutter speed,",
+                    "ISO, aperture. Iris stepping needs",
+                    "A or M on the dial; shutter stepping",
+                    "needs a mode that allows it."},
+            { // 12 SINGLE SHOT tab
+                    "SINGLE SHOT",
+                    "No run - S2 here fires ONE capture at",
+                    "the current exposure (S1 focuses, the",
+                    "shot stores like a run frame). The",
+                    "footer turns into 'S2 = ONE SHOT'."},
+            { // 13 SETTINGS tab
+                    "SETTINGS",
+                    "POWER SAVING: runs start dark,",
+                    "any key wakes a 5 s HUD. DEBUG: the",
+                    "verbose session log, arms live.",
+                    "VERSION: the installed build."}};
+
+    /** Help card index: the item's field id, or 10 + cat at the tab level. */
+    private int helpIndex() {
+        int f = field();
+        return f >= 0 ? f : 10 + catSel;
+    }
+
+    /** The full-screen help card for the held position: title chip, body, dim closer. */
+    private void showHelp() {
+        String[] card = HELP[helpIndex()];
+        OverlayView.Row[] rows = new OverlayView.Row[card.length + 2];
+        rows[0] = new OverlayView.Row(new OverlayView.Part[]{
+                new OverlayView.Part(card[0] + " - HELP", OverlayView.COL_A, OverlayView.STYLE_ACCENT)});
+        for (int i = 1; i < card.length; i++)
+            rows[i] = new OverlayView.Row(card[i]);
+        rows[card.length] = new OverlayView.Row(new OverlayView.Part[0], true);
+        rows[card.length + 1] = new OverlayView.Row(new OverlayView.Part[]{
+                new OverlayView.Part("any key closes", OverlayView.COL_A, OverlayView.STYLE_DIM)});
+        overlayView.setRows(rows);
+    }
+
+    /** Camera open failed: a card instead of a silently dead grid (0.4.0). */
+    private void showCameraFail() {
+        overlayView.setRows(new OverlayView.Row[]{
+                new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part("CAMERA OPEN FAILED", OverlayView.COL_A, OverlayView.STYLE_ACCENT)}),
+                new OverlayView.Row("another app holds the camera,"),
+                new OverlayView.Row("or the driver refused open."),
+                new OverlayView.Row(" "),
+                new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part("trash exits - reopening the app", OverlayView.COL_A, OverlayView.STYLE_DIM)}),
+                new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part("retries the open.", OverlayView.COL_A, OverlayView.STYLE_DIM)})});
+    }
+    /**
+     * Help gate (0.4.0): with the card open, any key press closes it and is
+     * consumed - the action behind the key needs a fresh press. Sets
+     * helpUpSwallow so that press's release stays inert too (trash's release
+     * would otherwise exit the app). True = consumed.
+     */
+    private boolean helpGate() {
+        if (!helpMode)
+            return false;
+        helpMode = false;
+        helpUpSwallow = true;
+        showConfig();
+        return true;
+    }
+
+    /** True for the release of the press that closed the help card - swallow it. */
+    private boolean helpUpGate() {
+        if (!helpUpSwallow)
+            return false;
+        helpUpSwallow = false;
+        return true;
+    }
+
+    /** Fired when ENTER has been held for HELP_HOLD_MS - opens the card. */
+    private final Runnable helpShow = new Runnable() {
+        @Override
+        public void run() {
+            if (!enterHeld || busy() || editorMode != EDIT_NONE)
+                return;
+            helpMode = true;
+            Logger.info("help: " + HELP[helpIndex()][0]);
+            showHelp();
+        }
+    };
+
+    // --- the value editor (0.4.0c): an ENTER tap on a CUSTOM slot ---
+
+    /**
+     * ENTER tap on a CUSTOM slot opens its full-screen editor (the tap was
+     * a no-op before; hold-for-help is untouched everywhere else). While
+     * the editor is open it consumes every key until ENTER saves or trash
+     * cancels.
+     */
+    private boolean tryOpenEditor() {
+        if (!expanded || catSel != 0 || itemSel < 0)
+            return false;
+        if (itemSel == 0 && config.intervalIsCustom()) {
+            editorMode = EDIT_INTERVAL;
+            int t = config.intervalSeconds();
+            editorHms[0] = t / 3600;
+            editorHms[1] = (t % 3600) / 60;
+            editorHms[2] = t % 60;
+            editorCursor = 2; // start on seconds - the unit most edits touch
+        } else if (itemSel == 1 && config.countIsCustom()) {
+            editorMode = EDIT_SHOTS;
+            int c = config.customCount();
+            for (int i = 3; i >= 0; i--, c /= 10)
+                editorDigits[i] = c % 10;
+            editorCursor = 3; // start on the ones digit
+        } else {
+            return false;
+        }
+        handler.removeCallbacks(menuCollapse); // the editor outlives the menu's idle collapse
+        Logger.info("editor open: " + (editorMode == EDIT_INTERVAL ? "interval" : "shots"));
+        showEditor();
+        return true;
+    }
+
+    /** The editor screen: title, the value with the focused unit chipped, the key legend. */
+    private void showEditor() {
+        boolean interval = editorMode == EDIT_INTERVAL;
+        OverlayView.Part[] value = new OverlayView.Part[interval ? 3 : 4];
+        if (interval) {
+            String[] units = {pad2(editorHms[0]) + " h", " " + pad2(editorHms[1]) + " m",
+                    " " + pad2(editorHms[2]) + " s"};
+            for (int i = 0; i < units.length; i++)
+                value[i] = new OverlayView.Part(units[i], OverlayView.COL_FLOW,
+                        i == editorCursor ? OverlayView.STYLE_ACCENT : OverlayView.STYLE_NORMAL);
+        } else {
+            for (int i = 0; i < editorDigits.length; i++)
+                value[i] = new OverlayView.Part((i == 0 ? "" : " ") + editorDigits[i],
+                        OverlayView.COL_FLOW,
+                        i == editorCursor ? OverlayView.STYLE_ACCENT : OverlayView.STYLE_NORMAL);
+        }
+        overlayView.setRows(new OverlayView.Row[]{
+                new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part(editorMode == EDIT_INTERVAL ? "CUSTOM INTERVAL" : "CUSTOM SHOTS",
+                                OverlayView.COL_A, OverlayView.STYLE_ACCENT)}),
+                new OverlayView.Row(" "),
+                new OverlayView.Row(value),
+                new OverlayView.Row(" "),
+                new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part(editorMode == EDIT_INTERVAL
+                                ? "UP/DOWN set unit - LEFT/RIGHT h/m/s"
+                                : "UP/DOWN set digit - LEFT/RIGHT digit",
+                                OverlayView.COL_A, OverlayView.STYLE_DIM)}),
+                new OverlayView.Row(new OverlayView.Part[]{
+                        new OverlayView.Part("ENTER saves - trash cancels",
+                                OverlayView.COL_A, OverlayView.STYLE_DIM)})});
+    }
+
+    private static String pad2(int v) {
+        return v < 10 ? "0" + v : String.valueOf(v);
+    }
+
+    /** UP/DOWN in the editor: step the focused unit (h/m/s clamp, digits wrap 9 to 0). */
+    private void editorStep(int dir) {
+        if (editorMode == EDIT_INTERVAL) {
+            int max = editorCursor == 0 ? 99 : 59; // h 0-99, m/s 0-59
+            editorHms[editorCursor] = Math.max(0, Math.min(max, editorHms[editorCursor] + dir));
+        } else {
+            editorDigits[editorCursor] = (editorDigits[editorCursor] + dir + 10) % 10;
+        }
+        showEditor();
+    }
+
+    /** LEFT/RIGHT in the editor: move the cursor, clamped at both ends. */
+    private void editorMove(int dir) {
+        int last = editorMode == EDIT_INTERVAL ? 2 : 3;
+        editorCursor = Math.max(0, Math.min(last, editorCursor + dir));
+        showEditor();
+    }
+
+    /** ENTER in the editor: write the value into the config and repaint the grid. */
+    private void editorConfirm() {
+        if (editorMode == EDIT_INTERVAL) {
+            config.setCustomIntervalHms(editorHms[0], editorHms[1], editorHms[2]);
+            Logger.info("editor saved: interval " + config.intervalGridStr());
+        } else {
+            int c = 0;
+            for (int d : editorDigits)
+                c = c * 10 + d;
+            config.setCustomCount(c);
+            Logger.info("editor saved: shots " + config.countStr());
+        }
+        editorMode = EDIT_NONE;
+        config.save();
+        showConfig();
+        menuTouch(); // back to the grid - re-arm its idle collapse
+    }
+
+    /** trash in the editor: leave the stored value untouched. */
+    private void editorCancel() {
+        editorMode = EDIT_NONE;
+        Logger.info("editor cancelled");
+        showConfig();
+        menuTouch();
+    }
+
+    /**
+     * The current exposure's seconds for the series estimate: the bulb
+     * duration at the Bulb position, the camera's timed shutter otherwise
+     * (fractions round; sub-second speeds count as 0 - noise on this
+     * estimate). 0 until the first shutter callback names a value.
+     */
+    private int exposureEstSeconds() {
+        if (bulbPos)
+            return config.bulbSeconds();
+        CameraEx.ShutterSpeedInfo i = shutterInfo;
+        if (i == null || isBulb(i) || i.currentShutterSpeed_d <= 0)
+            return 0;
+        if (i.currentShutterSpeed_d == 1)
+            return (int) i.currentShutterSpeed_n;
+        double sec = i.currentShutterSpeed_n / (double) i.currentShutterSpeed_d;
+        return sec >= 1.0 ? (int) Math.round(sec) : 0;
     }
 
     /**
      * The Exposure field's display: the camera's own stock shutter speed in
-     * the timed range, or the custom long-exposure seconds while the camera
-     * sits at the Bulb position (0.2.7 UX - no more bulb preset list).
+     * the timed range, or "BULB n s" while the camera sits at the Bulb
+     * position (0.4.0 wording - "custom n s" meant nothing to a camera user).
      */
     private String exposureStr() {
         if (bulbPos)
-            return "custom " + config.bulbStr();
+            return "BULB " + config.bulbStr();
         return fmtSpeed(shutterInfo);
     }
 
@@ -889,11 +1364,28 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * as a defensive fallback; raw n/d are still logged on every event. One
      * step up from the timed end stop (30 s on this body) lands on Bulb, and
      * SDK decrementShutterSpeed from Bulb is a silent no-op on this firmware
-     * - only increment exits Bulb (see adjustExposure, self-checked since 0.2.10).
+     * - increment is the only stepping that crosses the breakover, in BOTH
+     * directions: from the 30 s end stop it enters Bulb, from Bulb it lands
+     * back on 30 s. That two-way increment is why both breakover transitions
+     * claim the new position optimistically and self-check (see adjustExposure).
      */
     private static boolean isBulb(CameraEx.ShutterSpeedInfo info) {
         return info != null && (info.currentShutterSpeed_n == 0xFFFF
                 || (info.currentShutterSpeed_n == 0 && info.currentShutterSpeed_d == 0));
+    }
+
+    /**
+     * True when the mirror reports the timed end stop - the camera's own
+     * slowest timed step (30 s on this body, n=30 d=1): the next increment
+     * crosses into Bulb. Gate for the optimistic timed->Bulb entry in
+     * adjustExposure (0.4.0); on a stale mirror it just makes a normal timed
+     * step, and the entry self-check reverts the claim.
+     */
+    private boolean atTimedEndStop() {
+        CameraEx.ShutterSpeedInfo i = shutterInfo;
+        return !bulbPos && i != null && !isBulb(i)
+                && i.currentShutterSpeed_n == i.currentAvailableMin_n
+                && i.currentShutterSpeed_d == i.currentAvailableMin_d;
     }
 
     /** Human shutter speed: "30 s" / "1.6 s" / "0.6 s" / "1/125 s" / "Bulb"; "?" until the first event. */
@@ -919,27 +1411,30 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         return (engine != null && engine.isRunning()) || summaryShown || runEnding || stillT0 != 0;
     }
 
-    /** UP/DOWN on the config screen: cycle the selected field's value. */
+    /** LEFT/RIGHT on an open item: cycle the item's value. */
     private void adjust(int dir) {
-        if (selField == 6)
+        int f = field();
+        if (f == 6)
             return; // Shot now is an action, not a value - the hint line explains S2
-        if (selField == 4) {
+        if (f == 9)
+            return; // VERSION is display-only
+        if (f == 4) {
             adjustIso(dir); // camera-side value; adjustIso repaints - the config store is untouched
             return;
         }
-        if (selField == 5) {
+        if (f == 5) {
             adjustF(dir); // camera-side value - the change callback repaints the F field
             return;
         }
-        if (selField == 0)
+        if (f == 0)
             config.adjustInterval(dir);
-        else if (selField == 1)
+        else if (f == 1)
             adjustExposure(dir);
-        else if (selField == 2)
+        else if (f == 2)
             config.adjustCount(dir);
-        else if (selField == 7)
+        else if (f == 7)
             config.adjustPwr(); // ON/OFF toggle - same in both directions
-        else if (selField == 8) {
+        else if (f == 8) {
             Logger.setDebug(config.adjustDebugLog()); // ON/OFF toggle - armed live, no restart needed
             Logger.info("debug log " + config.debugLogStr() + (config.debugLog()
                     ? " - verbose forensics on" : " - forensics off, essential log only"));
@@ -951,14 +1446,31 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     }
 
     /**
-     * Exposure field: UP/DOWN step the camera's real shutter speed (software
-     * state - the dials are just another input for the same value), so the
-     * timed range is whatever stock list the body offers, one step per press.
-     * At the Bulb position (past the timed end stop) the camera has no
-     * duration, so UP/DOWN edit the custom long-exposure seconds instead;
-     * DOWN at the 5 s floor steps back out of Bulb into the timed list.
+     * Exposure field: LEFT/RIGHT step the camera's real shutter speed
+     * (software state - the dials are just another input for the same
+     * value), so the timed range is whatever stock list the body offers,
+     * one step per press. One continuous dial (0.4.0): RIGHT past the timed
+     * end stop (30 s) crosses into Bulb at the 5 s floor and further RIGHT
+     * edits the long-exposure seconds; LEFT walks the seconds back down and
+     * at the 5 s floor steps out of Bulb into the timed list. Both
+     * breakover transitions go through the same incrementShutterSpeed call
+     * - from Bulb it lands back on 30 s - so each one claims the new
+     * position optimistically and self-checks on the matching callback
+     * (0.2.10 exit, 0.4.0 entry): held keys can never bounce the field
+     * back and forth across the break.
      */
     private void adjustExposure(int dir) {
+        if (bulbExitPendingAt != 0 || bulbEnterPendingAt != 0) {
+            // 0.4.0: a breakover transition (Bulb floor exit OR timed->Bulb
+            // entry) that no callback has confirmed yet owns the field (each
+            // has a 1.5 s timeout that settles the state if the step was
+            // swallowed). Steps inside the window would fire blind against a
+            // camera possibly still on the other side of the break - a silent
+            // no-op or a 30 s <-> BULB bounce - and desync the press count
+            // from the display. Swallow them.
+            Logger.debug("exposure step swallowed - bulb breakover unconfirmed");
+            return;
+        }
         try {
             if (bulbPos) {
                 if (!config.adjustBulb(dir)) { // false = shortest already
@@ -972,22 +1484,39 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     handler.postDelayed(bulbExitConfirm, BULB_EXIT_CONFIRM_MS);
                 }
             } else if (dir > 0) {
-                camera.incrementShutterSpeed();
+                if (atTimedEndStop()) {
+                    // 0.4.0 - cross the break: RIGHT from the 30 s end stop is
+                    // the same increment that, once at Bulb, lands back on
+                    // 30 s. Claim Bulb optimistically (mirrors the floor exit)
+                    // so a held key's repeats edit the bulb seconds instead of
+                    // ping-ponging the breakover, and floor the duration so
+                    // the dial reads 30 s -> BULB 5 s -> BULB n. The callback
+                    // confirms (listener) or the 1.5 s self-check reverts.
+                    bulbEnterPrevS = config.bulbSeconds();
+                    config.resetBulbToFloor();
+                    bulbPos = true;
+                    bulbEnterPendingAt = SystemClock.elapsedRealtime();
+                    handler.postDelayed(bulbEnterConfirm, BULB_ENTER_CONFIRM_MS);
+                    camera.incrementShutterSpeed(); // one step past the end stop
+                } else {
+                    camera.incrementShutterSpeed();
+                }
             } else {
                 camera.decrementShutterSpeed();
             }
         } catch (Throwable t) {
             Logger.error("shutter step: " + t); // e.g. mode disallows stepping - field keeps showing the camera's value
         }
-        // The display refreshes on the ShutterSpeedChange callback (immediate
-        // showConfig would repaint a stale value for timed steps); CUSTOM
-        // edits repaint via adjust()'s showConfig.
+        // Plain timed steps refresh on the ShutterSpeedChange callback (an
+        // immediate showConfig would repaint a stale value); the breakover
+        // entry shows BULB 5 s immediately (optimistic bulbPos + floored
+        // seconds) and bulb-seconds edits repaint via adjust()'s showConfig.
     }
 
     // --- ISO control (0.2.12) ---
 
     /**
-     * ISO field: UP/DOWN walk the camera's supported ISO list. Unlike
+     * ISO field: LEFT/RIGHT walk the camera's supported ISO list. Unlike
      * shutter speed there is NO step method - ISO is a Camera.Parameters
      * string key, written through the forceColorLook set/read-back path.
      * A dropped value throws nothing on this HAL, so every write is
@@ -1425,9 +1954,19 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onUpKeyDown() {
         if (powerWakeGate())
             return true; // PWR asleep: this press only wakes the HUD
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE) {
+            editorStep(1); // UP: +1 on the focused unit / digit
+            return true;
+        }
         if (busy())
             return true;
-        adjust(1);
+        menuTouch();
+        if (itemSel >= 0) {
+            itemSel = itemSel > 0 ? itemSel - 1 : -1; // walk up; above the first item - back to the tabs
+            showConfig();
+        }
         return true;
     }
 
@@ -1435,9 +1974,20 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onDownKeyDown() {
         if (powerWakeGate())
             return true;
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE) {
+            editorStep(-1); // DOWN: -1 on the focused unit / digit
+            return true;
+        }
         if (busy())
             return true;
-        adjust(-1);
+        menuTouch();
+        if (itemSel < 0)
+            itemSel = 0; // open: the tab's first item
+        else if (itemSel < CAT_FIELDS[catSel].length - 1)
+            itemSel++; // walk down; the last item holds the bounce
+        showConfig();
         return true;
     }
 
@@ -1445,10 +1995,21 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onLeftKeyDown() {
         if (powerWakeGate())
             return true;
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE) {
+            editorMove(-1); // LEFT: cursor toward h / the thousands digit
+            return true;
+        }
         if (busy())
             return true;
-        selField = PREV_FIELD[selField]; // LEFT: previous in reading order
-        showConfig();
+        menuTouch();
+        if (itemSel < 0) {
+            catSel = (catSel + 3) % 4; // tabs: previous category (wraps)
+            showConfig();
+        } else {
+            adjust(-1); // item: step the value down (LEFT exits Bulb at the 5 s floor); the adjust paths repaint
+        }
         return true;
     }
 
@@ -1456,10 +2017,57 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onRightKeyDown() {
         if (powerWakeGate())
             return true;
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE) {
+            editorMove(1); // RIGHT: cursor toward s / the ones digit
+            return true;
+        }
         if (busy())
             return true;
-        selField = NEXT_FIELD[selField]; // RIGHT: next in reading order
-        showConfig();
+        menuTouch();
+        if (itemSel < 0) {
+            catSel = (catSel + 1) % 4; // tabs: next category (wraps)
+            showConfig();
+        } else {
+            adjust(1); // item: step the value up (RIGHT steps slower, toward Bulb); the adjust paths repaint
+        }
+        return true;
+    }
+
+    /**
+     * ENTER (0.4.0, tap extended 0.4.0c): hold it on any item (or tab) for
+     * its help card; the card stays open after the release - any key press
+     * closes it (helpGate, which also eats that press's release). A tap is
+     * still a no-op EXCEPT on a CUSTOM slot, where it opens the value
+     * editor. Dead mid-run (busy) and during PWR sleep, as before.
+     */
+    @Override
+    protected boolean onEnterKeyDown() {
+        if (helpGate())
+            return true;
+        if (powerWakeGate())
+            return true;
+        if (busy())
+            return true;
+        if (editorMode != EDIT_NONE) {
+            editorConfirm();
+            return true;
+        }
+        if (tryOpenEditor())
+            return true; // ENTER tap on a CUSTOM slot - the value editor
+        enterHeld = true;
+        handler.removeCallbacks(helpShow);
+        handler.postDelayed(helpShow, HELP_HOLD_MS);
+        return true;
+    }
+
+    @Override
+    protected boolean onEnterKeyUp() {
+        if (helpUpGate())
+            return true; // release of the press that closed the card
+        enterHeld = false; // released early - cancel the pending open
+        handler.removeCallbacks(helpShow);
         return true;
     }
 
@@ -1467,6 +2075,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onShutterKeyDown() {
         if (powerWakeGate())
             return true; // PWR asleep: wake only - S2 can't start/abort from the dark
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE)
+            return true; // editing: S2 stays inert - a run never starts from the editor
         if ((engine != null && engine.isRunning()) || runEnding || stillT0 != 0) {
             s2Exempt = false; // a fresh press while busy - its release is the deliberate abort (0.2.15)
             return true; // mid-run S2 down is ignored - the abort happens on its release (also in the gap / while a capture stores)
@@ -1478,8 +2090,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             return true;
         }
         s2Exempt = true; // the firing press's own release is exempt from the abort read (0.2.15)
-        if (selField == 6)
-            shotNow(); // Shot now field: ONE capture at the current exposure, stay in config
+        if (catSel == 2)
+            shotNow(); // SINGLE SHOT tab: ONE capture at the current exposure, stay in config
         else
             startRun();
         return true;
@@ -1497,6 +2109,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      */
     @Override
     protected boolean onShutterKeyUp() {
+        if (helpUpGate())
+            return true; // release of the press that closed the help card
+        if (editorMode != EDIT_NONE)
+            return true; // release of the inert S2 press inside the editor
         if (powerRun && !powerAwake)
             return true; // release of a wake press after a re-sleep - nothing to abort
         if (wakePress) {
@@ -1556,6 +2172,13 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onDeleteKeyDown() {
         if (powerWakeGate())
             return true; // PWR asleep: trash wakes first - stopping needs a second press
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE) {
+            editorCancel();
+            editorUpSwallow = true; // this trash's release must not exit the app
+            return true;
+        }
         if (engine != null && engine.isRunning()) {
             engine.stop(IntervalEngine.REASON_ABORTED); // trash stops the run, stays in app
             runEnding = true; // this trash's key-up must not exit before the summary prints
@@ -1568,6 +2191,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onDeleteKeyUp() {
+        if (helpUpGate())
+            return true; // release of the press that closed the help card
+        if (editorUpSwallow) {
+            editorUpSwallow = false; // release of the press that cancelled the editor
+            return true;
+        }
         if (powerRun && !powerAwake)
             return true; // release of a wake press - must not exit
         if (wakePress) {
@@ -1585,6 +2214,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     protected boolean onFocusKeyDown() {
         if (powerWakeGate())
             return true; // PWR asleep: S1 wakes first
+        if (helpGate())
+            return true; // help card open: this press only closes it
+        if (editorMode != EDIT_NONE)
+            return true; // editing: S1 stays inert
         if (powerRun)
             return true; // PWR run, HUD awake: there is no live view - autoFocus would throw
         if (camera == null)
@@ -1595,6 +2228,10 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     @Override
     protected boolean onFocusKeyUp() {
+        if (helpUpGate())
+            return true; // release of the press that closed the help card
+        if (editorMode != EDIT_NONE)
+            return true; // release of the inert S1 press inside the editor
         if (powerRun)
             return true; // no preview in a PWR run: cancelAutoFocus throws - and an S1 release
                          // straddling the run start killed the app here before the guard (0.3.0)
@@ -1622,6 +2259,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         Logger.info("exposure: " + exposureStr() + ", F " + fStr() + ", ISO " + isoStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
                 : " - camera timed"));
+        long series = IntervalConfig.seriesSeconds(config.intervalSeconds(), config.delaySeconds(),
+                config.shotCount(), exposureEstSeconds());
+        Logger.info("plan: " + config.countStr() + " shots @ " + config.intervalStr()
+                + ", delay " + config.delayStr() + (series > 0
+                ? ", series ~ " + IntervalConfig.fmtHm(series)
+                : ", no series estimate (unlimited)"));
         powerRun = config.pwr(); // frozen per run, like bulbShotMs
         powerAwake = false;
         wakePress = false;

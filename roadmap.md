@@ -20,6 +20,14 @@ README.md - reference, not plans._
   %/h delta vs a display-on run is the battery proof.
 - Optional micro-check anytime: DEBUG toggle OFF then restart
   (OFF-after-ON persistence - both other directions already shown).
+- **0.4.x menu + editor sweep** (shipped 0.4.0-0.4.0e, verification owed):
+  dropdown holds the 10 s idle collapse; `INTERVAL custom n s` on the
+  CUSTOM slot; the value editor stays open indefinitely - ENTER saves,
+  trash cancels, S1/S2 inert while it's up; help cards on every item and
+  tab; count slot defaults to 60 on first post-update launch; the series
+  `~` estimate live-updates and matches the run-start `plan:` log;
+  off-grid values read friendly ("3 min 17 s"); bulb<->timed held-key
+  breakover; `POWER SAVING OFF/ON` label and values (0.4.0e).
 
 ## Deferred hygiene (audit 2026-11-15)
 
@@ -36,11 +44,6 @@ commit. Deferred from that audit, as too big or on-camera-dependent:
   activity keeps key routing, the config grid, the run lifecycle.
   Behavior-preserving in principle, but it reshapes every log line's
   context — do it in 0.2.x-style camera-verified rounds, not blind.
-- **Camera-open failure UX.** onResume's open-failure catch is log-only:
-  the config grid stays painted with the camera-side fields silently
-  dead (stepping them logs caught NPEs). Needs an overlay error line +
-  a decision on which keys stay live — on-camera round required (the
-  realistic trigger is the stock camera app holding the device).
 - **Small dedups (only if a round touches the code anyway):**
   probeRestore/apertureProbeRestore are algorithm twins (~45 lines
   each; unifying needs generics/lambdas this codebase avoids), one
