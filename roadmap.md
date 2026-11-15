@@ -1,8 +1,10 @@
 # Intervalometer Feature Roadmap
 
-_Created 2026-11-14 after the 0.2.10 no-bug verdict. Base: 0.2.10, versionCode 16,
-tree clean at `5ee6842`. Order agreed: 0.2.11 → 0.2.12 → 0.2.13 → 0.3.0, one commit +
-one camera-test round per version (house cadence). Delete this file when done._
+_Created 2026-11-14 after the 0.2.10 no-bug verdict. Stripped 2026-11-14:
+every shipped 0.2.x section deleted - one-line summaries per version live
+in intervalometer/README.md, full detail in git history. What remains: the
+live progress block, the next version (0.3.0 power saving), and the SDK
+re-derivation notes._
 
 _Progress: 0.2.11, 0.2.12 and 0.2.13 shipped and camera-tested, plus an
 out-of-plan 0.2.14 (versionCode 20) fixing the aperture display once the
@@ -17,168 +19,6 @@ Next: 0.3.0 power saving - versionCode 21 (20 was consumed by 0.2.14)._
 
 All SDK facts below were verified against the compiled stubs — **not assumed**.
 See "Re-deriving the SDK surface" at the bottom for how to re-check any of this.
-
----
-
-## 0.2.11 (versionCode 17) — Capture UX: single shot + count rework — SHIPPED
-
-**Outcome:** shipped and camera-verified (single shot, the 5-step count
-ladder, trash-stop of unlimited runs, count-slot persistence). The
-bulb-exit self-check carry-over in the test plan below was NOT closed here -
-it has still never logged.
-
-**Goal:** standalone one-shot capture at current exposure (dark frame / preview tool),
-and shot-count setting in 5-shot increments + an unlimited (∞) mode.
-
-### What we already know
-- **Single shot needs zero new camera code.** The per-shot capture path exists and is
-  proven: `takePicture` (S2 down) → ~`SHUTTER_MS` later `cancelTakePicture` + preview
-  resume (see the shutter-release code at `IntervalActivity.java:181-200` and
-  `resumePreview()` at :623). Bulb shots instead end via `cancelExposure()` at the
-  bulb duration (`startRun()` freezes `bulbShotMs`, :935). A single shot = the same
-  routine, triggered outside a run. Full logging (`exposure complete`, `storeImage
-  done - seq …`) comes free via the existing listeners.
-- **Engine already supports unlimited.** `IntervalEngine.java:54`
-  `shotCount <= 0 = unlimited`; `start()` logs "count unlimited" (:86); the done-check
-  `fired >= shotCount` is skipped for `shotCount <= 0` (:136). **No engine change
-  needed** — HUD/summary rendering of `x/∞` is activity-side only.
-- **Config screen is a 4-field grid** (`showConfig()`, `IntervalActivity.java:635-651`):
-  `Interval | Count` / `Exposure | Delay`, `selField` moved by LEFT/RIGHT, values by
-  UP/DOWN, S2 starts a run, trash exits, contextual hint line. Adding fields means
-  extending this grid + the `mark(field, …)` indexing.
-- **Count editing has a slot-list precedent:** the Interval field already uses a
-  slot list + CUSTOM slot pattern (`config.intervalIsCustom()`, :637). Count can
-  mirror that: slots stepping in 5s plus a final ∞ slot (persisted as 0).
-- S2 during a run is ignored (mid-run guard at :865-866); summary is dismissed by S2
-  (:867-872). The single-shot trigger must slot into these guards, not around them.
-
-### Implementation sketch
-- Files: `IntervalActivity.java` (grid + key handlers + single-shot routine —
-  refactor the engine listener's fire path so run shots and the single shot share
-  one `fireShot`-style method), `IntervalConfig.java` (count slots/unlimited),
-  `app/build.gradle` (0.2.11 / versionCode 17), `README.md` changelog.
-- UI proposal (finalize at implementation): grid grows to 6 fields —
-  `Interval | Count` / `Exposure | Delay` / `ISO placeholder | Shot now` — or
-  "Shot now" as a dedicated selectable line under the grid. Selecting it + S2 =
-  one capture, stay in config. Rejected (with hint) while a run is in flight,
-  in the run-ending gap, or while a summary is up. Honors Bulb-custom seconds
-  (app-side `cancelExposure` at the frozen bulb duration, same as engine shots).
-- Count field: UP/DOWN steps ±5 through 5,10,15,… ; last slot = `∞` (stored 0).
-  HUD `23/120`, unlimited `23/∞`; trash still stops unlimited runs;
-  `REASON_DONE` never fires for unlimited.
-
-### Camera-test round (also close the carry-over!)
-- **Bulb-exit self-check (0.2.10 carry-over, still unverified):** UP into Bulb,
-  DOWN out → expect `bulb exit confirmed: 30 s` in the log.
-- Single shot in timed mode: one `takePicture`, one store, preview resumes.
-- Single shot in Bulb-custom: exposure ends at the configured seconds (`cancelExposure`).
-- Single-shot rejection paths: press during run, during summary.
-- Count ∞: run 5-10 shots, trash-stop, summary shows `x/∞`.
-- Count 5-steps: values survive app restart (config persistence).
-
----
-
-## 0.2.12 (versionCode 18) — ISO control — SHIPPED
-
-**Outcome:** shipped; the timed ISO walk verified the write path (read-back
-"wrote X - camera kept Y" lines, AUTO picked 400 at open and the listener
-reported it). Post-test fix ffef940 added the echo filter (exactly one
-"kept" line per write) - unverified since, no ISO writes happened in the
-0.2.13/0.2.14 rounds. Bulb never exercised, so the "in Bulb?" question
-below stays open.
-
-**Goal:** new config field "ISO"; UP/DOWN walks the camera's supported ISO list
-(incl. AUTO); display always reflects what the camera actually kept.
-
-### What we already know
-- **There is NO ISO step method in the SDK** (unlike shutter speed). ISO is a
-  `Camera.Parameters` string key: **`iso-sensitivity`**. Your own LOG.TXT param dump
-  confirms the HAL's value list:
-  `iso-sensitivity-values=0,50,64,80,100,125,160,200,250,320,400,500,640,800,1000,
-  1250,1600,2000,2500,3200,4000,5000,6400,8000,10000,12800,16000,20000,25600`
-  — `0` is presumably AUTO (confirm on camera).
-- **The write path is already proven in this very app:** `forceColorLook()`
-  (`IntervalActivity.java:580-604`) does `p.set(key, value)` → `cam.setParameters(p)`
-  → `getParameters()` read-back and logs "what the camera kept". On this HAL a
-  dropped value throws nothing, so **the read-back is the ground truth** — same
-  lesson as Recipe Lab's applyPreview (issue #104). Only the *list getters* of
-  `Camera.Parameters` are hollow (starter README warning); string `get/set` works.
-- Supported-values list should be read at runtime from the `iso-sensitivity-values`
-  param (via `camera.getSupportedParameters().flatten()` — already logged each
-  session at :797-801), not hardcoded.
-- There is also `setAutoISOSensitivityListener(CameraEx$AutoISOSensitivityListener)`
-  (CameraEx.j:276) — arm it **log-only** in v1 to learn what AUTO picks.
-
-### Implementation sketch
-- Files: `IntervalActivity.java` (ISO field in grid, UP/DOWN walks list, set +
-  read-back verify + display), `IntervalConfig.java` (persist last ISO choice?),
-  `app/build.gradle` (0.2.12/18), `README.md`.
-- Display: `AUTO` when read-back is `0`, otherwise the number.
-- Define behavior when the camera rejects the write (read-back unchanged): show the
-  kept value + log; do not fight it (same philosophy as exposure stepping in P).
-
-### Camera-test round
-- Does the write stick in the current exposure mode(s)? In Bulb?
-- Read-back value after mode-dial changes (does the body reset ISO?).
-- Interaction with the exposure probe: does a params write disturb the
-  shutter-speed listener anchor / Bulb position detection?
-- AUTO: does `0` read back as AUTO, and does the listener report the chosen ISO?
-
----
-
-## 0.2.13 (versionCode 19) — Aperture control (non-manual lenses) — SHIPPED
-
-**Outcome:** shipped; camera round 1 proved the encoding guess below wrong -
-raw = f-number x100, not x10 (the lens walked 560..3600 = f/5.6..f/36 in
-1/3-stop steps). The open probe netted zero (one coalesced callback, the
-anchor guard stayed inert). The `iris_ss_iso_aeunlock` wrapper ran a clean
-f/5.6 -> f/36 -> f/5.6 round trip with no preview perturbation, so it stays
-until a bare-edit A/B per mode position (own open item). 0.2.14
-(versionCode 20, commit 87b0446) fixed the F-field display for x100.
-`enableIrisRing`/`disableIrisRing` remains unexercised - the log-only plan
-stands.
-
-**Goal:** new config field "F"; UP/DOWN steps the iris even when the lens/body
-owns the aperture (mode dial not in A/M where required).
-
-### What we already know
-- **The SDK has a real aperture API** (CameraEx.j):
-  - `adjustAperture(I)V`, `incrementAperture()V`, `decrementAperture()V`
-  - `setApertureChangeListener(CameraEx$ApertureChangeListener)` → callback
-    `onApertureChange(ApertureInfo, CameraEx)`
-  - `ApertureInfo` fields: `int currentAperture`, `int currentAvailableMin`,
-    `int currentAvailableMax`
-  - `enableIrisRing()V` / `disableIrisRing()V` (body-iris unlock candidates; log first)
-- **Architecture mirrors shutter speed exactly**: steppable, event-read-only (no
-  getter), change events drive the display. Port the 0.2.5 pattern as-is:
-  probe pair to anchor the value, bounded corrective steps, deadline-expiry when
-  the camera rejects steps (never fight the mode).
-- **Non-manual unlock exists:** the HAL supports the param
-  **`shooting-preview` = `iris_ss_iso_aeunlock`** — confirmed in LOG.TXT params
-  (`shooting-preview-values=off,iris_ss_iso_aeunlock`). This is the body's
-  mechanism to change iris/SS/ISO without capturing. Set it via the
-  same params path as ISO; restore `off` afterwards (an `apertureRestore()`
-  mirroring the existing `apoRestore()` pattern).
-- **F-number encoding unknown:** exposure-complete lines log `F100 ISO 800` —
-  likely f/10.0 encoded ×10, but `currentAperture`'s scale must be confirmed on
-  the first camera test before formatting `f/x.y`.
-
-### Implementation sketch
-- Files: `IntervalActivity.java` (F field, ApertureChangeListener wiring with
-  probe-anchor + corrections, unlock set/restore around edits),
-  `IntervalConfig.java` if persistence wanted, `app/build.gradle` (0.2.13/19),
-  `README.md`.
-- Probe order on camera: (1) do raw steps work in M and A without the unlock?
-  (2) only add `iris_ss_iso_aeunlock` if steps are rejected outside A/M.
-- Boundary handling from `currentAvailableMin/Max` (event-driven clamp display).
-
-### Camera-test round
-- Encoding of `currentAperture` (expected ×10).
-- Step acceptance per mode-dial position: P / S / A / M / Bulb.
-- Whether the `shooting-preview` unlock is needed, and whether setting it
-  perturbs preview/Bulb detection (restore path).
-- `enableIrisRing/disableIrisRing` — only if the above shows a ring-dependent
-  behavior; log-only first.
 
 ---
 
@@ -316,6 +156,3 @@ stops the run while asleep; S2 still starts one.
   (untracked since `2b2e9a4`). The 0.2.10 "late 8303 ms" snowball was ruled
   user-caused (UI fields 2 s/2 s vs saved 5 s config), engine correct —
   see 0.2.10 session notes.
-
-
-

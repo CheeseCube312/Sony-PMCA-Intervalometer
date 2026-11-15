@@ -5,27 +5,32 @@ Apps platform, API 2.10). The A7 II has no native interval shooting (only the
 paid Time-lapse app), so this app fills that gap: fixed-grid timed stills
 straight to the card, with a session log for drift/failure analysis.
 
-**Status: 0.2.14 - Phase 2 trust work shipped through 0.2.10: persistence,
-custom slots, failure abort, exposure control + true bulb (self-checking
-Bulb exit). 0.2.11 added single shooting ("Shot now" on the config grid -
-one capture at the current exposure, staying in config) and reworked count
-into a 5-shot-step ladder 5..600 ending in unlimited. 0.2.12 adds ISO
-control: UP/DOWN walk the camera's supported ISO list (read at open from
-iso-sensitivity-values), each write verified by read-back - the field
-shows what the camera kept, rejections are logged not fought. 0.2.13 adds
-aperture control: UP/DOWN call increment/decrementAperture, the
-ApertureChangeListener callback drives the F field (event-only, no getter;
-open probe pair + bounded corrective steps - the 0.2.5 shutter pattern),
-and edits wrap the step in shooting-preview=iris_ss_iso_aeunlock (set,
-read-back verified, restored off ~1 s later or on pause) so the iris moves
-even when the body owns it. Camera round 1 confirmed the encoding (raw =
-f-number x100: the test lens walked 560..3600, f/5.6..f/36 in 1/3-stop
-steps), the open probe netted zero, and the unlock wrapper ran clean
-through a full round trip with no preview perturbation - so it stays
-until a round A/Bs bare edits per mode position. 0.2.14 fixes the grid
-display for the x100 encoding (0.2.13 showed f/56 for f/5.6). The ISO
-echo filter still awaits a round with ISO writes. Next per roadmap.md:
-0.3.0 power saving.**
+**Status: 0.2.14 - exposure control + true bulb, the Phase 2 trust work,
+and the capture/UX rounds through 0.2.14 are all shipped and camera-gated.
+Still owed on camera: the ISO echo filter, ISO in Bulb, the bulb-exit
+self-check, the bare-edit aperture A/B, and the 3-strike abort (see
+roadmap.md). Next: 0.3.0 power saving.**
+
+## Version history (one line each)
+
+- 0.1.0 - starter smoke test retargeted to INTVL (preview + S2 still on camera).
+- 0.1.1 - live view switched to the plain HAL path; NDK/M-JPEG decode retired.
+- 0.1.3 - mono root cause: Creative Style stuck on `mono`; force `standard` + `picture-effect=off` at startPreview (confirmed on camera).
+- 0.1.4 - drop the color-depth A/B toggle (the mono look sits above the display pipeline).
+- 0.2.0 - Phase 1: fixed-grid engine (late shots fire + log their delta, slots never skipped), config grid, APO-off + keep-screen-on, trash-stop summary.
+- 0.2.2-0.2.4 - trustworthy multi-shot: full shutter cycle per frame, interval as minimum spacing (slots hold behind a live capture), summary waits out an in-flight last shot, 90 s never-stored watchdog (tag `v0.2.4-mvp`).
+- 0.2.5 - exposure stepping + event-read, true Bulb (65535 sentinel confirmed), `cancelExposure()` ends exposures (tag `v0.2.5-mvp`).
+- 0.2.6 - Phase 2: persisted config (restarts + power cycles), extended presets + Custom slots, 3-strike reject abort, hold warning.
+- 0.2.7 - UX: run-end gap owned + config polish; Exposure field = stock timed list + one custom long exposure.
+- 0.2.8 - Bulb exit via incrementShutterSpeed (decrement is a firmware no-op) + probe drift fix.
+- 0.2.9 - decimal seconds for the slow fraction speeds.
+- 0.2.10 - self-verifying Bulb exit: confirm the timed callback within 1.5 s, re-arm Bulb on timeout.
+- 0.2.11 - Shot now (single capture at current exposure); count ladder 5..600 + unlimited.
+- 0.2.12 - ISO field walks the camera's supported ISO list, every write read-back verified; auto-ISO echo filter (ffef940).
+- 0.2.13 - aperture control: increment/decrement + ApertureChangeListener mirror, edits wrapped in the iris unlock wrapper.
+- 0.2.14 - encoding round settled: raw = f-number x100; grid display fixed (tag `v0.2.14`).
+- 0.3.0 - planned: power-saving run mode (design in roadmap.md).
+
 0.1.0 was the `Blank/starting_package`
 smoke test retargeted to `com.jpc.intervalometer` / INTVL logging (preview +
 S2 still verified on camera). 0.1.1 retires the starter's M-JPEG decode
