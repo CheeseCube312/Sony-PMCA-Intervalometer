@@ -25,3 +25,7 @@ obj/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Local-only planning docs (not published)
+/roadmap.md
+/README.md

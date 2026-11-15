@@ -3,7 +3,8 @@
 Engineering companion to the project `README.md`: camera and platform
 facts, the Sony Scalar SDK surface as verified against the compiled stubs,
 the session log format, and the full one-line-per-version history. Open
-work lives in `roadmap.md`. Latest shipped: 0.4.0e (tag `v0.4.0e`).
+work lives in `roadmap.md` (kept local, untracked). Latest shipped:
+0.4.0e (tag `v0.4.0e`).
 
 ## Version history (one line each)
 
