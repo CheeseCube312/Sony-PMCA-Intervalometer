@@ -4,7 +4,7 @@ Engineering companion to the project `README.md`: camera and platform
 facts, the Sony Scalar SDK surface as verified against the compiled stubs,
 the session log format, and the full one-line-per-version history. Open
 work lives in `roadmap.md` (kept local, untracked). Latest shipped:
-0.4.0e (tag `v0.4.0e`).
+0.4.0h (tag `v0.4.0h`).
 
 ## Version history (one line each)
 
@@ -32,6 +32,11 @@ work lives in `roadmap.md` (kept local, untracked). Latest shipped:
 - 0.4.0c - value editors: CUSTOM became a plain entry in both lists (no more in-place 5 s/30 s stepping - LEFT/RIGHT only selects it); an ENTER tap on it opens a full-screen editor, h/m/s units for the interval (cap raised to 99:59:59) and a four-digit wheel for a new CUSTOM shot count (1-9999, persisted under a fresh `countSlot2` key, sitting before `all`); a dim `series ~` line on RUN PLAN estimates the total run time (delay + shots x cadence, cadence floored at exposure + ~3 s of card store - the engine holds a slot behind a live capture, so long exposures stretch the spacing), also logged at run start; off-grid custom values read `3 min 17 s` instead of raw seconds, and fmtDur learned half hours (1.5 h).
 - 0.4.0d - linger fixes: the open dropdown waits 10 s of key silence before collapsing (was 4 s - it folded away mid-thought); a selected CUSTOM interval reads `INTERVAL custom 45 s` instead of a bare value so the slot is unmistakable; the value editor never auto-collapses (the idle timer armed before it opened used to repaint the grid over it mid-edit) - ENTER saves or trash cancels, nothing else closes it.
 - 0.4.0e - naming: the PWR field reads `POWER SAVING OFF/ON` instead of `PWR OFF` - the old label said nothing about what it switched; the field's help card and the SETTINGS tab card use the same name.
+- 0.4.0f - bulb border rework (kills the residual 30 s <-> BULB ping-pong): BULB is a slot, not a value - LEFT/RIGHT only cross the timed<->BULB border (one blind increment per crossing, optimistic claim + matching-callback confirm; a stale echo can no longer overwrite a pending claim mid-window), ENTER opens a m/s editor on the BULB position exactly like the CUSTOM slots (no hours; 5 s - 59 min 59 s cap - the body sets no bulb ceiling, battery/heat are the real limits), the 5 s floor handshake and its value reset/restore are gone (the stored duration rides across the border untouched), run start and shot now adopt any still-unconfirmed claim before freezing `bulbShotMs`, and the display formats like the interval grid (`BULB 4 min 30 s`).
+- 0.4.0g - exposure direction flip: RIGHT always lengthens and LEFT shortens, like every other field (mid-list the timed walk runs opposite the body's dial - decrementShutterSpeed steps toward longer, incrementShutterSpeed toward faster, as the probe-correction path already assumed), so the same keypress now walks through the 30 s end stop onto BULB (RIGHT) and back off it (LEFT); the border toggle itself stays incrementShutterSpeed both ways, unchanged and field-proven.
+- 0.4.0h - bulb entry fixed, superseding 0.4.0g's border belief: the shutter list is one straight line walked by decrementShutterSpeed toward longer, breakover included - at the 30 s end stop incrementShutterSpeed steps BACK into the list (30 s -> 25 s) and Bulb never echoes (0.4.0g field log: 6/6 entry attempts landed on 25 s and self-reverted ~2 s later; the Nov 15 "two-way increment border" was a misread - those Bulb echoes came from the body's dial and a plain-branch decrement leak), so the entry toggle is now decrementShutterSpeed (the SAME longer-direction step as the whole timed walk) and RIGHT walks 30 s onto BULB coherently; exit stays incrementShutterSpeed (Bulb -> 30 s, field-proven since 0.2.8) and the optimistic-claim + 1.5 s self-check machinery is unchanged. Field-verified: BULB entry sticks.
+- 0.4.0i - tab-bar rule only while the dropdown is open: the labelled rule under the tabs read as a divider between tabs and items, but once the menu collapsed it floated alone after SETTINGS - a 2 px gray stub that looked like a stray underscore in the top right corner over the live view. Collapsed the bare tab bar now draws no rule.
+- 0.4.0j - tab-bar rule dropped entirely: 0.4.0i kept it while the dropdown was open as a tabs/items divider, but field check said the stub from SETTINGS to the screen edge still read as a stray underscore there too - the top row is rule-free in every state.
 
 ## Key findings
 
@@ -63,17 +68,30 @@ capture lost. The overlay warns `camera busy - shot N waits` while held.
 **Exposure + true Bulb (0.2.5+).** The SDK steps shutter speed
 (`incrementShutterSpeed`/`decrementShutterSpeed` - software state; the dials
 drive the same value) and can only READ it via `ShutterSpeedChangeListener`
-(no getter). Bulb is the 65535 (0xFFFF) sentinel; at the Bulb end stop
-LEFT/RIGHT edit the app-side bulb duration, and LEFT at the 5 s floor exits
-back into the timed list. incrementShutterSpeed is the only stepping that
-crosses the breakover, in BOTH directions - from the 30 s end stop it enters
-Bulb, from Bulb it lands back on 30 s (decrement is a firmware no-op there)
-- so a held key used to ping-pong the break while the callback was in
-flight. 0.4.0: both transitions claim the new position optimistically and
-self-verify (confirm the matching callback within 1.5 s, revert on timeout),
-and an entry floors the duration to 5 s so the dial reads 30 s -> BULB 5 s
--> BULB n s. Field-proven 2026-11-15: the first on-camera Bulb cycle needed
-the exit re-arm and it worked. Bulb exposures end with
+(no getter). Bulb is the 65535 (0xFFFF) sentinel. The shutter list is one
+straight line walked by decrementShutterSpeed toward longer: mid-list it
+lengthens (the probe corrections knew all along), and at the 30 s end stop
+it crosses ONTO Bulb; incrementShutterSpeed walks back toward faster,
+landing on 30 s from Bulb (field-proven 0.2.8/0.2.10 exits; decrement from
+Bulb is a firmware no-op - Bulb is the terminus). The 0.4.0-era "two-way
+increment breakover" was a misread of the Nov 15 session: the 0.4.0g field
+log disproved it - increment at 30 s stepped back to 25 s 6/6 times and
+Bulb never echoed (those old Bulb echoes came from the body's dial and a
+plain-branch decrement leak, not the entry call). 0.4.0h aligned the border
+with the line: entry decrement, exit increment.
+0.4.0f design: BULB is a slot, not a value -
+LEFT/RIGHT only cross the border (one blind border step per crossing, claimed
+optimistically, confirmed only by the MATCHING callback - a stale echo of
+the side being left is ignored mid-window; the 1.5 s timeout settles a
+swallowed step), and the duration lives behind ENTER's m/s editor exactly
+like the CUSTOM slots (5 s - 59 min 59 s; the body sets no bulb ceiling,
+battery/heat are the real limits). The 0.4.0 in-place stepping + 5 s floor
+handshake is what still ping-ponged the border: the entry reset the value
+to 5 s while stale HAL echoes repainted the optimistic claim, so the
+display and the mirror fought across the break. Run start and shot now
+adopt any still-unconfirmed claim before freezing `bulbShotMs` (no getter
+to verify against). Field-proven 2026-11-15: the first on-camera Bulb
+cycle needed the exit re-arm and it worked. Bulb exposures end with
 `cancelExposure()` (the SDK's exposure-end primitive; `cancelTakePicture`
 is the timed release, ignored mid-exposure), and `takePicture` returns
 immediately at Bulb (~700 ms), so the app timer owns the exposure length.

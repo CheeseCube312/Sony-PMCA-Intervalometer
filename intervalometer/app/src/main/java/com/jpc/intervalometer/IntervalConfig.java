@@ -25,10 +25,12 @@ import android.content.SharedPreferences;
  * The count's CUSTOM sits before "all" (custom, then unlimited last), which
  * re-points the old indices - the count persists under a fresh key
  * ("countSlot2"), the same one-time-reset pattern the 0.2.11 rework used.
- * The long exposure is the same idea taken further (0.2.7 UX): the timed
- * range is the camera's own stock list, and the single app-side value at
- * the Bulb position is always custom - 5-1800 s, still edited by LEFT/RIGHT
- * in place (two step sizes need no editor).
+ * The long exposure is the same idea taken further (0.2.7 UX, 0.4.0f
+ * rework): the timed range is the camera's own stock list, and the single
+ * app-side value at the Bulb position is always custom - 5 s to 59 min
+ * 59 s, edited by ENTER's m/s editor exactly like the interval's CUSTOM
+ * slot. The 0.4.0 in-place stepping + 5 s floor handshake is gone: it
+ * entangled the duration with the border crossing (see DEVNOTES).
  *
  * 0.2.11 - count rework: the old {10, 60, all} list becomes a 5-shot-step
  * ladder 5..600 ending in unlimited ("all"). Same wrap-around stepping as
@@ -57,8 +59,11 @@ public class IntervalConfig {
     private static final int INTERVAL_CUSTOM_DEF = 45, INTERVAL_CUSTOM_MIN = 2, INTERVAL_CUSTOM_MAX = 359999;
     // the CUSTOM shot count (0.4.0c): four digits, 1-9999
     private static final int COUNT_CUSTOM_DEF = 750, COUNT_CUSTOM_MIN = 1, COUNT_CUSTOM_MAX = 9999;
-    // the custom long exposure - the one app-side exposure value (camera Bulb position)
-    private static final int BULB_CUSTOM_DEF = 60, BULB_CUSTOM_MIN = 5, BULB_CUSTOM_MAX = 1800;
+    // the custom long exposure - the one app-side exposure value (camera Bulb
+    // position). 0.4.0f: the m/s editor reaches 59:59 - the body sets no bulb
+    // ceiling (battery/heat are the real limits), the cap is ours. Older
+    // persisted values fit the wider range, so no fresh key is needed.
+    private static final int BULB_CUSTOM_DEF = 60, BULB_CUSTOM_MIN = 5, BULB_CUSTOM_MAX = 3599;
 
     private final SharedPreferences prefs;
 
@@ -136,46 +141,11 @@ public class IntervalConfig {
         intervalIdx = wrap(intervalIdx + dir, INTERVALS_S.length + 1); // +1 = the CUSTOM slot
     }
 
-    /**
-     * Custom long-exposure seconds (the Exposure field while the camera sits
-     * at Bulb; 0.2.7 UX - the timed range is the camera's stock list, this is
-     * the one app-side value): UP/DOWN edit in place, 5 s steps below the
-     * 60 s mark and 30 s at and above, clamped to 5-1800 s.
-     *
-     * @return false only when already at the 5 s floor and the camera should
-     *         leave the Bulb position - the caller steps the camera's real
-     *         shutter speed down into the timed list; everything else is
-     *         handled here.
-     */
-    public boolean adjustBulb(int dir) {
-        if (dir > 0) {
-            customBulbS = Math.min(BULB_CUSTOM_MAX, customBulbS + bulbStep());
-        } else if (customBulbS - bulbStep() >= BULB_CUSTOM_MIN) {
-            customBulbS -= bulbStep();
-        } else {
-            return false; // at the 5 s floor - leave Bulb
-        }
-        return true;
-    }
-
-    /**
-     * Floors the long-exposure duration for a fresh timed->Bulb entry
-     * (0.4.0): the exposure dial lands on BULB 5 s one step past the 30 s
-     * end stop - the same handshake value the LEFT floor-exit leaves from -
-     * so the breakover reads as one continuous dial in both directions.
-     */
-    public void resetBulbToFloor() {
-        customBulbS = BULB_CUSTOM_MIN;
-    }
-
-    /**
-     * Direct write, used only by IntervalActivity's swallowed-entry
-     * self-check (0.4.0) to restore the pre-entry duration when the Bulb
-     * step proves lost. Clamped to the 5-1800 s range like every edit path.
-     */
-    public void setBulbSeconds(int s) {
-        customBulbS = Math.max(BULB_CUSTOM_MIN, Math.min(BULB_CUSTOM_MAX, s));
-    }
+    // 0.4.0f: the bulb duration has NO in-place stepping anymore - adjustBulb,
+    // resetBulbToFloor and setBulbSeconds are gone. LEFT/RIGHT only cross the
+    // timed<->BULB border (IntervalActivity.adjustExposure); the duration is
+    // edited by the m/s editor through setCustomBulbMs, exactly like the
+    // interval's CUSTOM slot.
 
     public void adjustCount(int dir) {
         countIdx = wrap(countIdx + dir, COUNTS.length);
@@ -194,11 +164,6 @@ public class IntervalConfig {
     public boolean adjustDebugLog() {
         debugLog = !debugLog;
         return debugLog;
-    }
-
-    /** Long-exposure edit step: 5 s in the short range, 30 s at 60 s and up. */
-    private int bulbStep() {
-        return customBulbS < 60 ? 5 : 30;
     }
 
     // --- the values a run consumes ---
@@ -252,6 +217,13 @@ public class IntervalConfig {
         customCount = clampInt(n, COUNT_CUSTOM_MIN, COUNT_CUSTOM_MAX);
     }
 
+    /** 0.4.0f: writes the bulb editor's confirmed m/s - units clamped, total to 5 s-59:59. */
+    public void setCustomBulbMs(int m, int s) {
+        m = Math.max(0, Math.min(59, m));
+        s = Math.max(0, Math.min(59, s));
+        customBulbS = clampInt(m * 60 + s, BULB_CUSTOM_MIN, BULB_CUSTOM_MAX);
+    }
+
     /** True when runs start dark (0.3.0 power-saving mode). */
     public boolean pwr() {
         return pwr;
@@ -260,11 +232,6 @@ public class IntervalConfig {
     /** True while the verbose-logging gate is armed (0.3.1). */
     public boolean debugLog() {
         return debugLog;
-    }
-
-    /** True at the 5 s floor - DOWN would step out of Bulb (the caller steps the camera). */
-    public boolean bulbAtFloor() {
-        return customBulbS <= BULB_CUSTOM_MIN;
     }
 
     // --- display strings (config screen + logs) ---
@@ -283,8 +250,9 @@ public class IntervalConfig {
         return fmtDur(intervalSeconds());
     }
 
+    /** 0.4.0f: fmtDur like the interval grid - "4 min 30 s" reads, raw seconds did not. */
     public String bulbStr() {
-        return customBulbS + " s";
+        return fmtDur(customBulbS);
     }
 
     public String countStr() {

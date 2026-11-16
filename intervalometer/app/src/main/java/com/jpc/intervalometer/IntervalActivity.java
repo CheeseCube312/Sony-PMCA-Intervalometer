@@ -100,14 +100,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     // 0.4.0c - the value editor: an ENTER TAP on a CUSTOM slot (interval or
     // shots) opens a full-screen editor; the old in-place stepping is gone.
-    // The hold-ENTER help card keeps working everywhere else - tryOpenEditor
+    // 0.4.0f - the BULB duration joins them (m/s units, no hours). The
+    // hold-ENTER help card keeps working everywhere else - tryOpenEditor
     // runs before the hold timer is armed, and while the editor is open it
     // consumes every key until ENTER saves or trash cancels.
-    private static final int EDIT_NONE = 0, EDIT_INTERVAL = 1, EDIT_SHOTS = 2;
+    private static final int EDIT_NONE = 0, EDIT_INTERVAL = 1, EDIT_SHOTS = 2, EDIT_BULB = 3;
     private int editorMode;                        // EDIT_* - what the editor is editing
     private final int[] editorHms = new int[3];    // interval editor's h / m / s
     private final int[] editorDigits = new int[4]; // shots editor, thousands..ones
-    private int editorCursor;                      // focused h/m/s unit or digit
+    private final int[] editorMs = new int[2];     // bulb editor's m / s (0.4.0f - no hours)
+    private int editorCursor;                      // focused h/m/s or m/s unit or digit
     private boolean editorUpSwallow;               // the trash release that cancelled the editor stays inert
 
     // exposure state (0.2.5) - mirror of the camera's software shutter speed
@@ -132,15 +134,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 showConfig(); // repaint the Exposure field back to custom seconds
         }
     };
-    // 0.4.0 - the timed->Bulb entry is the floor exit's mirror: the increment
-    // past the 30 s end stop is issued blind and only trusted once a Bulb
-    // callback lands. If none does within BULB_ENTER_CONFIRM_MS, the step was
-    // swallowed (the camera never left 30 s) - bulbPos drops back and the
-    // entry's floor reset of the duration is undone.
+    // 0.4.0, reworked 0.4.0f - the timed->Bulb entry is the floor exit's
+    // mirror: the increment past the 30 s end stop is issued blind and only
+    // trusted once a Bulb callback lands. If none does within
+    // BULB_ENTER_CONFIRM_MS, the step was swallowed (the camera never left
+    // 30 s) and bulbPos drops back - the stored duration is untouched either
+    // way now (the 0.4.0 floor reset + restore is gone with in-place
+    // stepping: the value rides along across the border unchanged).
     private static final long BULB_ENTER_CONFIRM_MS = 1500;
     private volatile long bulbEnterPendingAt; // ms since boot when the entry increment fired (0 = none)
-    private int bulbEnterPrevS;               // bulb seconds before the entry's floor reset - restored on a swallowed entry
-    /** Fires when no Bulb callback confirmed the timed->Bulb entry in time - stays timed, restores the duration. */
+    /** Fires when no Bulb callback confirmed the timed->Bulb entry in time - stays timed. */
     private final Runnable bulbEnterConfirm = new Runnable() {
         @Override
         public void run() {
@@ -148,7 +151,6 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 return; // the callback confirmed the entry in time - no-op
             bulbEnterPendingAt = 0;
             bulbPos = false; // entry increment was swallowed - the camera never left 30 s
-            config.setBulbSeconds(bulbEnterPrevS); // undo the floor reset
             Logger.info("bulb entry unconfirmed after " + BULB_ENTER_CONFIRM_MS
                     + " ms - staying timed");
             if (!busy())
@@ -597,17 +599,29 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         camera.setShutterSpeedChangeListener(new CameraEx.ShutterSpeedChangeListener() {
             @Override
             public void onShutterSpeedChange(CameraEx.ShutterSpeedInfo info, CameraEx cam) {
-                shutterInfo = info;
-                bulbPos = isBulb(info);
-                if (bulbExitPendingAt != 0 && !isBulb(info)) {
-                    bulbExitPendingAt = 0; // timed callback arrived - floor exit confirmed
-                    handler.removeCallbacks(bulbExitConfirm);
-                    Logger.info("bulb exit confirmed: " + fmtSpeed(info));
-                }
-                if (bulbEnterPendingAt != 0 && isBulb(info)) {
-                    bulbEnterPendingAt = 0; // Bulb callback arrived - timed->Bulb entry confirmed
-                    handler.removeCallbacks(bulbEnterConfirm);
-                    Logger.info("bulb entry confirmed: " + fmtSpeed(info));
+                shutterInfo = info; // always record - the timed display and the end-stop gate read it
+                // 0.4.0f: while a border-crossing claim is pending, a
+                // contradicting callback is a stale echo of the side being
+                // left (this HAL emits them - the probe-restore exists for
+                // the same reason). Adopting it mid-window is what let the
+                // field ping-pong: only the MATCHING callback confirms the
+                // crossing; anything else is ignored until the 1.5 s timeout
+                // settles it. With no claim in flight the camera leads (the
+                // body's dials drive the same software value).
+                if (bulbExitPendingAt != 0) {
+                    if (!isBulb(info)) {
+                        bulbExitPendingAt = 0; // timed callback arrived - floor exit confirmed
+                        handler.removeCallbacks(bulbExitConfirm);
+                        Logger.info("bulb exit confirmed: " + fmtSpeed(info));
+                    }
+                } else if (bulbEnterPendingAt != 0) {
+                    if (isBulb(info)) {
+                        bulbEnterPendingAt = 0; // Bulb callback arrived - timed->Bulb entry confirmed
+                        handler.removeCallbacks(bulbEnterConfirm);
+                        Logger.info("bulb entry confirmed: " + fmtSpeed(info));
+                    }
+                } else {
+                    bulbPos = isBulb(info);
                 }
                 Logger.debug("shutter speed: " + fmtSpeed(info)
                         + " (n=" + (info == null ? -1 : info.currentShutterSpeed_n)
@@ -874,7 +888,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * while the menu is open - the selected category's items under it, plus
      * the control rows pinned to the screen's bottom edge (hint bright,
      * key legend dim) so they don't ride along under every walked item.
-     * The tab bar's parts flow (COL_FLOW) under one rule; items sit on the
+     * The tab bar's parts flow (COL_FLOW), no rule (0.4.0i/j - the stub to
+     * the screen edge read as a stray underscore); items sit on the
      * left column, the walked one chipped.
      */
     private void showConfig() {
@@ -883,7 +898,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 new OverlayView.Part("RUN PLAN", OverlayView.COL_A, tabStyle(0)),
                 new OverlayView.Part("EXPOSURE", OverlayView.COL_FLOW, tabStyle(1)),
                 new OverlayView.Part("SINGLE SHOT", OverlayView.COL_FLOW, tabStyle(2)),
-                new OverlayView.Part("SETTINGS", OverlayView.COL_FLOW, tabStyle(3))}, true));
+                new OverlayView.Part("SETTINGS", OverlayView.COL_FLOW, tabStyle(3))}));
+                // no rule (0.4.0j): the stub from SETTINGS to the screen edge
+                // read as a stray underscore open or collapsed - dropped entirely
         if (expanded) {
             int[] fields = CAT_FIELDS[catSel];
             for (int i = 0; i < fields.length; i++)
@@ -978,10 +995,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                     : "LEFT/RIGHT presets - CUSTOM at the end";
         if (f == 1) {
             if (bulbPos)
-                return config.bulbAtFloor()
-                        ? "5 s floor - LEFT exits to timed"
-                        : "BULB - LEFT/RIGHT edit seconds 5-1800";
-            return "LEFT/RIGHT step the body's shutter list";
+                return "BULB - ENTER edits m/s, LEFT exits";
+            return "LEFT/RIGHT step - past 30 s is BULB";
         }
         if (f == 2)
             return config.countIsCustom()
@@ -1023,11 +1038,12 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             { // 1 exposure
                     "EXPOSURE",
                     "Shutter speed for every shot.",
-                    "LEFT/RIGHT step the body's own list; one",
-                    "step past 30 s lands on BULB 5 s.",
-                    "In BULB, LEFT/RIGHT set the app-side",
-                    "duration 5-1800 s; LEFT at the 5 s",
-                    "floor returns to the timed list."},
+                    "RIGHT lengthens, LEFT shortens; past",
+                    "30 s RIGHT crosses onto BULB, LEFT",
+                    "in BULB steps back to 30 s. In",
+                    "BULB, ENTER opens a m/s editor for the",
+                    "duration (5 s - 59 min 59 s) - the",
+                    "camera exposes until the app ends it."},
             { // 2 count
                     "SHOTS",
                     "Frames per run: 5-600 in 5-shot steps,",
@@ -1174,41 +1190,61 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     // --- the value editor (0.4.0c): an ENTER tap on a CUSTOM slot ---
 
     /**
-     * ENTER tap on a CUSTOM slot opens its full-screen editor (the tap was
-     * a no-op before; hold-for-help is untouched everywhere else). While
+     * ENTER tap on a CUSTOM slot (interval, count) or on the Exposure
+     * field's BULB position (0.4.0f) opens its full-screen editor (the tap
+     * was a no-op before; hold-for-help is untouched everywhere else). While
      * the editor is open it consumes every key until ENTER saves or trash
      * cancels.
      */
     private boolean tryOpenEditor() {
-        if (!expanded || catSel != 0 || itemSel < 0)
+        if (!expanded || itemSel < 0)
             return false;
-        if (itemSel == 0 && config.intervalIsCustom()) {
-            editorMode = EDIT_INTERVAL;
-            int t = config.intervalSeconds();
-            editorHms[0] = t / 3600;
-            editorHms[1] = (t % 3600) / 60;
-            editorHms[2] = t % 60;
-            editorCursor = 2; // start on seconds - the unit most edits touch
-        } else if (itemSel == 1 && config.countIsCustom()) {
-            editorMode = EDIT_SHOTS;
-            int c = config.customCount();
-            for (int i = 3; i >= 0; i--, c /= 10)
-                editorDigits[i] = c % 10;
-            editorCursor = 3; // start on the ones digit
+        if (catSel == 0) { // RUN PLAN: the CUSTOM interval and count slots
+            if (itemSel == 0 && config.intervalIsCustom()) {
+                editorMode = EDIT_INTERVAL;
+                int t = config.intervalSeconds();
+                editorHms[0] = t / 3600;
+                editorHms[1] = (t % 3600) / 60;
+                editorHms[2] = t % 60;
+                editorCursor = 2; // start on seconds - the unit most edits touch
+            } else if (itemSel == 1 && config.countIsCustom()) {
+                editorMode = EDIT_SHOTS;
+                int c = config.customCount();
+                for (int i = 3; i >= 0; i--, c /= 10)
+                    editorDigits[i] = c % 10;
+                editorCursor = 3; // start on the ones digit
+            } else {
+                return false;
+            }
+        } else if (catSel == 1 && itemSel == 0 && bulbPos) {
+            // 0.4.0f: the Exposure field at BULB - the duration's m/s editor,
+            // exactly like the interval's CUSTOM slot
+            editorMode = EDIT_BULB;
+            int t = config.bulbSeconds();
+            editorMs[0] = t / 60;
+            editorMs[1] = t % 60;
+            editorCursor = 1; // start on seconds - the unit most edits touch
         } else {
             return false;
         }
         handler.removeCallbacks(menuCollapse); // the editor outlives the menu's idle collapse
-        Logger.info("editor open: " + (editorMode == EDIT_INTERVAL ? "interval" : "shots"));
+        Logger.info("editor open: " + (editorMode == EDIT_INTERVAL ? "interval"
+                : editorMode == EDIT_SHOTS ? "shots" : "bulb"));
         showEditor();
         return true;
     }
 
     /** The editor screen: title, the value with the focused unit chipped, the key legend. */
     private void showEditor() {
-        boolean interval = editorMode == EDIT_INTERVAL;
-        OverlayView.Part[] value = new OverlayView.Part[interval ? 3 : 4];
-        if (interval) {
+        boolean bulb = editorMode == EDIT_BULB;
+        OverlayView.Part[] value =
+                new OverlayView.Part[bulb ? 2 : editorMode == EDIT_INTERVAL ? 3 : 4];
+        if (bulb) {
+            String[] units = {pad2(editorMs[0]) + " m", " " + pad2(editorMs[1]) + " s"};
+            for (int i = 0; i < units.length; i++)
+                value[i] = new OverlayView.Part(units[i], OverlayView.COL_FLOW,
+                        i == editorCursor ? OverlayView.STYLE_ACCENT : OverlayView.STYLE_NORMAL);
+        } else if (editorMode == EDIT_INTERVAL) {
             String[] units = {pad2(editorHms[0]) + " h", " " + pad2(editorHms[1]) + " m",
                     " " + pad2(editorHms[2]) + " s"};
             for (int i = 0; i < units.length; i++)
@@ -1222,7 +1258,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         }
         overlayView.setRows(new OverlayView.Row[]{
                 new OverlayView.Row(new OverlayView.Part[]{
-                        new OverlayView.Part(editorMode == EDIT_INTERVAL ? "CUSTOM INTERVAL" : "CUSTOM SHOTS",
+                        new OverlayView.Part(editorMode == EDIT_INTERVAL ? "CUSTOM INTERVAL"
+                                : editorMode == EDIT_SHOTS ? "CUSTOM SHOTS" : "CUSTOM BULB",
                                 OverlayView.COL_A, OverlayView.STYLE_ACCENT)}),
                 new OverlayView.Row(" "),
                 new OverlayView.Row(value),
@@ -1230,6 +1267,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
                 new OverlayView.Row(new OverlayView.Part[]{
                         new OverlayView.Part(editorMode == EDIT_INTERVAL
                                 ? "UP/DOWN set unit - LEFT/RIGHT h/m/s"
+                                : bulb
+                                ? "UP/DOWN set unit - LEFT/RIGHT m/s"
                                 : "UP/DOWN set digit - LEFT/RIGHT digit",
                                 OverlayView.COL_A, OverlayView.STYLE_DIM)}),
                 new OverlayView.Row(new OverlayView.Part[]{
@@ -1246,6 +1285,8 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         if (editorMode == EDIT_INTERVAL) {
             int max = editorCursor == 0 ? 99 : 59; // h 0-99, m/s 0-59
             editorHms[editorCursor] = Math.max(0, Math.min(max, editorHms[editorCursor] + dir));
+        } else if (editorMode == EDIT_BULB) {
+            editorMs[editorCursor] = Math.max(0, Math.min(59, editorMs[editorCursor] + dir)); // m/s 0-59
         } else {
             editorDigits[editorCursor] = (editorDigits[editorCursor] + dir + 10) % 10;
         }
@@ -1254,7 +1295,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /** LEFT/RIGHT in the editor: move the cursor, clamped at both ends. */
     private void editorMove(int dir) {
-        int last = editorMode == EDIT_INTERVAL ? 2 : 3;
+        int last = editorMode == EDIT_INTERVAL ? 2 : editorMode == EDIT_BULB ? 1 : 3;
         editorCursor = Math.max(0, Math.min(last, editorCursor + dir));
         showEditor();
     }
@@ -1264,6 +1305,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         if (editorMode == EDIT_INTERVAL) {
             config.setCustomIntervalHms(editorHms[0], editorHms[1], editorHms[2]);
             Logger.info("editor saved: interval " + config.intervalGridStr());
+        } else if (editorMode == EDIT_BULB) {
+            config.setCustomBulbMs(editorMs[0], editorMs[1]);
+            Logger.info("editor saved: bulb " + config.bulbStr());
         } else {
             int c = 0;
             for (int d : editorDigits)
@@ -1305,8 +1349,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /**
      * The Exposure field's display: the camera's own stock shutter speed in
-     * the timed range, or "BULB n s" while the camera sits at the Bulb
-     * position (0.4.0 wording - "custom n s" meant nothing to a camera user).
+     * the timed range, or "BULB <duration>" while the camera sits at the
+     * Bulb position (0.4.0 wording; 0.4.0f: the duration formats like the
+     * interval grid - "BULB 4 min 30 s").
      */
     private String exposureStr() {
         if (bulbPos)
@@ -1361,13 +1406,16 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * Bulb position encoding, CONFIRMED on camera (first 0.2.5 session): the
      * camera reports n=65535 (0xFFFF sentinel), d=1 - not the n==0/d==0
      * guess, which is why the field first showed "65535 s". n==0 && d==0 kept
-     * as a defensive fallback; raw n/d are still logged on every event. One
-     * step up from the timed end stop (30 s on this body) lands on Bulb, and
-     * SDK decrementShutterSpeed from Bulb is a silent no-op on this firmware
-     * - increment is the only stepping that crosses the breakover, in BOTH
-     * directions: from the 30 s end stop it enters Bulb, from Bulb it lands
-     * back on 30 s. That two-way increment is why both breakover transitions
-     * claim the new position optimistically and self-check (see adjustExposure).
+     * as a defensive fallback; raw n/d are still logged on every event. Bulb
+     * sits one step past the timed end stop (30 s on this body), and the
+     * shutter list is one straight line: decrementShutterSpeed walks toward
+     * longer all the way across the breakover, incrementShutterSpeed walks
+     * back (from Bulb it lands on 30 s - field-proven 0.2.8/0.2.10; from the
+     * end stop it merely steps into the list, 30 s -> 25 s, and Bulb never
+     * echoes - 0.4.0g field log, 6/6 entry attempts). decrementShutterSpeed
+     * from Bulb is a silent no-op on this firmware. Both border transitions
+     * claim the new position optimistically and self-check (see
+     * adjustExposure).
      */
     private static boolean isBulb(CameraEx.ShutterSpeedInfo info) {
         return info != null && (info.currentShutterSpeed_n == 0xFFFF
@@ -1376,7 +1424,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
 
     /**
      * True when the mirror reports the timed end stop - the camera's own
-     * slowest timed step (30 s on this body, n=30 d=1): the next increment
+     * slowest timed step (30 s on this body, n=30 d=1): the next decrement
      * crosses into Bulb. Gate for the optimistic timed->Bulb entry in
      * adjustExposure (0.4.0); on a stale mirror it just makes a normal timed
      * step, and the entry self-check reverts the claim.
@@ -1446,71 +1494,86 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
     }
 
     /**
-     * Exposure field: LEFT/RIGHT step the camera's real shutter speed
-     * (software state - the dials are just another input for the same
-     * value), so the timed range is whatever stock list the body offers,
-     * one step per press. One continuous dial (0.4.0): RIGHT past the timed
-     * end stop (30 s) crosses into Bulb at the 5 s floor and further RIGHT
-     * edits the long-exposure seconds; LEFT walks the seconds back down and
-     * at the 5 s floor steps out of Bulb into the timed list. Both
-     * breakover transitions go through the same incrementShutterSpeed call
-     * - from Bulb it lands back on 30 s - so each one claims the new
-     * position optimistically and self-checks on the matching callback
-     * (0.2.10 exit, 0.4.0 entry): held keys can never bounce the field
-     * back and forth across the break.
+     * Exposure field (0.4.0f rework, 0.4.0g direction flip): LEFT/RIGHT step
+     * the camera's real shutter speed (software state - the dials are just
+     * another input for the same value), so the timed range is whatever stock
+     * list the body offers, one step per press. RIGHT lengthens and LEFT
+     * shortens, like every other field - and this HAL walks the whole
+     * shutter list one direction: decrementShutterSpeed steps toward longer
+     * mid-list (the probe-correction path always knew; 0.4.0g put the field
+     * on the same page) AND crosses the 30 s breakover onto Bulb;
+     * incrementShutterSpeed steps back toward faster. 0.4.0h corrected the
+     * border: the 0.4.0 increment-entry assumption was wrong (at 30 s it
+     * steps back into the list, 30 s -> 25 s, and Bulb never echoes), so the
+     * entry fires the same decrement as every other longer step. The BULB
+     * position at the list's slow end is a position, not a value: crossing
+     * onto it (RIGHT at the 30 s end stop, one decrement) and off it (LEFT
+     * in BULB, one increment - lands on 30 s, field-proven) claim the new
+     * side optimistically and self-check on the matching callback (1.5 s
+     * timeout reverts). The bulb
+     * DURATION is not touched here at all - ENTER opens its m/s editor (the
+     * 0.4.0 in-place stepping + 5 s floor handshake is what bounced the
+     * border: the value reset fought the position claim while stale echoes
+     * repainted it). RIGHT in BULB clamps - the list's end.
      */
     private void adjustExposure(int dir) {
         if (bulbExitPendingAt != 0 || bulbEnterPendingAt != 0) {
-            // 0.4.0: a breakover transition (Bulb floor exit OR timed->Bulb
-            // entry) that no callback has confirmed yet owns the field (each
-            // has a 1.5 s timeout that settles the state if the step was
-            // swallowed). Steps inside the window would fire blind against a
-            // camera possibly still on the other side of the break - a silent
-            // no-op or a 30 s <-> BULB bounce - and desync the press count
-            // from the display. Swallow them.
-            Logger.debug("exposure step swallowed - bulb breakover unconfirmed");
+            // a border crossing that no callback has confirmed yet owns the
+            // field (each has a 1.5 s timeout that settles a swallowed step).
+            // Steps inside the window would fire blind against a camera
+            // possibly still on the other side - a silent no-op or a
+            // 30 s <-> BULB bounce. Swallow them.
+            Logger.debug("exposure step swallowed - bulb border unconfirmed");
             return;
         }
         try {
             if (bulbPos) {
-                if (!config.adjustBulb(dir)) { // false = shortest already
-                    // firmware swallows decrement FROM Bulb (0.2.7 logs: no
-                    // exception, no callback); increment lands on the timed
-                    // end stop (30 s) - the probe pair's second step proves
-                    // that direction works on every launch
-                    bulbPos = false; // optimistic: a repeat press must not re-step out and bounce back into Bulb
-                    camera.incrementShutterSpeed(); // leave Bulb - camera reports the timed value again
-                    bulbExitPendingAt = SystemClock.elapsedRealtime(); // self-check (0.2.10): listener confirms or the timeout re-arms
+                if (dir < 0) { // LEFT: cross back onto the timed list
+                    bulbPos = false; // optimistic claim - the display lands on 30 s
+                    camera.incrementShutterSpeed(); // the border toggle (decrement is a no-op from Bulb)
+                    bulbExitPendingAt = SystemClock.elapsedRealtime();
                     handler.postDelayed(bulbExitConfirm, BULB_EXIT_CONFIRM_MS);
-                }
+                } // else RIGHT: the list's end - clamp
             } else if (dir > 0) {
-                if (atTimedEndStop()) {
-                    // 0.4.0 - cross the break: RIGHT from the 30 s end stop is
-                    // the same increment that, once at Bulb, lands back on
-                    // 30 s. Claim Bulb optimistically (mirrors the floor exit)
-                    // so a held key's repeats edit the bulb seconds instead of
-                    // ping-ponging the breakover, and floor the duration so
-                    // the dial reads 30 s -> BULB 5 s -> BULB n. The callback
-                    // confirms (listener) or the 1.5 s self-check reverts.
-                    bulbEnterPrevS = config.bulbSeconds();
-                    config.resetBulbToFloor();
-                    bulbPos = true;
+                if (atTimedEndStop()) { // RIGHT at 30 s: cross onto BULB
+                    bulbPos = true; // optimistic claim - the stored duration rides along, no reset
                     bulbEnterPendingAt = SystemClock.elapsedRealtime();
                     handler.postDelayed(bulbEnterConfirm, BULB_ENTER_CONFIRM_MS);
-                    camera.incrementShutterSpeed(); // one step past the end stop
+                    camera.decrementShutterSpeed(); // one step past the slow end - the SAME longer-direction step as the whole timed walk crosses onto Bulb (0.4.0h; the old increment just steps 30 s -> 25 s, Bulb never echoes)
                 } else {
-                    camera.incrementShutterSpeed();
+                    camera.decrementShutterSpeed(); // RIGHT: step longer - the HAL walks decrement toward slower (0.4.0g)
                 }
             } else {
-                camera.decrementShutterSpeed();
+                camera.incrementShutterSpeed(); // LEFT: step shorter - the fast end clamps
             }
         } catch (Throwable t) {
             Logger.error("shutter step: " + t); // e.g. mode disallows stepping - field keeps showing the camera's value
         }
         // Plain timed steps refresh on the ShutterSpeedChange callback (an
-        // immediate showConfig would repaint a stale value); the breakover
-        // entry shows BULB 5 s immediately (optimistic bulbPos + floored
-        // seconds) and bulb-seconds edits repaint via adjust()'s showConfig.
+        // immediate showConfig would repaint a stale value); the crossing
+        // claims paint immediately (adjust()'s showConfig shows the claimed
+        // side; the confirm or the timeout repaints the truth).
+    }
+
+    /**
+     * 0.4.0f: a border crossing still unconfirmed when a run or single shot
+     * fires would race the capture's timing basis (bulbShotMs freezes from
+     * the claim). There is no getter to verify against - the callback either
+     * already confirmed (flag clear) or never came. Adopt the claim, cancel
+     * its timeout, and log the adoption; a late contradicting callback then
+     * settles the mirror the usual way.
+     */
+    private void settleBulbCrossing() {
+        if (bulbExitPendingAt != 0) {
+            handler.removeCallbacks(bulbExitConfirm);
+            bulbExitPendingAt = 0;
+            Logger.info("bulb exit claim adopted at fire time (unconfirmed)");
+        }
+        if (bulbEnterPendingAt != 0) {
+            handler.removeCallbacks(bulbEnterConfirm);
+            bulbEnterPendingAt = 0;
+            Logger.info("bulb entry claim adopted at fire time (unconfirmed)");
+        }
     }
 
     // --- ISO control (0.2.12) ---
@@ -2008,7 +2071,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             catSel = (catSel + 3) % 4; // tabs: previous category (wraps)
             showConfig();
         } else {
-            adjust(-1); // item: step the value down (LEFT exits Bulb at the 5 s floor); the adjust paths repaint
+            adjust(-1); // item: step the value down (LEFT in BULB crosses back to timed); the adjust paths repaint
         }
         return true;
     }
@@ -2039,8 +2102,9 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
      * ENTER (0.4.0, tap extended 0.4.0c): hold it on any item (or tab) for
      * its help card; the card stays open after the release - any key press
      * closes it (helpGate, which also eats that press's release). A tap is
-     * still a no-op EXCEPT on a CUSTOM slot, where it opens the value
-     * editor. Dead mid-run (busy) and during PWR sleep, as before.
+     * still a no-op EXCEPT on a CUSTOM slot or the Exposure field's BULB
+     * position, where it opens the value editor (0.4.0f). Dead mid-run
+     * (busy) and during PWR sleep, as before.
      */
     @Override
     protected boolean onEnterKeyDown() {
@@ -2255,6 +2319,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
         summaryShown = false;
         runEnding = false;
         consecutiveFwRejects = 0;
+        settleBulbCrossing(); // 0.4.0f: never freeze bulbShotMs off an unconfirmed border claim
         bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0; // frozen per run - config changes mid-run do not apply
         Logger.info("exposure: " + exposureStr() + ", F " + fStr() + ", ISO " + isoStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
@@ -2297,6 +2362,7 @@ public class IntervalActivity extends BaseActivity implements SurfaceHolder.Call
             Logger.info("shot now skipped - capture in flight");
             return;
         }
+        settleBulbCrossing(); // 0.4.0f: never freeze bulbShotMs off an unconfirmed border claim
         bulbShotMs = bulbPos ? config.bulbSeconds() * 1000L : 0;
         Logger.info("shot now: exposure " + exposureStr() + ", F " + fStr() + (bulbShotMs > 0
                 ? " - bulb, app ends exposure via cancelExposure"
